@@ -1,0 +1,250 @@
+Регион сервера	Server hududi	Server region
+Регистрация	Roʻyxatdan oʻtish	Sign up
+Регистрация 1v1	1v1 roʻyxatdan oʻtish	1v1 registration
+Регистрация аккаунта	Akkaunt yaratish	Create account
+Регистрация закрыта	Roʻyxatdan oʻtish yopiq	Registration closed
+Регистрация закрыта. Можно проводить жеребьёвку.	Roʻyxat yopildi. Qurʼa tashlash mumkin.	Registration closed. You can run the draw.
+Регистрация и даты	Roʻyxatdan oʻtish va sanalar	Registration and dates
+Регистрация открыта	Roʻyxatdan oʻtish ochiq	Registration open
+Регистрация отменена	Roʻyxatdan oʻtish bekor qilindi	Registration cancelled
+Регистрация подтверждена	Roʻyxatdan oʻtish tasdiqlandi	Registration confirmed
+Регистрация сейчас закрыта	Hozir roʻyxatdan oʻtish yopiq	Registration is closed right now
+Регистрация уже закрыта	Roʻyxat allaqachon yopilgan	Registration is already closed
+Редактирование: {title}	Tahrirlash: {title}	Editing: {title}
+Режим	Rejim	Mode
+Результат оспорен — матч передан судье	Natijaga eʼtiroz bildirildi — uchrashuv hakamga oʻtdi	Result disputed — the match went to a referee
+Результат отправлен. Ждём подтверждения соперника	Natija yuborildi. Raqib tasdigʻini kutyapmiz	Result sent. Waiting for the opponent
+Результат подтверждён	Natija tasdiqlandi	Result confirmed
+Результат подтверждён обеими сторонами ({player})	Natija ikkala tomon tomonidan tasdiqlandi ({player})	Result confirmed by both sides ({player})
+Результат уже утверждён	Natija allaqachon tasdiqlangan	The result is already official
+Результат установлен судьёй {player}	Natijani hakam {player} belgiladi	Result set by referee {player}
+Результат утверждён	Natija tasdiqlandi	Result is official
+Результаты без ответа больше 12 часов	12 soatdan ortiq javobsiz natijalar	Results unanswered for over 12 hours
+Результаты не совпали — матч передан судье	Natijalar mos kelmadi — uchrashuv hakamga oʻtdi	Results didn’t match — the match went to a referee
+Результаты совпали — матч утверждён	Natijalar mos keldi — uchrashuv tasdiqlandi	Results matched — the match is official
+Решение	Qaror	Decision
+Решение / комментарий	Qaror / izoh	Decision / comment
+Роли меняет только супер-администратор	Rollarni faqat super-administrator oʻzgartiradi	Only the super admin can change roles
+Роль	Rol	Role
+Роль обновлена	Rol yangilandi	Role updated
+Сайт развёрнут, но база данных ещё не подключена. В Vercel откройте проект → Storage → подключите Neon Postgres, затем добавьте переменную AUTH_SECRET и сделайте Redeploy.	Sayt ishga tushirildi, lekin maʼlumotlar bazasi hali ulanmagan. Vercel da loyihani oching → Storage → Neon Postgres ni ulang, soʻng AUTH_SECRET oʻzgaruvchisini qoʻshib, Redeploy qiling.	The site is deployed, but the database isn’t connected. In Vercel open the project → Storage → connect Neon Postgres, then add AUTH_SECRET and redeploy.
+Сбросить	Bekor qilish	Reset
+Сбросить можно только неопубликованную жеребьёвку	Faqat eʼlon qilinmagan qurʼani bekor qilish mumkin	Only an unpublished draw can be reset
+Сбросить предварительную жеребьёвку?	Dastlabki qurʼa bekor qilinsinmi?	Reset the preview draw?
+Свободно мест: {n}	Boʻsh joylar: {n}	Spots left: {n}
+Связаться с организаторами	Tashkilotchilar bilan bogʻlanish	Contact the organizers
+Сгенерировано матчей: {n}	Yaratilgan uchrashuvlar: {n}	Matches generated: {n}
+Сезон	Mavsum	Season
+Сезон / подпись	Mavsum / izoh	Season / subtitle
+Сезон 2026/27	2026/27 mavsumi	Season 2026/27
+Сезон, все играют со всеми, таблица	Mavsum, hamma hamma bilan, jadval	A season, everyone plays everyone, a table
+Серии	Seriyalar	Series
+Серия Bo{bo}: {h} – {a}	Bo{bo} seriya: {h} – {a}	Bo{bo} series: {h} – {a}
+Серия в группах / турах	Guruh / tur seriyasi	Series in groups / rounds
+Серия в группах/туре	Guruh/tur seriyasi	Series in groups/rounds
+Серия в плей-офф	Pley-off seriyasi	Playoff series
+Серия в финале	Final seriyasi	Final series
+Сетка	Setka	Bracket
+Сетка опубликована	Setka eʼlon qilindi	The bracket is published
+Сетка плей-офф ещё не сформирована	Pley-off setkasi hali tuzilmagan	The playoff bracket isn’t set yet
+Сетка плей-офф создана	Pley-off setkasi yaratildi	Playoff bracket created
+Сетка плей-офф уже создана	Pley-off setkasi allaqachon yaratilgan	The playoff bracket already exists
+Скопировано	Nusxalandi	Copied
+Скоро	Tez orada	Upcoming
+Скоро здесь появится первое соревнование.	Tez orada bu yerda birinchi musobaqa paydo boʻladi.	The first competition is coming soon.
+Скрыть	Yashirish	Hide
+Скрыть (черновик)	Yashirish (qoralama)	Hide (draft)
+Следующий матч сетки уже сыгран — сначала исправьте его результат	Setkadagi keyingi uchrashuv allaqachon oʻynalgan — avval uning natijasini tuzating	The next bracket match is already played — fix its result first
+Сменить пароль	Parolni almashtirish	Change password
+Сменить статус	Holatni oʻzgartirish	Change status
+Сначала войдите в аккаунт	Avval akkauntga kiring	Log in first
+Сначала закройте регистрацию	Avval roʻyxatni yoping	Close registration first
+Сначала опубликуйте жеребьёвку	Avval qurʼani eʼlon qiling	Publish the draw first
+Сначала сбросьте жеребьёвку	Avval qurʼani bekor qiling	Reset the draw first
+Сначала сбросьте предварительную жеребьёвку	Avval dastlabki qurʼani bekor qiling	Reset the preview draw first
+Снять	Olib tashlash	Remove
+Снять участника с соревнования?	Ishtirokchi musobaqadan olib tashlansinmi?	Remove this participant from the competition?
+Создайте аккаунт с вашим Rocket League ID	Rocket League ID bilan akkaunt yarating	Create an account with your Rocket League ID
+Создайте аккаунт с вашим ником и Rocket League ID, откройте соревнование и нажмите «Зарегистрироваться». Данные подтянутся из профиля.	Nik va Rocket League ID bilan akkaunt yarating, musobaqani oching va «Roʻyxatdan oʻtish» tugmasini bosing. Maʼlumotlar profildan olinadi.	Create an account with your nickname and Rocket League ID, open a competition and tap “Sign up”. Your details come from your profile.
+Создайте первую лигу или кубок.	Birinchi liga yoki kubokni yarating.	Create your first league or cup.
+Создание команды 2v2	2v2 jamoa yaratish	Create a 2v2 team
+Создать	Yaratish	Create one
+Создать аккаунт	Akkaunt yaratish	Create account
+Создать команду	Jamoa yaratish	Create team
+Создать плей-офф	Pley-off yaratish	Create playoffs
+Создать соревнование	Musobaqa yaratish	Create competition
+Создаём…	Yaratilmoqda…	Creating…
+Соперник отправил результат	Raqib natijani yubordi	Your opponent submitted a result
+Соперник отправил счёт	Raqib hisobni yubordi	Your opponent sent the score
+Соперники ещё не определены	Raqiblar hali aniqlanmagan	Opponents aren’t set yet
+Соперники и расписание уже на сайте	Raqiblar va jadval allaqachon saytda	Opponents and schedule are on the site
+Соревнование	Musobaqa	Competition
+Соревнование завершено.	Musobaqa yakunlandi.	The competition is over.
+Соревнование не найдено	Musobaqa topilmadi	Competition not found
+Соревнование скрыто (черновик)	Musobaqa yashirildi (qoralama)	Competition hidden (draft)
+Соревнование создано. Откройте регистрацию, когда будете готовы.	Musobaqa yaratildi. Tayyor boʻlganingizda roʻyxatni oching.	Competition created. Open registration when you’re ready.
+Соревнование создаётся черновиком. Участники увидят его, когда вы откроете регистрацию.	Musobaqa qoralama sifatida yaratiladi. Roʻyxatni ochganingizda ishtirokchilar uni koʻradi.	The competition starts as a draft. Participants see it once you open registration.
+Соревнование удалено	Musobaqa oʻchirildi	Competition deleted
+Соревнований пока нет	Hozircha musobaqalar yoʻq	No competitions yet
+Соревнования	Musobaqalar	Competitions
+Состав	Tarkib	Roster
+Состояние	Holat	Status
+Сохранено	Saqlandi	Saved
+Сохранить	Saqlash	Save
+Сохранить время	Vaqtni saqlash	Save time
+Сохраняем…	Saqlanmoqda…	Saving…
+Спец.	Maxsus	Special
+Специальная награда	Maxsus mukofot	Special award
+Спор в матче #{n}	#{n} uchrashuvda bahs	Dispute in match #{n}
+Спор: сравните отчёты ниже и установите официальный результат.	Bahs: quyidagi hisobotlarni solishtiring va rasmiy natijani belgilang.	Dispute: compare the reports below and set the official result.
+Споров	Bahslar	Disputes
+Споры	Bahslar	Disputes
+Срок регистрации истёк	Roʻyxatdan oʻtish muddati tugagan	The registration deadline has passed
+Срок регистрации истёк — отмена недоступна	Roʻyxatdan oʻtish muddati tugagan — bekor qilib boʻlmaydi	The deadline has passed — you can’t cancel
+Срок регистрации истёк.	Roʻyxatdan oʻtish muddati tugagan.	The registration deadline has passed.
+Ссылка на доказательство	Dalil havolasi	Proof link
+Ссылка на логотип	Logotip havolasi	Logo link
+Ссылка на скриншот (необязательно)	Skrinshot havolasi (ixtiyoriy)	Screenshot link (optional)
+Ссылка устарела или команда уже собрана.	Havola eskirgan yoki jamoa allaqachon toʻliq.	The link is outdated or the team is already full.
+Старт	Boshlanish	Start
+Старт соревнования	Musobaqa boshlanishi	Competition start
+Старт: {date}	Boshlanish: {date}	Starts {date}
+Статистика	Statistika	Stats
+Статус	Holat	Status
+Статус выплат	Toʻlov holati	Payout status
+Статус выплат:	Toʻlov holati:	Payout status:
+Статус изменён: {status}	Holat oʻzgardi: {status}	Status changed: {status}
+Статус обновлён	Holat yangilandi	Status updated
+Стороны прислали разные результаты — матч передан судье	Tomonlar turli natijalar yubordi — uchrashuv hakamga oʻtdi	The sides sent different results — the match went to a referee
+Страница не найдена	Sahifa topilmadi	Page not found
+Судейская	Hakamlik	Referee
+Судейская панель	Hakam paneli	Referee panel
+Судья	Hakam	Referee
+Судья рассмотрит доказательства	Hakam dalillarni koʻrib chiqadi	A referee will review the evidence
+Судья рассмотрит спор	Hakam bahsni koʻrib chiqadi	A referee will review the dispute
+Сумма	Summa	Amount
+Супер-администратор	Super-administrator	Super admin
+Счёт	Hisob	Score
+Счёт указан как {home} – {away}. Отправил: {who}.	Hisob {home} – {away} tartibida koʻrsatilgan. Yuborgan: {who}.	Score shown as {home} – {away}. Sent by {who}.
+Сыграйте и отправьте счёт, соперник подтверждает	Oʻynang va hisobni yuboring, raqib tasdiqlaydi	Play and send the score; your opponent confirms
+Сыгранных матчей пока нет	Hozircha oʻynalgan uchrashuvlar yoʻq	No matches played yet
+Сыграно	Oʻynalgan	Played
+Сыграно матчей	Oʻynalgan uchrashuvlar	Matches played
+ТП	TM	FF
+Таблица	Jadval	Table
+Таблица появится после жеребьёвки	Jadval qurʼadan keyin paydo boʻladi	The table appears after the draw
+Такое название уже есть	Bunday nom allaqachon bor	That name already exists
+Текст	Matn	Text
+Текущее время сервера:	Serverning joriy vaqti:	Current server time:
+Текущий пароль	Joriy parol	Current password
+Текущий пароль неверный	Joriy parol notoʻgʻri	The current password is wrong
+Техническая победа	Texnik gʻalaba	Forfeit win
+Техническая победа назначена судьёй {player}	Texnik gʻalabani hakam {player} belgiladi	Forfeit win awarded by referee {player}
+Тип	Turi	Type
+Только мои	Faqat meniki	Only mine
+Только плей-офф	Faqat pley-off	Playoffs only
+Требования к регистрации	Roʻyxatdan oʻtish talablari	Registration requirements
+Тур	Tur	Round
+Тур {n}	{n}-tur	Round {n}
+Турнирная сетка	Turnir setkasi	Tournament structure
+УДАЛИТЬ	OʻCHIRISH	DELETE
+Убрать игру	Oʻyinni olib tashlash	Remove game
+Уведомлений пока нет	Hozircha bildirishnomalar yoʻq	No notifications yet
+Уведомления	Bildirishnomalar	Notifications
+Уведомления: {n} новых	Bildirishnomalar: {n} ta yangi	Notifications: {n} new
+Удалит заявки, матчи и результаты без возможности восстановления.	Arizalar, uchrashuvlar va natijalar qayta tiklanmaydigan tarzda oʻchiriladi.	Deletes entries, matches and results permanently.
+Удалить	Oʻchirish	Delete
+Удалить награду?	Mukofot oʻchirilsinmi?	Delete this prize?
+Удалить объявление?	Eʼlon oʻchirilsinmi?	Delete this announcement?
+Удалить правило?	Qoida oʻchirilsinmi?	Delete this rule?
+Удалить соревнование	Musobaqani oʻchirish	Delete competition
+Удалять соревнования может только супер-администратор	Musobaqalarni faqat super-administrator oʻchira oladi	Only the super admin can delete competitions
+Уже {n} активных заявок: вместимость не может быть меньше	Allaqachon {n} ta faol ariza bor: sigʻim bundan kam boʻlolmaydi	There are already {n} active entries: capacity can’t be lower
+Уже есть аккаунт?	Akkauntingiz bormi?	Already have an account?
+Укажите дату и время	Sana va vaqtni kiriting	Enter a date and time
+Указан на странице «Призы» каждого соревнования. Если суммы там нет, организатор их ещё не объявил.	Har bir musobaqaning «Sovrinlar» sahifasida koʻrsatilgan. U yerda summa boʻlmasa, tashkilotchi hali eʼlon qilmagan.	It’s on each competition’s Prizes page. If there’s no amount, the organizer hasn’t announced it yet.
+Управлять	Boshqarish	Manage
+Условия	Shartlar	Terms
+Условия выплаты	Toʻlov shartlari	Payout terms
+Условия выплаты публикует организатор на странице призов. Там же отображается статус выплат.	Toʻlov shartlarini tashkilotchi sovrinlar sahifasida eʼlon qiladi. Toʻlov holati ham oʻsha yerda koʻrsatiladi.	The organizer publishes payout terms on the prizes page, along with the payout status.
+Утвердить результат	Natijani tasdiqlash	Make result official
+Утвердить результат? Таблица и сетка обновятся.	Natija tasdiqlansinmi? Jadval va setka yangilanadi.	Make the result official? The table and bracket will update.
+Участник	Ishtirokchi	Participant
+Участник проходит дальше без игры	Ishtirokchi oʻyinsiz keyingi bosqichga oʻtadi	Advances without playing
+Участники	Ishtirokchilar	Participants
+Участники: {n} из {cap}	Ishtirokchilar: {cap} tadan {n} ta	Participants: {n} of {cap}
+Фан-платформа, не связана с Psyonix и Epic Games.	Muxlislar platformasi, Psyonix va Epic Games bilan bogʻliq emas.	Fan platform, not affiliated with Psyonix or Epic Games.
+Фильтр	Filtr	Filter
+Финал	Final	Final
+Финалист	Finalchi	Finalist
+Форма	Forma	Form
+Формат	Format	Format
+Хозяева	Mezbonlar	Home
+Часовой пояс	Vaqt mintaqasi	Time zone
+Чек-ин	Chek-in	Check-in
+Чек-ин доступен только подтверждённым участникам	Chek-in faqat tasdiqlangan ishtirokchilar uchun	Check-in is only for confirmed participants
+Чек-ин закрыт	Chek-in yopildi	Check-in closed
+Чек-ин открыт, участники уведомлены	Chek-in ochildi, ishtirokchilarga xabar berildi	Check-in open, participants notified
+Чек-ин пройден	Chek-indan oʻtildi	Checked in
+Чек-ин сейчас закрыт	Hozir chek-in yopiq	Check-in is closed right now
+Чем лига отличается от кубка?	Liga kubokdan nimasi bilan farq qiladi?	How is a league different from a cup?
+Чемпион	Chempion	Champion
+Чемпион, MVP…	Chempion, MVP…	Champion, MVP…
+Чемпион: {champion}	Chempion: {champion}	Champion: {champion}
+Через запятую: points, goal_diff, goals_for, head_to_head, wins	Vergul bilan: points, goal_diff, goals_for, head_to_head, wins	Comma-separated: points, goal_diff, goals_for, head_to_head, wins
+Черновик	Qoralama	Draft
+Честная игра	Halol oʻyin	Fair play
+Что если соперник не согласен?	Raqib rozi boʻlmasa-chi?	What if my opponent disagrees?
+Что такое bye в сетке?	Setkadagi bye nima?	What is a bye?
+Что такое лист ожидания?	Kutish roʻyxati nima?	What is the waiting list?
+Что-то пошло не так	Nimadir notoʻgʻri ketdi	Something went wrong
+Что-то пошло не так. Попробуйте ещё раз.	Nimadir notoʻgʻri ketdi. Qayta urinib koʻring.	Something went wrong. Please try again.
+Чтобы провести жеребьёвку, закройте регистрацию.	Qurʼa tashlash uchun roʻyxatni yoping.	Close registration to run the draw.
+Экспорт CSV	CSV eksport	Export CSV
+Этап	Bosqich	Stage
+Этап:	Bosqich:	Stage:
+Это ваша команда — отправьте ссылку напарнику	Bu sizning jamoangiz — havolani sherigingizga yuboring	This is your team — send the link to your teammate
+Это проход без игры (bye)	Bu oʻyinsiz oʻtish (bye)	This is a bye
+Это соревнование для игроков 1v1	Bu musobaqa 1v1 oʻyinchilar uchun	This competition is for 1v1 players
+Это соревнование для команд 2v2	Bu musobaqa 2v2 jamoalar uchun	This competition is for 2v2 teams
+Этот Rocket League аккаунт уже зарегистрирован	Bu Rocket League akkaunti allaqachon roʻyxatdan oʻtgan	This Rocket League account is already registered
+Этот email уже зарегистрирован	Bu email allaqachon roʻyxatdan oʻtgan	This email is already registered
+Этот ник или Rocket League аккаунт уже занят	Bu nik yoki Rocket League akkaunti band	This nickname or Rocket League account is taken
+Этот ник уже занят	Bu nik band	This nickname is taken
+Я подтверждаю участие и согласен(на) с правилами	Ishtirokimni tasdiqlayman va qoidalarga roziman	I confirm my participation and accept the rules
+Я прочитал(а) правила соревнования и согласен(на) с ними	Musobaqa qoidalarini oʻqidim va ularga roziman	I have read and accept the competition rules
+Язык	Til	Language
+в листе ожидания: {n}	kutish roʻyxatida: {n}	waiting list: {n}
+выплачено	toʻlandi	paid
+голов забито	urilgan gollar	goals scored
+да	ha	yes
+дней	kun	days
+ждёт ответа	javob kutmoqda	awaiting reply
+заменён	almashtirilgan	replaced
+игроков	oʻyinchilar	players
+команд 2v2	2v2 jamoalar	2v2 teams
+матчей	uchrashuvlar	matches
+матчей сыграно	uchrashuv oʻynalgan	matches played
+минут	daqiqa	minutes
+на главной	bosh sahifada	featured
+на платформе с {date}	{date} dan beri platformada	on the platform since {date}
+неполные команды: {i}, на проверке: {p}, лист ожидания: {w}	toʻliq boʻlmagan jamoalar: {i}, tekshiruvda: {p}, kutish roʻyxati: {w}	incomplete teams: {i}, under review: {p}, waiting list: {w}
+новое	yangi	new
+нужно побед: {n}	kerakli gʻalabalar: {n}	wins needed: {n}
+ожидает выплаты	toʻlov kutilmoqda	payout pending
+открыть правила	qoidalarni ochish	open the rules
+побед	gʻalaba	wins
+побед в процентах	gʻalabalar foizi	win rate
+подтверждён	tasdiqlangan	confirmed
+поражений	magʻlubiyat	losses
+посев	saralash	seed
+проходов без игры (bye): {n}	oʻyinsiz oʻtishlar (bye): {n}	byes: {n}
+секунд	soniya	seconds
+серия завершена	seriya yakunlandi	series decided
+система	tizim	system
+спор	bahs	dispute
+тур {n}	{n}-tur	round {n}
+у вас {time}	sizda {time}	your time {time}
+часов	soat	hours
+чек-ин	chek-in	check-in
+← Все соревнования	← Barcha musobaqalar	← All competitions

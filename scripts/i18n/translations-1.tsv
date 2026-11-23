@@ -1,0 +1,261 @@
+(к)	(k)	(c)
+(подтверждены и прошли чек-ин)	(tasdiqlangan va chek-indan oʻtgan)	(confirmed and checked in)
+(подтверждённые заявки)	(tasdiqlangan arizalar)	(confirmed entries)
+1/{n} финала	1/{n} final	Round of {teams}
+1v1 — индивидуально	1v1 — yakka tartibda	1v1 — solo
+1v1, индивидуально	1v1, yakka tartibda	1v1, solo
+2v2 — команды по 2	2v2 — 2 kishilik jamoalar	2v2 — teams of 2
+2v2, команды по 2 игрока	2v2, 2 oʻyinchidan iborat jamoalar	2v2, teams of 2 players
+AUTH_SECRET не задан или короче 32 символов	AUTH_SECRET berilmagan yoki 32 belgidan qisqa	AUTH_SECRET is missing or shorter than 32 characters
+Discord сервер	Discord server	Discord server
+Discord: nickname или Telegram: @nickname	Discord: nickname yoki Telegram: @nickname	Discord: nickname or Telegram: @nickname
+Epic ID, PSN ID или Xbox Gamertag. Один аккаунт — одна регистрация.	Epic ID, PSN ID yoki Xbox Gamertag. Bitta akkaunt — bitta roʻyxatdan oʻtish.	Epic ID, PSN ID or Xbox Gamertag. One account, one registration.
+FAQ и контакты	FAQ va kontaktlar	FAQ and contacts
+{comp} завершён	{comp} yakunlandi	{comp} has finished
+{comp}: вы в основном списке	{comp}: siz asosiy roʻyxatdasiz	{comp}: you are in the main list
+{comp}: вы вышли в плей-офф!	{comp}: siz pley-offga chiqdingiz!	{comp}: you made the playoffs!
+{comp}: жеребьёвка опубликована	{comp}: qurʼa natijalari eʼlon qilindi	{comp}: the draw is published
+{comp}: заявка одобрена	{comp}: ariza tasdiqlandi	{comp}: entry approved
+{comp}: заявка отклонена администратором	{comp}: ariza administrator tomonidan rad etildi	{comp}: entry rejected by an admin
+{comp}: заявка снята администратором	{comp}: ariza administrator tomonidan olib tashlandi	{comp}: entry removed by an admin
+{comp}: освободилось место	{comp}: joy boʻshadi	{comp}: a spot opened up
+{comp}: открыт чек-ин	{comp}: chek-in ochildi	{comp}: check-in is open
+{comp}: расписание обновлено	{comp}: jadval yangilandi	{comp}: schedule updated
+{comp}: результат матча #{n} утверждён	{comp}: #{n} uchrashuv natijasi tasdiqlandi	{comp}: result of match #{n} is official
+{done} из {total} матчей	{total} ta uchrashuvdan {done} tasi	{done} of {total} matches
+{groups}, из каждой выходят {q}	{groups} ta, har biridan {q} tasi chiqadi	{groups}, top {q} of each advance
+{n}-е место	{n}-oʻrin	{n} place
+{player} оспорил результат: {comment}	{player} natijaga eʼtiroz bildirdi: {comment}	{player} disputed the result: {comment}
+{player} отправил результат, ждём подтверждения соперника	{player} natijani yubordi, raqib tasdigʻi kutilmoqda	{player} submitted the result, waiting for the opponent
+{player} подтвердил результат	{player} natijani tasdiqladi	{player} confirmed the result
+{team}: команда собрана	{team}: jamoa toʻliq	{team}: team is complete
+{team}: напарник покинул команду	{team}: sherik jamoani tark etdi	{team}: your teammate left the team
+«{label}»: выберите Bo1, Bo3, Bo5 или Bo7	«{label}»: Bo1, Bo3, Bo5 yoki Bo7 ni tanlang	“{label}”: choose Bo1, Bo3, Bo5 or Bo7
+«{label}»: максимум {n} символов	«{label}»: koʻpi bilan {n} ta belgi	“{label}”: at most {n} characters
+«{label}»: минимум {n} символов	«{label}»: kamida {n} ta belgi	“{label}”: at least {n} characters
+«{label}»: неверное число	«{label}»: notoʻgʻri son	“{label}”: invalid number
+«{label}»: нужна ссылка вида https://...	«{label}»: https://... koʻrinishidagi havola kerak	“{label}”: must be a link like https://...
+«{label}»: целое число от {min} до {max}	«{label}»: {min} dan {max} gacha butun son	“{label}”: a whole number from {min} to {max}
+· заблокировано после жеребьёвки	· qurʼadan keyin bloklangan	· locked after the draw
+Абстрактная арена с мячом и машиной	Toʻp va mashina tasvirlangan abstrakt arena	Abstract arena with a ball and a car
+Админ-панель	Admin panel	Admin panel
+Администратор	Administrator	Admin
+Администратор проверит заявку. Мы пришлём уведомление.	Administrator arizani koʻrib chiqadi. Sizga bildirishnoma yuboramiz.	An admin will review the entry. We'll notify you.
+Админка	Admin panel	Admin
+Аккаунт создан. Выберите соревнование и зарегистрируйтесь.	Akkaunt yaratildi. Musobaqani tanlang va roʻyxatdan oʻting.	Account created. Pick a competition and sign up.
+Аккаунт хранит ваш ник и Rocket League ID, поэтому регистрация в соревнованиях занимает один клик.	Akkauntda nikingiz va Rocket League ID saqlanadi, shuning uchun musobaqalarga bir bosishda yozilasiz.	Your account stores your nickname and Rocket League ID, so joining competitions takes one click.
+Активных матчей	Faol uchrashuvlar	Active matches
+Архив	Arxiv	Archive
+База данных не настроена (DATABASE_URL)	Maʼlumotlar bazasi sozlanmagan (DATABASE_URL)	Database is not configured (DATABASE_URL)
+Ближайшие матчи	Yaqin uchrashuvlar	Upcoming matches
+Бронза	Bronza	Bronze
+Будет объявлен	Eʼlon qilinadi	To be announced
+В	G	W
+В команде уже нет свободного места.	Jamoada boʻsh joy qolmagan.	The team is already full.
+В листе ожидания	Kutish roʻyxatida	On the waiting list
+В основной список	Asosiy roʻyxatga	Move to main list
+В разделе «Матчи» соревнования (фильтр «Только мои») или в своём кабинете. Об изменениях расписания приходит уведомление.	Musobaqaning «Uchrashuvlar» boʻlimida («Faqat meniki» filtri) yoki shaxsiy kabinetingizda. Jadval oʻzgarsa, bildirishnoma keladi.	In the competition’s Matches tab (the “Only mine” filter) or in your dashboard. You get a notification when the schedule changes.
+В этой команде уже нет свободного места	Bu jamoada boʻsh joy qolmagan	This team is already full
+Валюта	Valyuta	Currency
+Валюта: трёхбуквенный код, например USD или UZS	Valyuta: uch harfli kod, masalan USD yoki UZS	Currency: a three-letter code, e.g. USD or UZS
+Вас приглашают в команду «{team}»	Sizni «{team}» jamoasiga taklif qilishmoqda	You’re invited to join “{team}”
+Ваш номер участника: #{n}	Ishtirokchi raqamingiz: #{n}	Your participant number: #{n}
+Ваш следующий соперник определён (матч #{n})	Keyingi raqibingiz aniqlandi (#{n} uchrashuv)	Your next opponent is set (match #{n})
+Ваша команда: {team}	Jamoangiz: {team}	Your team: {team}
+Ваша платформа не допущена к этому соревнованию	Platformangiz bu musobaqaga ruxsat etilmagan	Your platform isn’t allowed in this competition
+Введите УДАЛИТЬ	OʻCHIRISH deb yozing	Type DELETE
+Введите УДАЛИТЬ для подтверждения	Tasdiqlash uchun OʻCHIRISH deb yozing	Type DELETE to confirm
+Введите счёт каждой игры	Har bir oʻyin hisobini kiriting	Enter the score of each game
+Введите счёт каждой игры. Когда соперник подтвердит, результат станет официальным.	Har bir oʻyin hisobini kiriting. Raqib tasdiqlagach, natija rasmiy boʻladi.	Enter the score of each game. Once the opponent confirms, the result becomes official.
+Возможно, ссылка устарела или соревнование ещё не опубликовано.	Ehtimol, havola eskirgan yoki musobaqa hali eʼlon qilinmagan.	The link may be outdated, or the competition isn’t published yet.
+Возражение:	Eʼtiroz:	Objection:
+Войти	Kirish	Log in
+Вопросы и ответы	Savol va javoblar	Questions and answers
+Время	Vaqt	Time
+Время (UTC)	Vaqt (UTC)	Time (UTC)
+Время в поясе {tz}. Участники получат уведомление.	{tz} vaqt mintaqasi boʻyicha. Ishtirokchilarga bildirishnoma boradi.	Time in {tz}. Participants will be notified.
+Время матча	Uchrashuv vaqti	Match time
+Время матча снято	Uchrashuv vaqti bekor qilindi	Match time cleared
+Время не назначено	Vaqt belgilanmagan	Time not set
+Время указано в часовом поясе {tz}.	Vaqt {tz} mintaqasi boʻyicha koʻrsatilgan.	Times are shown in {tz}.
+Все	Hammasi	All
+Все матчи	Barcha uchrashuvlar	All matches
+Все места заняты. Вы попадёте в лист ожидания и получите место автоматически, если кто-то отменит участие.	Barcha joylar band. Siz kutish roʻyxatiga tushasiz va kimdir ishtirokini bekor qilsa, joy avtomatik beriladi.	All spots are taken. You’ll join the waiting list and get a spot automatically if someone drops out.
+Все статусы	Barcha holatlar	All statuses
+Встать в лист ожидания	Kutish roʻyxatiga yozilish	Join the waiting list
+Вступить в команду	Jamoaga qoʻshilish	Join the team
+Вход	Kirish	Log in
+Входим…	Kirilmoqda…	Logging in…
+Вы в списке участников	Siz ishtirokchilar roʻyxatidasiz	You’re on the participant list
+Вы ещё не участвуете ни в одном соревновании.	Siz hali birorta musobaqada qatnashmayapsiz.	You aren’t in any competition yet.
+Вы зарегистрированы	Siz roʻyxatdan oʻtgansiz	You’re registered
+Вы не состоите в этой заявке	Siz bu arizada yoʻqsiz	You aren’t part of this entry
+Вы покинули команду	Siz jamoani tark etdingiz	You left the team
+Вы уже зарегистрированы в этом соревновании	Siz bu musobaqada allaqachon roʻyxatdan oʻtgansiz	You’re already registered in this competition
+Вы уже отправили результат	Natijani allaqachon yubordingiz	You’ve already submitted a result
+Вы уже участвуете в этом соревновании	Siz bu musobaqada allaqachon qatnashyapsiz	You’re already in this competition
+Выберите	Tanlang	Choose
+Выберите «{label}»	«{label}» ni tanlang	Choose “{label}”
+Выберите лигу или кубок, 1v1 или 2v2	Liga yoki kubokni, 1v1 yoki 2v2 ni tanlang	Pick a league or a cup, 1v1 or 2v2
+Выберите тур	Turni tanlang	Choose a round
+Выберите хотя бы одну платформу	Kamida bitta platformani tanlang	Choose at least one platform
+Выбрать соревнование	Musobaqani tanlash	Choose a competition
+Выйти	Chiqish	Log out
+Выплата	Toʻlov	Payout
+Выплачено	Toʻlandi	Paid
+Выплачено частично	Qisman toʻlandi	Partially paid
+Выход в плей-офф	Pley-offga chiqish	Playoff spots
+Выходят из группы	Guruhdan chiqadi	Advance from group
+Выходят из каждой группы	Har bir guruhdan chiqadi	Advance from each group
+Где найти своего соперника и время матча?	Raqibim va uchrashuv vaqtini qayerdan topaman?	Where do I find my opponent and match time?
+Голы	Gollar	Goals
+Голы в сумме:	Jami gollar:	Total goals:
+Голы гостей	Mehmonlar gollari	Away goals
+Голы забито	Urilgan gollar	Goals scored
+Голы пропущено	Oʻtkazib yuborilgan gollar	Goals conceded
+Голы хозяев	Mezbonlar gollari	Home goals
+Гости	Mehmonlar	Away
+Готов к игре	Oʻyinga tayyor	Ready to play
+Готово	Tayyor	Done
+Готовы	Tayyor	Ready
+Группа	Guruh	Group
+Группа {letter}	{letter} guruh	Group {letter}
+Групповой этап не завершён: осталось матчей: {n}	Guruh bosqichi tugamagan: qolgan uchrashuvlar: {n}	Group stage isn’t finished: matches left: {n}
+Групповой этап: осталось матчей: {n}. Плей-офф создастся автоматически после последнего матча.	Guruh bosqichi: qolgan uchrashuvlar: {n}. Oxirgi uchrashuvdan soʻng pley-off avtomatik yaratiladi.	Group stage: matches left: {n}. The playoffs are created automatically after the last match.
+Группы	Guruhlar	Groups
+Группы + плей-офф	Guruhlar + pley-off	Groups + playoffs
+Да, в своём кабинете или на странице соревнования, до окончания срока регистрации и до жеребьёвки.	Ha, shaxsiy kabinetda yoki musobaqa sahifasida, roʻyxatdan oʻtish muddati tugaguncha va qurʼagacha.	Yes, in your dashboard or on the competition page, before the registration deadline and before the draw.
+Данные берутся из профиля.	Maʼlumotlar profildan olinadi.	Details come from your profile.
+Данных пока нет	Hozircha maʼlumot yoʻq	No data yet
+Дата не назначена	Sana belgilanmagan	Date not set
+Даты, вместимость, формат и регион настраиваются отдельно для каждого соревнования.	Sanalar, sigʻim, format va hudud har bir musobaqa uchun alohida sozlanadi.	Dates, capacity, format and region are set per competition.
+Два круга (дома и в гостях)	Ikki davra (uyda va mehmonda)	Two legs (home and away)
+Действие	Amal	Action
+Действия	Amallar	Actions
+Детали	Tafsilotlar	Details
+Дисконнекты и технические проблемы	Uzilishlar va texnik muammolar	Disconnects and technical issues
+Для 2v2 пригласите напарника по ссылке	2v2 uchun sherigingizni havola orqali taklif qiling	For 2v2, invite your teammate with a link
+Для всех	Hamma uchun	Everyone
+Для жеребьёвки нужно минимум 2 подтверждённых участника	Qurʼa uchun kamida 2 ta tasdiqlangan ishtirokchi kerak	The draw needs at least 2 confirmed participants
+Для жеребьёвки нужно минимум 2 подтверждённых участника с пройденным чек-ином	Qurʼa uchun chek-indan oʻtgan kamida 2 ta tasdiqlangan ishtirokchi kerak	The draw needs at least 2 confirmed, checked-in participants
+Для лиги: размер призовой зоны в таблице	Liga uchun: jadvaldagi sovrinli zona hajmi	For leagues: size of the prize zone in the table
+Для формата «Группы + плей-офф»	«Guruhlar + pley-off» formati uchun	For the “Groups + playoffs” format
+До старта	Boshlanishigacha	Until kickoff
+Добавить	Qoʻshish	Add
+Добавить игру	Oʻyin qoʻshish	Add game
+Добавить награду	Mukofot qoʻshish	Add prize
+Добавить правило	Qoida qoʻshish	Add rule
+Добро пожаловать!	Xush kelibsiz!	Welcome!
+Доказательство	Dalil	Proof
+Должно быть уникальным в этом соревновании	Bu musobaqada takrorlanmas boʻlishi kerak	Must be unique in this competition
+Допущено к жеребьёвке	Qurʼaga qoʻyilgan	Eligible for the draw
+Достижения	Yutuqlar	Achievements
+Если места закончились, заявка встаёт в очередь. Когда кто-то отменяет участие, первая заявка из очереди автоматически получает место, а вы получаете уведомление.	Joylar tugasa, ariza navbatga qoʻyiladi. Kimdir ishtirokini bekor qilsa, navbatdagi birinchi ariza avtomatik joy oladi va sizga bildirishnoma keladi.	When spots run out, entries queue up. When someone drops out, the first entry in the queue gets the spot automatically and you’re notified.
+Если участников не степень двойки (например, 12 вместо 16), часть сильнейших по посеву проходит первый раунд без игры.	Agar ishtirokchilar soni ikkining darajasi boʻlmasa (masalan, 16 oʻrniga 12), saralashdagi eng kuchlilarning bir qismi birinchi raunddan oʻyinsiz oʻtadi.	If the field isn’t a power of two (e.g. 12 instead of 16), some top seeds skip the first round.
+Есть ли автоматическая интеграция с игрой?	Oʻyin bilan avtomatik integratsiya bormi?	Is there automatic integration with the game?
+Ждут подтверждения	Tasdiq kutilmoqda	Awaiting confirmation
+Ждём подтверждения соперника. Можно отправить исправленный счёт, старый будет заменён.	Raqib tasdigʻini kutyapmiz. Tuzatilgan hisobni yuborishingiz mumkin, eskisi almashtiriladi.	Waiting for the opponent. You can send a corrected score; the old one will be replaced.
+Ждёт второго игрока	Ikkinchi oʻyinchini kutmoqda	Waiting for teammate
+Жеребьёвка	Qurʼa	Draw
+Жеребьёвка ещё не опубликована	Qurʼa hali eʼlon qilinmagan	The draw isn’t published yet
+Жеребьёвка ещё не проведена	Qurʼa hali tashlanmagan	The draw hasn’t happened yet
+Жеребьёвка опубликована. Участники получили уведомления.	Qurʼa eʼlon qilindi. Ishtirokchilarga bildirishnoma yuborildi.	The draw is published. Participants have been notified.
+Жеребьёвка опубликована: состав участников заблокирован	Qurʼa eʼlon qilingan: ishtirokchilar tarkibi bloklangan	The draw is published: the field is locked
+Жеребьёвка проведена. Проверьте результат и опубликуйте.	Qurʼa tashlandi. Natijani tekshiring va eʼlon qiling.	The draw is done. Review it and publish.
+Жеребьёвка с посевом (корзины)	Saralash bilan qurʼa (savatlar)	Seeded draw (pots)
+Жеребьёвка сброшена	Qurʼa bekor qilindi	Draw reset
+Жеребьёвка уже опубликована	Qurʼa allaqachon eʼlon qilingan	The draw is already published
+Жеребьёвка уже опубликована и заблокирована	Qurʼa allaqachon eʼlon qilingan va bloklangan	The draw is already published and locked
+Жеребьёвка, группы, плей-офф	Qurʼa, guruhlar, pley-off	Draw, groups, playoffs
+Журнал	Jurnal	Log
+Журнал действий	Amallar jurnali	Activity log
+ЗГ	UG	GF
+Завершены	Yakunlangan	Completed
+Завершён	Yakunlangan	Completed
+Загляните позже или следите за объявлениями.	Keyinroq kiring yoki eʼlonlarni kuzatib boring.	Check back later or follow the announcements.
+Заголовок	Sarlavha	Title
+Загрузите скриншот итогового экрана в Discord или Imgur и вставьте ссылку	Yakuniy ekran skrinshotini Discord yoki Imgur ga yuklang va havolani qoʻying	Upload a screenshot of the final screen to Discord or Imgur and paste the link
+Закрепить	Mahkamlash	Pin
+Закреплено	Mahkamlangan	Pinned
+Закрыть регистрацию	Roʻyxatni yopish	Close registration
+Закрыть регистрацию? Новые заявки приниматься не будут.	Roʻyxat yopilsinmi? Yangi arizalar qabul qilinmaydi.	Close registration? No new entries will be accepted.
+Закрыть чек-ин	Chek-inni yopish	Close check-in
+Записей пока нет	Hozircha yozuvlar yoʻq	No entries yet
+Заполните поле «{label}»	«{label}» maydonini toʻldiring	Fill in “{label}”
+Зарегистрироваться	Roʻyxatdan oʻtish	Sign up
+Заявка не в листе ожидания	Ariza kutish roʻyxatida emas	The entry isn’t on the waiting list
+Заявка не найдена	Ariza topilmadi	Entry not found
+Заявка отправлена и ждёт одобрения администратора	Ariza yuborildi va administrator tasdigʻini kutmoqda	Entry sent and awaiting admin approval
+Заявка уже не активна	Ariza endi faol emas	The entry is no longer active
+Заявки на проверке	Tekshiruvdagi arizalar	Entries under review
+Заявки одобряет администратор	Arizalarni administrator tasdiqlaydi	Entries need admin approval
+Заявок на проверке	Tekshiruvdagi arizalar	Entries under review
+Заявок нет	Arizalar yoʻq	No entries
+И	O	P
+И{n}	O{n}	G{n}
+Игра {n}	{n}-oʻyin	Game {n}
+Игра {n}, голы: {team}	{n}-oʻyin, gollar: {team}	Game {n}, goals: {team}
+Игрок	Oʻyinchi	Player
+Игроки	Oʻyinchilar	Players
+Игроки и команды	Oʻyinchilar va jamoalar	Players and teams
+Игроков	Oʻyinchilar	Players
+Игры	Oʻyinlar	Games
+Идут	Davom etmoqda	Live
+Идёт	Jonli	Live
+Идёт турнир	Turnir davom etmoqda	In progress
+Идёт турнир: результаты обновляют таблицу и сетку автоматически.	Turnir davom etmoqda: natijalar jadval va setkani avtomatik yangilaydi.	In progress: results update the table and bracket automatically.
+Из группы на {size} участников не могут выйти {q}: уменьшите число выходящих или групп	{size} kishilik guruhdan {q} kishi chiqa olmaydi: chiquvchilar yoki guruhlar sonini kamaytiring	{q} can’t advance from a group of {size}: reduce qualifiers or groups
+Из каждой группы в плей-офф выходят: {q}. Победители групп посеяны выше, соперники из одной группы не встречаются в первом раунде, если этого можно избежать.	Har bir guruhdan pley-offga chiqadi: {q}. Guruh gʻoliblari yuqoriroq saralanadi, bir guruhdagi raqiblar imkon qadar birinchi raundda uchrashmaydi.	Top {q} from each group advance. Group winners are seeded higher, and teams from the same group avoid each other in the first round when possible.
+Изменить	Oʻzgartirish	Edit
+Имя	Ism	Name
+История матча	Uchrashuv tarixi	Match history
+История матчей	Uchrashuvlar tarixi	Match history
+Как зарегистрироваться?	Qanday roʻyxatdan oʻtiladi?	How do I sign up?
+Как отправить результат?	Natijani qanday yuboraman?	How do I submit a result?
+Как получить приз?	Sovrinni qanday olaman?	How do I get a prize?
+Как проходит жеребьёвка?	Qurʼa qanday oʻtadi?	How does the draw work?
+Как собрать команду 2v2?	2v2 jamoani qanday yigʻaman?	How do I build a 2v2 team?
+Как считается таблица?	Jadval qanday hisoblanadi?	How is the table calculated?
+Как только освободится место, вы автоматически попадёте в основной список и получите уведомление.	Joy boʻshashi bilan siz avtomatik ravishda asosiy roʻyxatga tushasiz va bildirishnoma olasiz.	As soon as a spot opens, you’ll move to the main list automatically and get a notification.
+Как это работает	Bu qanday ishlaydi	How it works
+Какой призовой фонд?	Sovrin jamgʻarmasi qancha?	What is the prize pool?
+Капитан	Sardor	Captain
+Капитан создаёт команду и получает ссылку-приглашение. Второй игрок открывает ссылку, входит в свой аккаунт и подтверждает участие. Пока второй игрок не подтвердил, команда не попадает в жеребьёвку.	Sardor jamoa yaratadi va taklif havolasini oladi. Ikkinchi oʻyinchi havolani ochadi, akkauntiga kiradi va ishtirokini tasdiqlaydi. Ikkinchi oʻyinchi tasdiqlamaguncha jamoa qurʼaga tushmaydi.	The captain creates a team and gets an invite link. The second player opens it, logs in and confirms. Until they confirm, the team isn’t in the draw.
+Капитан:	Sardor:	Captain:
+Квадратное изображение. Пусто — стандартный значок.	Kvadrat rasm. Boʻsh boʻlsa, standart belgi.	Square image. Leave empty for the default icon.
+Код жеребьёвки	Qurʼa kodi	Draw code
+Количество групп	Guruhlar soni	Number of groups
+Команд 2v2	2v2 jamoalar	2v2 teams
+Команда	Jamoa	Team
+Команда {team}	{team} jamoasi	Team {team}
+Команда создана. Отправьте напарнику ссылку-приглашение	Jamoa yaratildi. Sherigingizga taklif havolasini yuboring	Team created. Send your teammate the invite link
+Команды 2v2	2v2 jamoalar	2v2 teams
+Комментарий	Izoh	Comment
+Комментарий (обязателен, если оспариваете)	Izoh (eʼtiroz bildirsangiz majburiy)	Comment (required if you dispute)
+Контакт	Kontakt	Contact
+Контакт (Discord или Telegram)	Kontakt (Discord yoki Telegram)	Contact (Discord or Telegram)
+Контакт для связи	Bogʻlanish uchun kontakt	Contact
+Контактный email	Kontakt email	Contact email
+Контакты	Kontaktlar	Contacts
+Контакты организаторов скоро появятся.	Tashkilotchilar kontaktlari tez orada paydo boʻladi.	Organizer contacts are coming soon.
+Копировать	Nusxalash	Copy
+Круговой (лига)	Doiraviy (liga)	Round robin (league)
+Круговой турнир (каждый с каждым)	Doiraviy turnir (hamma hamma bilan)	Round robin (everyone plays everyone)
+Кто	Kim	Who
+Кубки	Kuboklar	Cups
+Кубков пока нет	Hozircha kuboklar yoʻq	No cups yet
+Кубок	Kubok	Cup
+Кубок (как Лига чемпионов)	Kubok (Chempionlar ligasi kabi)	Cup (like the Champions League)
+Кубок чемпиона	Chempion kubogi	Champion’s trophy
+Лиг пока нет	Hozircha ligalar yoʻq	No leagues yet
+Лига	Liga	League
+Лига (сезон, как АПЛ)	Liga (mavsum, APL kabi)	League (season, like the Premier League)
+Лига идёт как сезон: каждый играет с каждым, места определяет таблица. Кубок проходит как еврокубок: жеребьёвка по группам, затем плей-офф на выбывание до финала.	Liga mavsum kabi oʻtadi: hamma hamma bilan oʻynaydi, oʻrinlarni jadval belgilaydi. Kubok yevrokubok kabi oʻtadi: guruhlarga qurʼa, soʻng finalgacha chiqib ketish tizimidagi pley-off.	A league runs like a season: everyone plays everyone and the table decides. A cup runs like a European cup: a group draw, then knockout playoffs to the final.
+Лиги	Ligalar	Leagues
+Лиги и кубки по Rocket League	Rocket League boʻyicha ligalar va kuboklar	Rocket League leagues and cups
+Лиги идут как сезон чемпионата: каждый играет с каждым, места решает таблица. Кубки проходят как еврокубок: жеребьёвка, групповой этап и плей-офф до финала.	Ligalar chempionat mavsumi kabi oʻtadi: hamma hamma bilan oʻynaydi, oʻrinlarni jadval hal qiladi. Kuboklar yevrokubok kabi oʻtadi: qurʼa, guruh bosqichi va finalgacha pley-off.	Leagues run like a championship season: everyone plays everyone and the table decides. Cups run like a European cup: a draw, a group stage and playoffs to the final.
+Лист ожидания	Kutish roʻyxati	Waiting list
+Логотип	Logotip	Logo
+Лучшие игроки 1v1	Eng yaxshi 1v1 oʻyinchilar	Top 1v1 players
+Лучшие команды 2v2	Eng yaxshi 2v2 jamoalar	Top 2v2 teams
+Максимум участников	Maksimal ishtirokchilar	Max participants

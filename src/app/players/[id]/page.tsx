@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { q, one } from "@/lib/db";
 import { PLATFORM_LABELS, fmtDate } from "@/lib/format";
 import { stageLabel } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function Player({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getT();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const u = await one<{ id: string; rl_nickname: string; platform: string; created_at: Date }>(
@@ -43,37 +45,37 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   ]);
   const wins = matches.filter((m) => m.won).length;
   const losses = matches.length - wins;
-  const medal = (p: number) => (p === 1 ? "Чемпион" : p === 2 ? "Финалист" : "Бронза");
+  const medal = (p: number) => (p === 1 ? t("Чемпион") : p === 2 ? t("Финалист") : t("Бронза"));
 
   return (
     <div className="wrap section stack-lg">
       <div>
         <h1>{u.rl_nickname}</h1>
         <p className="muted" style={{ marginTop: 8 }}>
-          {PLATFORM_LABELS[u.platform]} · на платформе с {fmtDate(u.created_at, "Asia/Tashkent")}
+          {PLATFORM_LABELS[u.platform]} · {t("на платформе с {date}", { date: fmtDate(u.created_at, "Asia/Tashkent", t) })}
         </p>
       </div>
       <div className="stat-strip">
         <div>
           <b className="num">{matches.length}</b>
-          <span>матчей</span>
+          <span>{t("матчей")}</span>
         </div>
         <div>
           <b className="num">{wins}</b>
-          <span>побед</span>
+          <span>{t("побед")}</span>
         </div>
         <div>
           <b className="num">{losses}</b>
-          <span>поражений</span>
+          <span>{t("поражений")}</span>
         </div>
         <div>
           <b className="num">{matches.length ? Math.round((wins / matches.length) * 100) : 0}%</b>
-          <span>побед в процентах</span>
+          <span>{t("побед в процентах")}</span>
         </div>
       </div>
       {awards.length > 0 && (
         <section className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Достижения</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Достижения")}</h2>
           <div className="row">
             {awards.map((a, i) => (
               <Link key={i} href={`/c/${a.slug}`} className={`badge ${a.place === 1 ? "gold" : "dim"} plain`} style={{ height: 32, padding: "0 14px" }}>
@@ -85,44 +87,44 @@ export default async function Player({ params }: { params: Promise<{ id: string 
       )}
       <div className="split">
         <section className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>История матчей</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("История матчей")}</h2>
           {matches.length ? (
             <div className="list">
               {matches.map((m) => (
                 <Link key={m.id} href={`/match/${m.id}`} className="list-row">
                   <span className={`badge ${m.won ? "ok" : "danger"} plain`} style={{ width: 28, justifyContent: "center", padding: 0 }}>
-                    {m.won ? "В" : "П"}
+                    {m.won ? t("В") : t("П")}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <b>
-                      {m.home_name} {m.forfeit ? "ТП" : `${m.home_wins}:${m.away_wins}`} {m.away_name}
+                      {m.home_name} {m.forfeit ? t("ТП") : `${m.home_wins}:${m.away_wins}`} {m.away_name}
                     </b>
                     <span className="small muted" style={{ display: "block" }}>
-                      {m.comp} · {stageLabel(m)}
+                      {m.comp} · {stageLabel(t, m)}
                     </span>
                   </span>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="empty">Сыгранных матчей пока нет</div>
+            <div className="empty">{t("Сыгранных матчей пока нет")}</div>
           )}
         </section>
         <aside className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Соревнования</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Соревнования")}</h2>
           {entries.length ? (
             <div className="list">
               {entries.map((e) => (
                 <Link key={e.id} href={`/c/${e.slug}`} className="list-row">
                   <span>
                     <b>{e.comp}</b>
-                    {e.mode === "2v2" && <span className="small muted" style={{ display: "block" }}>Команда {e.name}</span>}
+                    {e.mode === "2v2" && <span className="small muted" style={{ display: "block" }}>{t("Команда {team}", { team: e.name })}</span>}
                   </span>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="empty">Нет</div>
+            <div className="empty">{t("Нет")}</div>
           )}
         </aside>
       </div>

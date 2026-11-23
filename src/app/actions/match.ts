@@ -6,7 +6,7 @@ import { submitReport, respondToReport, refereeResult } from "@/lib/tournament";
 import { parseGames } from "@/lib/engine/results.ts";
 import { one, q, tx } from "@/lib/db";
 import { notifyEntries, logAction, matchEvent } from "@/lib/notify";
-import { fromLocalInput, fmtDateTime, MATCH_STATUS_LABELS } from "@/lib/format";
+import { fromLocalInput, MATCH_STATUS_LABELS } from "@/lib/format";
 
 function matchId(fd: FormData) {
   const id = String(fd.get("match_id") ?? "");
@@ -51,7 +51,7 @@ export async function refereeResultAction(fd: FormData) {
     const forfeit = String(fd.get("forfeit") ?? "");
     const note = str(fd, "note", "Решение", { optional: true, max: 500 });
     if (forfeit === "home" || forfeit === "away") {
-      await refereeResult(id, user, { games: [], forfeitWinner: forfeit }, note || `Техническая победа назначена судьёй ${user.rl_nickname}`);
+      await refereeResult(id, user, { games: [], forfeitWinner: forfeit }, note || "Техническая победа назначена судьёй {player}", note ? {} : { player: user.rl_nickname });
     } else {
       await refereeResult(id, user, { games: games(fd) }, note);
     }
@@ -74,9 +74,9 @@ export async function matchStatusAction(fd: FormData) {
       if (!m) throw new FormError("Матч не найден");
       if (m.status === "completed") throw new FormError("Матч завершён. Чтобы исправить счёт, установите новый результат.");
       await q("update matches set status = $2, updated_at = now() where id = $1", [id, status], c);
-      await matchEvent(c, id, user.id, `Статус изменён: ${MATCH_STATUS_LABELS[status]}`);
+      await matchEvent(c, id, user.id, "Статус изменён: {status}", { status: MATCH_STATUS_LABELS[status] });
       if (status === "postponed" || status === "live") {
-        await notifyEntries(c, [m.home_entry_id, m.away_entry_id], `Матч #${m.number}: ${MATCH_STATUS_LABELS[status].toLowerCase()}`, "", path);
+        await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "Матч #{n}: {status}", "", path, { n: m.number, status: MATCH_STATUS_LABELS[status] });
       }
       await logAction(c, user.id, "match.status", `#${m.number} → ${status}`);
     });
@@ -101,10 +101,11 @@ export async function scheduleAction(fd: FormData) {
       const at = raw ? fromLocalInput(raw, m.timezone) : null;
       if (raw && !at) throw new FormError("Неверная дата");
       await q("update matches set scheduled_at = $2, reminded_at = null, updated_at = now() where id = $1", [id, at], c);
-      const text = at ? `Новое время: ${fmtDateTime(at, m.timezone)}` : "Время матча снято";
-      await matchEvent(c, id, user.id, text);
-      await notifyEntries(c, [m.home_entry_id, m.away_entry_id], `Матч #${m.number}: изменение расписания`, text, `/match/${id}`);
-      await logAction(c, user.id, "match.schedule", `#${m.number}: ${text}`);
+      const text = at ? "Новое время: {when}" : "Время матча снято";
+      const params = at ? { at: at.toISOString(), tz: m.timezone } : {};
+      await matchEvent(c, id, user.id, text, params);
+      await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "Матч #{n}: изменение расписания", text, `/match/${id}`, { n: m.number, ...params });
+      await logAction(c, user.id, "match.schedule", `#${m.number}: ${at ? at.toISOString() : "—"}`);
     });
   });
   ok(path, "Расписание обновлено");

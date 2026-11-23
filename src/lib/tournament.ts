@@ -10,6 +10,7 @@ import { buildKnockout, seedQualifiers, type QualifierRow } from "./engine/knock
 import { createRng, randomSeed, shuffle } from "./engine/rng.ts";
 import { validateSeries, type GameScore } from "./engine/results.ts";
 import type { User } from "./auth";
+import type { Params } from "./i18n/core";
 
 // ---------------------------------------------------------------- helpers
 
@@ -74,7 +75,7 @@ export async function registerSolo(competitionId: string, user: User): Promise<s
         c,
       );
       await q("insert into entry_members (entry_id, user_id, competition_id, is_captain) values ($1, $2, $3, true)", [entry!.id, user.id, comp.id], c);
-      await notify(c, [user.id], `${comp.name}: ${ENTRY_STATUS_MESSAGE[status]}`, `Ваш номер участника: #${number}`, `/c/${comp.slug}`);
+      await notify(c, [user.id], "{comp}: " + ENTRY_STATUS_MESSAGE[status], "Ваш номер участника: #{n}", `/c/${comp.slug}`, { comp: comp.name, n: number });
       return ENTRY_STATUS_MESSAGE[status];
     });
   } catch (err) {
@@ -121,7 +122,7 @@ export async function joinTeam(code: string, user: User): Promise<{ slug: string
       await q("insert into entry_members (entry_id, user_id, competition_id, is_captain) values ($1, $2, $3, false)", [entry.id, user.id, comp.id], c);
       const status = await placeEntry(c, comp);
       await q("update entries set status = $2 where id = $1", [entry.id, status], c);
-      await notifyEntries(c, [entry.id], `${entry.name}: команда собрана`, ENTRY_STATUS_MESSAGE[status], `/c/${comp.slug}`);
+      await notifyEntries(c, [entry.id], "{team}: команда собрана", ENTRY_STATUS_MESSAGE[status], `/c/${comp.slug}`, { team: entry.name });
       return { slug: comp.slug, message: ENTRY_STATUS_MESSAGE[status] };
     });
   } catch (err) {
@@ -143,7 +144,7 @@ export async function promoteWaitlist(c: PoolClient, comp: Competition) {
     if (!next) return;
     const status = comp.require_approval ? "pending" : "confirmed";
     await q("update entries set status = $2 where id = $1", [next.id, status], c);
-    await notifyEntries(c, [next.id], `${comp.name}: освободилось место`, ENTRY_STATUS_MESSAGE[status], `/c/${comp.slug}`);
+    await notifyEntries(c, [next.id], "{comp}: освободилось место", ENTRY_STATUS_MESSAGE[status], `/c/${comp.slug}`, { comp: comp.name });
   }
 }
 
@@ -173,7 +174,7 @@ export async function withdraw(entryId: string, user: User): Promise<string> {
     // Partner leaves: team goes back to "waiting for second player" and frees its slot.
     await q("update entry_members set active = false where entry_id = $1 and user_id = $2", [entryId, user.id], c);
     await q("update entries set status = 'incomplete', invite_code = coalesce(invite_code, $2), checked_in_at = null where id = $1", [entryId, inviteCode()], c);
-    await notify(c, [entry.captain_id], `${entry.name}: напарник покинул команду`, "Пригласите нового игрока по ссылке", `/c/${comp.slug}`);
+    await notify(c, [entry.captain_id], "{team}: напарник покинул команду", "Пригласите нового игрока по ссылке", `/c/${comp.slug}`, { team: entry.name });
     await promoteWaitlist(c, comp);
     return "Вы покинули команду";
   });
@@ -208,17 +209,17 @@ export async function adminSetEntryStatus(entryId: string, action: "approve" | "
     if (action === "approve") {
       if (entry.status !== "pending") throw new FormError("Одобрить можно только заявку на проверке");
       await q("update entries set status = 'confirmed' where id = $1", [entryId], c);
-      await notifyEntries(c, [entryId], `${comp.name}: заявка одобрена`, "Вы в списке участников", `/c/${comp.slug}`);
+      await notifyEntries(c, [entryId], "{comp}: заявка одобрена", "Вы в списке участников", `/c/${comp.slug}`, { comp: comp.name });
     } else if (action === "confirm_waitlist") {
       if (entry.status !== "waitlist") throw new FormError("Заявка не в листе ожидания");
       const counts = await entryCounts(comp.id, c);
       if (counts.active >= comp.capacity) throw new FormError("Нет свободных мест — увеличьте вместимость");
       await q("update entries set status = 'confirmed' where id = $1", [entryId], c);
-      await notifyEntries(c, [entryId], `${comp.name}: вы в основном списке`, "", `/c/${comp.slug}`);
+      await notifyEntries(c, [entryId], "{comp}: вы в основном списке", "", `/c/${comp.slug}`, { comp: comp.name });
     } else {
       if (comp.draw_state === "preview") throw new FormError("Сначала сбросьте предварительную жеребьёвку");
       await deactivate(c, entryId, action === "reject" ? "rejected" : "cancelled");
-      await notify(c, [entry.captain_id], `${comp.name}: заявка ${action === "reject" ? "отклонена" : "снята"} администратором`, "", `/c/${comp.slug}`);
+      await notify(c, [entry.captain_id], action === "reject" ? "{comp}: заявка отклонена администратором" : "{comp}: заявка снята администратором", "", `/c/${comp.slug}`, { comp: comp.name });
       await promoteWaitlist(c, comp);
     }
     await logAction(c, actor.id, `entry.${action}`, `${comp.name}: #${entry.number} ${entry.name}`);
@@ -280,7 +281,9 @@ export async function runDraw(competitionId: string, actor: User): Promise<strin
       [comp.id, comp.checkin_required],
       c,
     );
-    if (eligible.length < 2) throw new FormError("Для жеребьёвки нужно минимум 2 подтверждённых участника" + (comp.checkin_required ? " с пройденным чек-ином" : ""));
+    if (eligible.length < 2) {
+      throw new FormError(comp.checkin_required ? "Для жеребьёвки нужно минимум 2 подтверждённых участника с пройденным чек-ином" : "Для жеребьёвки нужно минимум 2 подтверждённых участника");
+    }
 
     await q("delete from matches where competition_id = $1", [comp.id], c);
     await q("delete from groups where competition_id = $1", [comp.id], c);
@@ -290,7 +293,7 @@ export async function runDraw(competitionId: string, actor: User): Promise<strin
       const err = validateDraw(eligible.length, comp.group_count);
       if (err) throw new FormError(err);
       const minGroup = Math.floor(eligible.length / comp.group_count);
-      if (comp.qualifiers_per_group >= minGroup) throw new FormError(`Из группы на ${minGroup} участников не могут выйти ${comp.qualifiers_per_group} — уменьшите число выходящих или групп`);
+      if (comp.qualifiers_per_group >= minGroup) throw new FormError("Из группы на {size} участников не могут выйти {q}: уменьшите число выходящих или групп", { size: minGroup, q: comp.qualifiers_per_group });
       const result = drawGroups(eligible.map((e) => ({ id: e.id, seed: e.seed })), { groupCount: comp.group_count, seeded: comp.seeded_draw, seed });
       let n = 1;
       for (let i = 0; i < result.groups.length; i++) {
@@ -315,7 +318,7 @@ export async function runDraw(competitionId: string, actor: User): Promise<strin
 
     await q("update competitions set draw_seed = $2, draw_state = 'preview', updated_at = now() where id = $1", [comp.id, seed], c);
     await logAction(c, actor.id, "draw.preview", `${comp.name}: ${eligible.length} участников, seed ${seed}`);
-    return `Жеребьёвка проведена (${eligible.length} участников). Проверьте результат и опубликуйте.`;
+    return "Жеребьёвка проведена. Проверьте результат и опубликуйте.";
   });
 }
 
@@ -345,7 +348,7 @@ export async function publishDraw(competitionId: string, actor: User) {
       [comp.id],
       c,
     );
-    await notifyEntries(c, ids.map((r) => r.entry_id), `${comp.name}: жеребьёвка опубликована`, "Соперники и расписание уже на сайте", `/c/${comp.slug}/matches`);
+    await notifyEntries(c, ids.map((r) => r.entry_id), "{comp}: жеребьёвка опубликована", "Соперники и расписание уже на сайте", `/c/${comp.slug}/matches`, { comp: comp.name });
     await logAction(c, actor.id, "draw.publish", comp.name);
   });
 }
@@ -357,7 +360,7 @@ export async function generatePlayoffs(competitionId: string, actor: User) {
     if (comp.draw_state !== "published") throw new FormError("Сначала опубликуйте жеребьёвку");
     if (comp.playoffs_generated) throw new FormError("Сетка плей-офф уже создана");
     const left = await one<{ n: number }>("select count(*)::int as n from matches where competition_id = $1 and stage = 'group' and status <> 'completed'", [comp.id], c);
-    if (left!.n > 0) throw new FormError(`Групповой этап не завершён: осталось матчей — ${left!.n}`);
+    if (left!.n > 0) throw new FormError("Групповой этап не завершён: осталось матчей: {n}", { n: left!.n });
     await buildPlayoffs(c, comp, actor.id);
   });
 }
@@ -373,7 +376,7 @@ async function buildPlayoffs(c: PoolClient, comp: Competition, actorId: string |
   const seeds = seedQualifiers(rows);
   await insertBracket(c, comp, seeds, await nextMatchNumber(c, comp.id));
   await q("update competitions set playoffs_generated = true, status = 'playoffs', updated_at = now() where id = $1", [comp.id], c);
-  await notifyEntries(c, seeds, `${comp.name}: вы вышли в плей-офф!`, "Сетка опубликована", `/c/${comp.slug}/bracket`);
+  await notifyEntries(c, seeds, "{comp}: вы вышли в плей-офф!", "Сетка опубликована", `/c/${comp.slug}/bracket`, { comp: comp.name });
   await logAction(c, actorId, "playoffs.generate", `${comp.name}: ${seeds.length} участников`);
 }
 
@@ -382,7 +385,7 @@ async function buildPlayoffs(c: PoolClient, comp: Competition, actorId: string |
 export type OfficialResult = { games: GameScore[]; forfeitWinner?: "home" | "away" };
 
 /** Makes a result official, updates the bracket and finishes the competition when done. */
-export async function applyResult(c: PoolClient, matchId: string, result: OfficialResult, actorId: string | null, note: string) {
+export async function applyResult(c: PoolClient, matchId: string, result: OfficialResult, actorId: string | null, note: string, noteParams: Params = {}) {
   const pre = await one<{ competition_id: string }>("select competition_id from matches where id = $1", [matchId], c);
   if (!pre) throw new FormError("Матч не найден");
   const comp = await compForUpdate(c, pre.competition_id);
@@ -421,12 +424,12 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
     c,
   );
   await q("update match_reports set status = 'superseded' where match_id = $1 and status = 'pending'", [m.id], c);
-  await matchEvent(c, m.id, actorId, note);
+  await matchEvent(c, m.id, actorId, note, noteParams);
 
   if (m.next_match_id && m.next_side) await placeIntoSlot(c, m.next_match_id, m.next_side, winner);
   if (m.loser_next_match_id && m.loser_next_side) await placeIntoSlot(c, m.loser_next_match_id, m.loser_next_side, loser);
 
-  await notifyEntries(c, [m.home_entry_id, m.away_entry_id], `${comp.name}: результат матча #${m.number} утверждён`, "", `/match/${m.id}`);
+  await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "{comp}: результат матча #{n} утверждён", "", `/match/${m.id}`, { comp: comp.name, n: m.number });
   await maybeFinish(c, comp);
 }
 
@@ -435,7 +438,7 @@ async function placeIntoSlot(c: PoolClient, matchId: string, side: "home" | "awa
   const next = await one<Match>(`update matches set ${col} = $2, updated_at = now() where id = $1 returning *`, [matchId, entryId], c);
   if (next && next.home_entry_id && next.away_entry_id && next.status === "upcoming") {
     await q("update matches set status = 'ready' where id = $1", [matchId], c);
-    await notifyEntries(c, [next.home_entry_id, next.away_entry_id], `Ваш следующий соперник определён (матч #${next.number})`, "", `/match/${matchId}`);
+    await notifyEntries(c, [next.home_entry_id, next.away_entry_id], "Ваш следующий соперник определён (матч #{n})", "", `/match/${matchId}`, { n: next.number });
   }
 }
 
@@ -470,7 +473,7 @@ async function maybeFinish(c: PoolClient, comp: Competition) {
   if (champion) {
     const name = await one<{ name: string }>("select name from entries where id = $1", [champion], c);
     const all = await q<{ user_id: string }>("select user_id from entry_members where competition_id = $1 and active", [comp.id], c);
-    await notify(c, all.map((r) => r.user_id), `${comp.name} завершён`, `Чемпион: ${name?.name ?? ""}`, `/c/${comp.slug}`);
+    await notify(c, all.map((r) => r.user_id), "{comp} завершён", "Чемпион: {champion}", `/c/${comp.slug}`, { comp: comp.name, champion: name?.name ?? "" });
   }
 }
 
@@ -518,18 +521,18 @@ export async function submitReport(matchId: string, user: User, games: GameScore
       const same = opp.games.length === games.length && opp.games.every((g, i) => g.home === games[i].home && g.away === games[i].away);
       if (same) {
         await q("update match_reports set status = 'confirmed' where id = any($1::uuid[])", [[opp.id, mine!.id]], c);
-        await applyResult(c, m.id, { games }, user.id, `Результат подтверждён обеими сторонами (${user.rl_nickname})`);
+        await applyResult(c, m.id, { games }, user.id, "Результат подтверждён обеими сторонами ({player})", { player: user.rl_nickname });
         return "Результаты совпали — матч утверждён";
       }
       await q("update match_reports set status = 'disputed' where id = any($1::uuid[])", [[opp.id, mine!.id]], c);
       await q("update matches set status = 'under_review', updated_at = now() where id = $1", [m.id], c);
       await matchEvent(c, m.id, user.id, "Стороны прислали разные результаты — матч передан судье");
-      await notifyEntries(c, [m.home_entry_id, m.away_entry_id], `Матч #${m.number}: спор по результату`, "Судья рассмотрит доказательства", `/match/${m.id}`);
+      await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "Матч #{n}: спор по результату", "Судья рассмотрит доказательства", `/match/${m.id}`, { n: m.number });
       return "Результаты не совпали — матч передан судье";
     }
 
-    await matchEvent(c, m.id, user.id, `${user.rl_nickname} отправил результат, ждём подтверждения соперника`);
-    await notifyEntries(c, [oppEntry], `Матч #${m.number}: подтвердите результат`, "Соперник отправил счёт", `/match/${m.id}`);
+    await matchEvent(c, m.id, user.id, "{player} отправил результат, ждём подтверждения соперника", { player: user.rl_nickname });
+    await notifyEntries(c, [oppEntry], "Матч #{n}: подтвердите результат", "Соперник отправил счёт", `/match/${m.id}`, { n: m.number });
     return "Результат отправлен. Ждём подтверждения соперника";
   });
 }
@@ -547,23 +550,23 @@ export async function respondToReport(reportId: string, user: User, accept: bool
 
     if (accept) {
       await q("update match_reports set status = 'confirmed', responded_by = $2 where id = $1", [r.id, user.id], c);
-      await applyResult(c, m.id, { games: r.games }, user.id, `${user.rl_nickname} подтвердил результат`);
+      await applyResult(c, m.id, { games: r.games }, user.id, "{player} подтвердил результат", { player: user.rl_nickname });
       return "Результат подтверждён";
     }
     if (comment.length < 5) throw new FormError("Опишите, что не так с результатом");
     await q("update match_reports set status = 'disputed', responded_by = $2, response_comment = $3 where id = $1", [r.id, user.id, comment], c);
     await q("update matches set status = 'under_review', updated_at = now() where id = $1", [m.id], c);
-    await matchEvent(c, m.id, user.id, `${user.rl_nickname} оспорил результат: ${comment}`);
-    await notifyEntries(c, [m.home_entry_id, m.away_entry_id], `Матч #${m.number}: результат оспорен`, "Судья рассмотрит спор", `/match/${m.id}`);
+    await matchEvent(c, m.id, user.id, "{player} оспорил результат: {comment}", { player: user.rl_nickname, comment });
+    await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "Матч #{n}: результат оспорен", "Судья рассмотрит спор", `/match/${m.id}`, { n: m.number });
     const staff = await q<{ id: string }>("select id from users where role in ('referee','admin','superadmin')", [], c);
-    await notify(c, staff.map((s) => s.id), `Спор в матче #${m.number}`, "", `/match/${m.id}`);
+    await notify(c, staff.map((s) => s.id), "Спор в матче #{n}", "", `/match/${m.id}`, { n: m.number });
     return "Результат оспорен — матч передан судье";
   });
 }
 
-export async function refereeResult(matchId: string, actor: User, result: OfficialResult, note: string) {
+export async function refereeResult(matchId: string, actor: User, result: OfficialResult, note: string, noteParams: Params = {}) {
   return tx(async (c) => {
-    await applyResult(c, matchId, result, actor.id, note || `Результат установлен судьёй ${actor.rl_nickname}`);
+    await applyResult(c, matchId, result, actor.id, note || "Результат установлен судьёй {player}", note ? noteParams : { player: actor.rl_nickname });
     await logAction(c, actor.id, "match.result", `матч ${matchId}: ${note}`);
   });
 }

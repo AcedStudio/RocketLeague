@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Match, Competition, GroupTable } from "@/lib/data";
-import { MATCH_STATUS_LABELS, COMP_STATUS_LABELS, KIND_LABELS, FORMAT_LABELS, fmtDateTime, fmtDate, fmtMoney, plural } from "@/lib/format";
-import { roundLabel } from "@/lib/engine/knockout.ts";
+import { MATCH_STATUS_LABELS, COMP_STATUS_LABELS, KIND_LABELS, FORMAT_LABELS, fmtDateTime, fmtDate, fmtMoney, groupLabel } from "@/lib/format";
+import { getT } from "@/lib/i18n/server";
+import type { T } from "@/lib/i18n/core";
 import { CupIcon, LeagueIcon } from "./Art";
 
 export type SP = Promise<Record<string, string | string[] | undefined>>;
@@ -11,57 +12,69 @@ export function pick(sp: Record<string, string | string[] | undefined>, k: strin
   return typeof v === "string" ? v : Array.isArray(v) ? v[0] ?? "" : "";
 }
 
-export function Flash({ sp }: { sp: Record<string, string | string[] | undefined> }) {
+export async function Flash({ sp }: { sp: Record<string, string | string[] | undefined> }) {
   const okMsg = pick(sp, "ok");
   const errMsg = pick(sp, "err");
   if (!okMsg && !errMsg) return null;
+  const t = await getT();
   return (
     <div className={`flash ${errMsg ? "flash-err" : "flash-ok"}`} role={errMsg ? "alert" : "status"}>
-      {errMsg || okMsg}
+      {t(errMsg || okMsg)}
     </div>
   );
 }
 
-export function MatchStatusBadge({ status }: { status: Match["status"] }) {
+export async function MatchStatusBadge({ status }: { status: Match["status"] }) {
+  const t = await getT();
   const cls = { upcoming: "dim", ready: "", live: "live", completed: "ok", under_review: "warn", postponed: "danger" }[status];
-  return <span className={`badge ${cls}`}>{MATCH_STATUS_LABELS[status]}</span>;
+  return <span className={`badge ${cls}`}>{t(MATCH_STATUS_LABELS[status])}</span>;
 }
 
-export function CompStatusBadge({ status }: { status: Competition["status"] }) {
+export async function CompStatusBadge({ status }: { status: Competition["status"] }) {
+  const t = await getT();
   const cls = { draft: "dim", registration: "ok", closed: "warn", in_progress: "", playoffs: "gold", finished: "dim" }[status];
-  return <span className={`badge ${cls}`}>{COMP_STATUS_LABELS[status]}</span>;
+  return <span className={`badge ${cls}`}>{t(COMP_STATUS_LABELS[status])}</span>;
 }
 
-export function stageLabel(m: Pick<Match, "stage" | "round" | "group_name">, rounds?: number) {
-  if (m.stage === "group") return `${m.group_name ?? "Группа"} · тур ${m.round}`;
-  if (m.stage === "league") return `Тур ${m.round}`;
-  if (m.stage === "third_place") return "Матч за 3-е место";
-  return rounds ? roundLabel(m.round, rounds) : `Раунд ${m.round}`;
+export function roundName(t: T, round: number, rounds: number, stage: "knockout" | "third_place" = "knockout"): string {
+  if (stage === "third_place") return t("Матч за 3-е место");
+  const fromEnd = rounds - round;
+  if (fromEnd === 0) return t("Финал");
+  if (fromEnd === 1) return t("Полуфинал");
+  return t("1/{n} финала", { n: 2 ** fromEnd, teams: 2 ** (fromEnd + 1) });
 }
 
-export function MatchCard({ m, tz, rounds, mine }: { m: Match; tz: string; rounds?: number; mine?: boolean }) {
+export function stageLabel(t: T, m: Pick<Match, "stage" | "round" | "group_name">, rounds?: number) {
+  if (m.stage === "group") return `${groupLabel(m.group_name, t)} · ${t("тур {n}", { n: m.round })}`;
+  if (m.stage === "league") return t("Тур {n}", { n: m.round });
+  if (m.stage === "third_place") return t("Матч за 3-е место");
+  return rounds ? roundName(t, m.round, rounds) : t("Раунд {n}", { n: m.round });
+}
+
+export async function MatchCard({ m, tz, rounds, mine }: { m: Match; tz: string; rounds?: number; mine?: boolean }) {
+  const t = await getT();
   const done = m.status === "completed";
-  const side = (id: string | null, name: string | null) => {
+  const side = (id: string | null) => {
     if (!id) return "tbd";
     if (!done) return "";
     return m.winner_entry_id === id ? "win" : "lose";
   };
-  const hs = side(m.home_entry_id, m.home_name);
-  const as = side(m.away_entry_id, m.away_name);
+  const hs = side(m.home_entry_id);
+  const as = side(m.away_entry_id);
   const body = (
     <>
       <div className="meta">
         <span>
-          #{m.number} · {stageLabel(m, rounds)}
+          #{m.number} · {stageLabel(t, m, rounds)}
         </span>
-        {m.is_bye ? <span className="badge dim">Проход (bye)</span> : <MatchStatusBadge status={m.status} />}
+        {m.is_bye ? <span className="badge dim">{t("Проход (bye)")}</span> : <MatchStatusBadge status={m.status} />}
       </div>
-      <span className={`side ${hs}`}>{m.home_name ?? (m.is_bye ? "—" : "Определится позже")}</span>
+      <span className={`side ${hs}`}>{m.home_name ?? (m.is_bye ? "—" : t("Определится позже"))}</span>
       <span className={`sc ${hs === "win" ? "win" : ""}`}>{done && !m.is_bye ? (m.forfeit ? (hs === "win" ? "W" : "L") : m.home_wins) : ""}</span>
-      <span className={`side ${as}`}>{m.away_name ?? (m.is_bye ? "—" : "Определится позже")}</span>
+      <span className={`side ${as}`}>{m.away_name ?? (m.is_bye ? "—" : t("Определится позже"))}</span>
       <span className={`sc ${as === "win" ? "win" : ""}`}>{done && !m.is_bye ? (m.forfeit ? (as === "win" ? "W" : "L") : m.away_wins) : ""}</span>
       <span className="small faint" style={{ gridColumn: "1 / -1", marginTop: 6 }}>
-        {m.is_bye ? "Участник проходит дальше без игры" : `${fmtDateTime(m.scheduled_at, tz)} · Bo${m.best_of}`}
+        {m.is_bye ? t("Участник проходит дальше без игры") : `${fmtDateTime(m.scheduled_at, tz, t)} · Bo${m.best_of}`}
       </span>
     </>
   );
@@ -73,22 +86,23 @@ export function MatchCard({ m, tz, rounds, mine }: { m: Match; tz: string; round
   );
 }
 
-export function StandingsTable({ table, highlight, showForm = true }: { table: GroupTable; highlight?: string | null; showForm?: boolean }) {
+export async function StandingsTable({ table, highlight, showForm = true }: { table: GroupTable; highlight?: string | null; showForm?: boolean }) {
+  const t = await getT();
   return (
     <div className="table-wrap">
       <table>
         <thead>
           <tr>
             <th>#</th>
-            <th>{table.group ? table.group.name : "Участник"}</th>
-            <th className="c" title="Сыграно">И</th>
-            <th className="c" title="Победы">В</th>
-            <th className="c" title="Поражения">П</th>
-            <th className="c" title="Голы забито">ЗГ</th>
-            <th className="c" title="Голы пропущено">ПГ</th>
-            <th className="c" title="Разница голов">РГ</th>
-            <th className="c">Очки</th>
-            {showForm && <th className="hide-s">Форма</th>}
+            <th>{table.group ? groupLabel(table.group.name, t) : t("Участник")}</th>
+            <th className="c" title={t("Сыграно")}>{t("И")}</th>
+            <th className="c" title={t("Победы")}>{t("В")}</th>
+            <th className="c" title={t("Поражения")}>{t("П")}</th>
+            <th className="c" title={t("Голы забито")}>{t("ЗГ")}</th>
+            <th className="c" title={t("Голы пропущено")}>{t("ПГ")}</th>
+            <th className="c" title={t("Разница голов")}>{t("РГ")}</th>
+            <th className="c">{t("Очки")}</th>
+            {showForm && <th className="hide-s">{t("Форма")}</th>}
           </tr>
         </thead>
         <tbody>
@@ -107,8 +121,8 @@ export function StandingsTable({ table, highlight, showForm = true }: { table: G
                 <td className="hide-s">
                   <span className="form-dots">
                     {r.form.map((f, i) => (
-                      <i key={i} className={f} aria-label={f === "W" ? "Победа" : "Поражение"}>
-                        {f === "W" ? "В" : "П"}
+                      <i key={i} className={f} aria-label={f === "W" ? t("Победа") : t("Поражение")}>
+                        {f === "W" ? t("В") : t("П")}
                       </i>
                     ))}
                   </span>
@@ -122,7 +136,8 @@ export function StandingsTable({ table, highlight, showForm = true }: { table: G
   );
 }
 
-export function Bracket({ matches }: { matches: Match[] }) {
+export async function Bracket({ matches }: { matches: Match[] }) {
+  const t = await getT();
   const ko = matches.filter((m) => m.stage === "knockout");
   if (!ko.length) return null;
   const rounds = Math.max(...ko.map((m) => m.round));
@@ -165,11 +180,11 @@ export function Bracket({ matches }: { matches: Match[] }) {
       <div className="bracket">
         {cols.map((col, i) => (
           <div className={`b-round ${i === rounds - 1 ? "b-final" : ""}`} key={i}>
-            <h3>{roundLabel(i + 1, rounds)}</h3>
+            <h3>{roundName(t, i + 1, rounds)}</h3>
             <div className="b-col">{col.map(box)}</div>
             {i === rounds - 1 && third && (
               <div className="b-third">
-                <h3>Матч за 3-е место</h3>
+                <h3>{t("Матч за 3-е место")}</h3>
                 {box(third)}
               </div>
             )}
@@ -180,8 +195,9 @@ export function Bracket({ matches }: { matches: Match[] }) {
   );
 }
 
-export function CompetitionRow({ c }: { c: Competition & { active_count?: number } }) {
-  const prize = fmtMoney(c.prize_pool, c.prize_currency);
+export async function CompetitionRow({ c }: { c: Competition & { active_count?: number } }) {
+  const t = await getT();
+  const prize = fmtMoney(c.prize_pool, c.prize_currency, t.intl);
   return (
     <Link href={`/c/${c.slug}`} className="comp-row">
       <span className={`comp-mark ${c.kind}`}>{c.kind === "cup" ? <CupIcon /> : <LeagueIcon />}</span>
@@ -192,13 +208,13 @@ export function CompetitionRow({ c }: { c: Competition & { active_count?: number
         </span>
         <span className="facts">
           <span>
-            {KIND_LABELS[c.kind]} · {FORMAT_LABELS[c.format]}
+            {t(KIND_LABELS[c.kind])} · {t(FORMAT_LABELS[c.format])}
           </span>
           <span>
-            {c.active_count ?? 0}/{c.capacity} {plural(c.capacity, "место", "места", "мест")}
+            {t("Участники: {n} из {cap}", { n: c.active_count ?? 0, cap: c.capacity })}
           </span>
-          {c.start_at && <span>Старт {fmtDate(c.start_at, c.timezone)}</span>}
-          {prize && <span style={{ color: "var(--gold)" }}>Призовой фонд {prize}</span>}
+          {c.start_at && <span>{t("Старт: {date}", { date: fmtDate(c.start_at, c.timezone, t) })}</span>}
+          {prize && <span style={{ color: "var(--gold)" }}>{t("Призовой фонд: {amount}", { amount: prize })}</span>}
         </span>
       </span>
       <CompStatusBadge status={c.status} />
@@ -206,14 +222,14 @@ export function CompetitionRow({ c }: { c: Competition & { active_count?: number
   );
 }
 
-export function SetupNotice() {
+export async function SetupNotice() {
+  const t = await getT();
   return (
     <div className="wrap section">
       <div className="panel stack measure">
-        <h2>Подключите базу данных</h2>
+        <h2>{t("Подключите базу данных")}</h2>
         <p className="muted">
-          Сайт развёрнут, но база данных ещё не подключена. В Vercel откройте проект → Storage → подключите Neon Postgres, затем
-          добавьте переменную AUTH_SECRET и сделайте Redeploy.
+          {t("Сайт развёрнут, но база данных ещё не подключена. В Vercel откройте проект → Storage → подключите Neon Postgres, затем добавьте переменную AUTH_SECRET и сделайте Redeploy.")}
         </p>
       </div>
     </div>

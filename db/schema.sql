@@ -215,3 +215,7 @@ create table if not exists settings (
   key text primary key,
   value text not null
 );
+
+-- i18n: notifications and match history are stored as Russian templates + params
+alter table notifications add column if not exists params jsonb not null default '{}';
+alter table match_events add column if not exists params jsonb not null default '{}';

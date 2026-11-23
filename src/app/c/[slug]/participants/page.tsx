@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { getCompetitionBySlug, getEntries } from "@/lib/data";
 import { ENTRY_STATUS_LABELS, PLATFORM_LABELS } from "@/lib/format";
 import { pick, type SP } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
 export default async function Participants({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: SP }) {
+  const t = await getT();
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const comp = await getCompetitionBySlug(slug);
   if (!comp) notFound();
@@ -20,10 +22,10 @@ export default async function Participants({ params, searchParams }: { params: P
         <thead>
           <tr>
             <th>№</th>
-            <th>{comp.mode === "2v2" ? "Команда" : "Игрок"}</th>
-            {comp.mode === "2v2" && <th>Состав</th>}
-            <th>Платформа</th>
-            <th>Статус</th>
+            <th>{comp.mode === "2v2" ? t("Команда") : t("Игрок")}</th>
+            {comp.mode === "2v2" && <th>{t("Состав")}</th>}
+            <th>{t("Платформа")}</th>
+            <th>{t("Статус")}</th>
           </tr>
         </thead>
         <tbody>
@@ -39,15 +41,15 @@ export default async function Participants({ params, searchParams }: { params: P
                     <span key={m.user_id}>
                       {i > 0 && ", "}
                       <Link href={`/players/${m.user_id}`}>{m.rl_nickname}</Link>
-                      {m.is_captain && <span className="faint small"> (к)</span>}
+                      {m.is_captain && <span className="faint small"> {t("(к)")}</span>}
                     </span>
                   ))}
                 </td>
               )}
               <td className="muted">{[...new Set(e.members.map((m) => PLATFORM_LABELS[m.platform]))].join(", ")}</td>
               <td>
-                <span className={`badge ${e.status === "confirmed" ? "ok" : "warn"}`}>{ENTRY_STATUS_LABELS[e.status]}</span>
-                {comp.checkin_required && e.checked_in_at && <span className="badge ok plain" style={{ marginLeft: 6 }}>Чек-ин</span>}
+                <span className={`badge ${e.status === "confirmed" ? "ok" : "warn"}`}>{t(ENTRY_STATUS_LABELS[e.status])}</span>
+                {comp.checkin_required && e.checked_in_at && <span className="badge ok plain" style={{ marginLeft: 6 }}>{t("Чек-ин")}</span>}
               </td>
             </tr>
           ))}
@@ -59,14 +61,14 @@ export default async function Participants({ params, searchParams }: { params: P
   return (
     <div className="stack-lg">
       <form className="row" role="search">
-        <input className="input" name="q" defaultValue={search} placeholder={comp.mode === "2v2" ? "Поиск команды или игрока" : "Поиск игрока"} style={{ maxWidth: 360 }} />
-        <button className="btn btn-ghost">Найти</button>
-        {search && <Link href={`/c/${slug}/participants`} className="btn btn-ghost">Сбросить</Link>}
+        <input className="input" name="q" defaultValue={search} placeholder={comp.mode === "2v2" ? t("Поиск команды или игрока") : t("Поиск игрока")} style={{ maxWidth: 360 }} />
+        <button className="btn btn-ghost">{t("Найти")}</button>
+        {search && <Link href={`/c/${slug}/participants`} className="btn btn-ghost">{t("Сбросить")}</Link>}
       </form>
-      {main.length ? table(main) : <div className="empty">{search ? "Никого не нашли" : "Пока никто не зарегистрировался"}</div>}
+      {main.length ? table(main) : <div className="empty">{search ? t("Никого не нашли") : t("Пока никто не зарегистрировался")}</div>}
       {waitlist.length > 0 && (
         <div className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Лист ожидания</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Лист ожидания")}</h2>
           {table(waitlist)}
         </div>
       )}

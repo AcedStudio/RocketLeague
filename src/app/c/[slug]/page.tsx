@@ -3,13 +3,15 @@ import { notFound } from "next/navigation";
 import { getCompetitionBySlug, entryCounts, getUserEntry, getAnnouncements, getPrizes } from "@/lib/data";
 import { getUser } from "@/lib/auth";
 import { one } from "@/lib/db";
-import { FORMAT_LABELS, PLATFORM_LABELS, fmtDateTime, fmtMoney, plural } from "@/lib/format";
+import { FORMAT_LABELS, PLATFORM_LABELS, fmtDateTime, fmtMoney } from "@/lib/format";
 import { TIEBREAKER_LABELS } from "@/lib/engine/standings.ts";
 import { Countdown } from "@/components/client";
 import { Flash, type SP } from "@/components/ui";
 import { MyEntry } from "@/components/MyEntry";
+import { getT } from "@/lib/i18n/server";
 
 export default async function Overview({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: SP }) {
+  const t = await getT();
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const comp = await getCompetitionBySlug(slug);
   if (!comp) notFound();
@@ -24,7 +26,7 @@ export default async function Overview({ params, searchParams }: { params: Promi
       [comp.id],
     ),
   ]);
-  const prize = fmtMoney(comp.prize_pool, comp.prize_currency);
+  const prize = fmtMoney(comp.prize_pool, comp.prize_currency, t.intl);
   const deadlinePassed = comp.registration_deadline && new Date(comp.registration_deadline).getTime() < Date.now();
   const canRegister = comp.status === "registration" && !deadlinePassed && !entry;
   const free = Math.max(0, comp.capacity - counts.active);
@@ -36,7 +38,7 @@ export default async function Overview({ params, searchParams }: { params: Promi
       <Flash sp={sp} />
       {champion && (
         <div className="champion-card">
-          <span className="badge gold plain">Чемпион</span>
+          <span className="badge gold plain">{t("Чемпион")}</span>
           <b>{champion}</b>
         </div>
       )}
@@ -47,39 +49,39 @@ export default async function Overview({ params, searchParams }: { params: Promi
           {comp.status === "registration" && !entry && (
             <div className="panel stack">
               <div className="row between">
-                <h2 style={{ fontSize: "1.4rem" }}>Регистрация открыта</h2>
+                <h2 style={{ fontSize: "1.4rem" }}>{t("Регистрация открыта")}</h2>
                 <span className="badge ok">
-                  {free > 0 ? `${free} ${plural(free, "место свободно", "места свободно", "мест свободно")}` : "Мест нет — лист ожидания"}
+                  {free > 0 ? t("Свободно мест: {n}", { n: free }) : t("Мест нет, работает лист ожидания")}
                 </span>
               </div>
               {comp.registration_deadline && (
                 <p className="muted">
-                  Приём заявок до {fmtDateTime(comp.registration_deadline, comp.timezone)} ({comp.timezone})
+                  {t("Приём заявок до {date} ({tz})", { date: fmtDateTime(comp.registration_deadline, comp.timezone, t), tz: comp.timezone })}
                 </p>
               )}
               {canRegister ? (
                 <div className="row">
                   <Link className="btn btn-lg" href={`/c/${comp.slug}/register`}>
-                    {comp.mode === "2v2" ? "Создать команду" : "Зарегистрироваться"}
+                    {comp.mode === "2v2" ? t("Создать команду") : t("Зарегистрироваться")}
                   </Link>
-                  {comp.mode === "2v2" && <span className="small muted">Получили ссылку от капитана? Просто откройте её.</span>}
+                  {comp.mode === "2v2" && <span className="small muted">{t("Получили ссылку от капитана? Просто откройте её.")}</span>}
                 </div>
               ) : (
-                <p className="muted">Срок регистрации истёк.</p>
+                <p className="muted">{t("Срок регистрации истёк.")}</p>
               )}
             </div>
           )}
 
           {comp.start_at && new Date(comp.start_at).getTime() > Date.now() && (
             <div className="stack" style={{ gap: 10 }}>
-              <span className="small muted">До старта</span>
+              <span className="small muted">{t("До старта")}</span>
               <Countdown to={new Date(comp.start_at).toISOString()} />
             </div>
           )}
 
           {comp.description && (
             <div className="stack">
-              <h2 style={{ fontSize: "1.4rem" }}>О соревновании</h2>
+              <h2 style={{ fontSize: "1.4rem" }}>{t("О соревновании")}</h2>
               <p className="muted prose" style={{ whiteSpace: "pre-line" }}>{comp.description}</p>
             </div>
           )}
@@ -87,9 +89,9 @@ export default async function Overview({ params, searchParams }: { params: Promi
           {progress && progress.total > 0 && (
             <div className="stack" style={{ gap: 8 }}>
               <div className="row between small">
-                <span className="muted">Прогресс турнира</span>
+                <span className="muted">{t("Прогресс турнира")}</span>
                 <span className="num">
-                  {progress.done} из {progress.total} матчей · {pct}%
+                  {t("{done} из {total} матчей", { done: progress.done, total: progress.total })} · {pct}%
                 </span>
               </div>
               <div className="progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
@@ -100,7 +102,7 @@ export default async function Overview({ params, searchParams }: { params: Promi
 
           {news.length > 0 && (
             <div className="stack">
-              <h2 style={{ fontSize: "1.4rem" }}>Объявления</h2>
+              <h2 style={{ fontSize: "1.4rem" }}>{t("Объявления")}</h2>
               <div className="list">
                 {news.map((a) => (
                   <article key={a.id} className="list-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
@@ -115,55 +117,55 @@ export default async function Overview({ params, searchParams }: { params: Promi
 
         <aside className="panel">
           <dl className="facts-list">
-            <dt>Формат</dt>
-            <dd>{FORMAT_LABELS[comp.format]}</dd>
-            <dt>Режим</dt>
-            <dd>{comp.mode === "1v1" ? "1v1, индивидуально" : "2v2, команды по 2 игрока"}</dd>
-            <dt>Участники</dt>
+            <dt>{t("Формат")}</dt>
+            <dd>{t(FORMAT_LABELS[comp.format])}</dd>
+            <dt>{t("Режим")}</dt>
+            <dd>{comp.mode === "1v1" ? t("1v1, индивидуально") : t("2v2, команды по 2 игрока")}</dd>
+            <dt>{t("Участники")}</dt>
             <dd className="num">
               {counts.active} / {comp.capacity}
-              {counts.waitlist > 0 && <span className="muted small"> · ожидают {counts.waitlist}</span>}
+              {counts.waitlist > 0 && <span className="muted small"> · {t("в листе ожидания: {n}", { n: counts.waitlist })}</span>}
             </dd>
-            <dt>Старт</dt>
-            <dd>{fmtDateTime(comp.start_at, comp.timezone)}</dd>
-            <dt>Часовой пояс</dt>
+            <dt>{t("Старт")}</dt>
+            <dd>{fmtDateTime(comp.start_at, comp.timezone, t)}</dd>
+            <dt>{t("Часовой пояс")}</dt>
             <dd>{comp.timezone}</dd>
-            <dt>Регион сервера</dt>
+            <dt>{t("Регион сервера")}</dt>
             <dd>{comp.region}</dd>
-            <dt>Платформы</dt>
+            <dt>{t("Платформы")}</dt>
             <dd>{comp.platforms.map((p) => PLATFORM_LABELS[p] ?? p).join(", ")}</dd>
             {comp.format === "groups_knockout" && (
               <>
-                <dt>Группы</dt>
+                <dt>{t("Группы")}</dt>
                 <dd>
-                  {comp.group_count}, из каждой выходят {comp.qualifiers_per_group}
+                  {t("{groups}, из каждой выходят {q}", { groups: comp.group_count, q: comp.qualifiers_per_group })}
                 </dd>
               </>
             )}
-            <dt>Серии</dt>
+            <dt>{t("Серии")}</dt>
             <dd>
-              {comp.format !== "knockout" && `${comp.format === "round_robin" ? "Тур" : "Группы"}: Bo${comp.group_best_of}. `}
-              {comp.format !== "round_robin" && `Плей-офф: Bo${comp.playoff_best_of}, финал: Bo${comp.final_best_of}`}
+              {comp.format !== "knockout" && `${comp.format === "round_robin" ? t("Тур") : t("Группы")}: Bo${comp.group_best_of}. `}
+              {comp.format !== "round_robin" && t("Плей-офф: Bo{p}, финал: Bo{f}", { p: comp.playoff_best_of, f: comp.final_best_of })}
             </dd>
             {comp.format !== "knockout" && (
               <>
-                <dt>Очки</dt>
+                <dt>{t("Очки")}</dt>
                 <dd>
-                  Победа {comp.points_win}, поражение {comp.points_loss}
+                  {t("Победа {w}, поражение {l}", { w: comp.points_win, l: comp.points_loss })}
                 </dd>
-                <dt>При равенстве</dt>
-                <dd>{comp.tiebreakers.map((t) => TIEBREAKER_LABELS[t]).join(" → ")}</dd>
+                <dt>{t("При равенстве")}</dt>
+                <dd>{comp.tiebreakers.map((tb) => t(TIEBREAKER_LABELS[tb])).join(" → ")}</dd>
               </>
             )}
-            <dt>Призовой фонд</dt>
-            <dd style={{ color: prize ? "var(--gold)" : undefined }}>{prize ?? "Не объявлен"}</dd>
+            <dt>{t("Призовой фонд")}</dt>
+            <dd style={{ color: prize ? "var(--gold)" : undefined }}>{prize ?? t("Не объявлен")}</dd>
           </dl>
           <div className="row" style={{ marginTop: 20 }}>
             <Link href="/rules" className="btn btn-ghost btn-sm">
-              Правила
+              {t("Правила")}
             </Link>
             <Link href={`/c/${comp.slug}/prizes`} className="btn btn-ghost btn-sm">
-              Призы
+              {t("Призы")}
             </Link>
           </div>
         </aside>

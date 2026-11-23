@@ -5,7 +5,7 @@ import { requireAdmin, requireReferee, type User } from "@/lib/auth";
 import { q, one, tx, lockCompetition, isUniqueViolation } from "@/lib/db";
 import { str, int, bool, oneOf, optionalNumber, url, guard, ok, FormError } from "@/lib/forms";
 import { notify, logAction, matchEvent } from "@/lib/notify";
-import { fromLocalInput, slugify, fmtDateTime } from "@/lib/format";
+import { fromLocalInput, slugify } from "@/lib/format";
 import { runDraw, resetDraw, publishDraw, generatePlayoffs, adminSetEntryStatus, promoteWaitlist } from "@/lib/tournament";
 import { getCompetition, entryCounts } from "@/lib/data";
 import { BEST_OF_OPTIONS } from "@/lib/engine/results.ts";
@@ -21,7 +21,7 @@ const TIEBREAKERS: Tiebreaker[] = ["points", "goal_diff", "goals_for", "head_to_
 
 function bestOf(fd: FormData, name: string, label: string) {
   const v = int(fd, name, label, 1, 9);
-  if (!(BEST_OF_OPTIONS as readonly number[]).includes(v)) throw new FormError(`«${label}»: выберите Bo1, Bo3, Bo5 или Bo7`);
+  if (!(BEST_OF_OPTIONS as readonly number[]).includes(v)) throw new FormError("«{label}»: выберите Bo1, Bo3, Bo5 или Bo7", { label });
   return v;
 }
 
@@ -101,7 +101,7 @@ export async function saveCompetition(fd: FormData) {
           const locked = ["format", "group_count", "qualifiers_per_group", "double_round_robin", "third_place", "group_best_of", "playoff_best_of", "final_best_of", "seeded_draw"] as const;
           for (const k of locked) if (cur[k] !== v[k]) throw new FormError("После жеребьёвки нельзя менять формат, группы и серии");
         }
-        if (v.capacity < counts.active) throw new FormError(`Уже ${counts.active} активных заявок — вместимость не может быть меньше`);
+        if (v.capacity < counts.active) throw new FormError("Уже {n} активных заявок: вместимость не может быть меньше", { n: counts.active });
         await q(
           `update competitions set name=$2, kind=$3, mode=$4, format=$5, season=$6, description=$7, capacity=$8, registration_deadline=$9, start_at=$10,
              timezone=$11, region=$12, platforms=$13, require_approval=$14, checkin_required=$15, group_count=$16, qualifiers_per_group=$17,
@@ -172,7 +172,7 @@ export async function setCompetitionStatus(fd: FormData) {
               [id],
               c,
             );
-            await notify(c, members.map((m) => m.user_id), `${comp.name}: открыт чек-ин`, "Подтвердите участие, иначе не попадёте в жеребьёвку", `/c/${comp.slug}`);
+            await notify(c, members.map((m) => m.user_id), "{comp}: открыт чек-ин", "Подтвердите участие, иначе не попадёте в жеребьёвку", `/c/${comp.slug}`, { comp: comp.name });
           }
           message = action === "checkin_open" ? "Чек-ин открыт, участники уведомлены" : "Чек-ин закрыт";
           break;
@@ -276,15 +276,15 @@ export async function scheduleRound(fd: FormData) {
         [id, stage, round, at],
         c,
       );
-      const text = `Новое время: ${fmtDateTime(at, comp.timezone)}`;
-      for (const r of rows) await matchEvent(c, r.id, user.id, text);
+      const when = { at: at.toISOString(), tz: comp.timezone };
+      for (const r of rows) await matchEvent(c, r.id, user.id, "Новое время: {when}", when);
       const members = await q<{ user_id: string }>(
         "select distinct user_id from entry_members where active and entry_id = any($1::uuid[])",
         [rows.flatMap((r) => [r.home_entry_id, r.away_entry_id]).filter(Boolean)],
         c,
       );
-      await notify(c, members.map((m) => m.user_id), `${comp.name}: расписание обновлено`, text, `/c/${comp.slug}/matches`);
-      await logAction(c, user.id, "schedule.round", `${comp.name} ${stage} ${round}: ${rows.length} матчей`);
+      await notify(c, members.map((m) => m.user_id), "{comp}: расписание обновлено", "Новое время: {when}", `/c/${comp.slug}/matches`, { comp: comp.name, ...when });
+      await logAction(c, user.id, "schedule.round", `${comp.name} ${stage} ${round}: ${rows.length} матчей, ${at.toISOString()}`);
     });
   });
   ok(compPath(id, "matches"), "Расписание тура обновлено");

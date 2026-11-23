@@ -1,6 +1,10 @@
 import { getSettings } from "@/lib/data";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "FAQ и контакты" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("FAQ и контакты") };
+}
 
 // These answers describe how the platform works, not the official rules.
 const FAQ: { group: string; items: [string, string][] }[] = [
@@ -42,30 +46,31 @@ const FAQ: { group: string; items: [string, string][] }[] = [
 ];
 
 export default async function Faq() {
+  const t = await getT();
   const s = await getSettings();
   return (
     <div className="wrap section split">
       <div className="stack-lg">
-        <h1>Вопросы и ответы</h1>
+        <h1>{t("Вопросы и ответы")}</h1>
         {FAQ.map((g) => (
           <section key={g.group}>
-            <h2 style={{ fontSize: "1.3rem", marginBottom: 8 }}>{g.group}</h2>
+            <h2 style={{ fontSize: "1.3rem", marginBottom: 8 }}>{t(g.group)}</h2>
             {g.items.map(([qq, a]) => (
               <details key={qq} className="qa">
-                <summary>{qq}</summary>
-                <div>{a}</div>
+                <summary>{t(qq)}</summary>
+                <div>{t(a)}</div>
               </details>
             ))}
           </section>
         ))}
       </div>
       <aside className="panel stack">
-        <h3>Связаться с организаторами</h3>
+        <h3>{t("Связаться с организаторами")}</h3>
         {s.discord_url || s.contact_email ? (
           <div className="stack" style={{ gap: 10 }}>
             {s.discord_url && (
               <a className="btn" href={s.discord_url} target="_blank" rel="noopener noreferrer">
-                Discord сервер
+                {t("Discord сервер")}
               </a>
             )}
             {s.contact_email && (
@@ -75,7 +80,7 @@ export default async function Faq() {
             )}
           </div>
         ) : (
-          <p className="muted small">Контакты организаторов скоро появятся.</p>
+          <p className="muted small">{t("Контакты организаторов скоро появятся.")}</p>
         )}
       </aside>
     </div>

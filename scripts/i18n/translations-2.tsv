@@ -1,0 +1,262 @@
+Матч	Uchrashuv	Match
+Матч #{n}	#{n} uchrashuv	Match #{n}
+Матч #{n}: {status}	#{n} uchrashuv: {status}	Match #{n}: {status}
+Матч #{n}: изменение расписания	#{n} uchrashuv: jadval oʻzgardi	Match #{n}: schedule change
+Матч #{n}: подтвердите результат	#{n} uchrashuv: natijani tasdiqlang	Match #{n}: confirm the result
+Матч #{n}: результат оспорен	#{n} uchrashuv: natijaga eʼtiroz bildirildi	Match #{n}: result disputed
+Матч #{n}: спор по результату	#{n} uchrashuv: natija boʻyicha bahs	Match #{n}: result dispute
+Матч за 3-е место	3-oʻrin uchun uchrashuv	Third-place match
+Матч завершён. Чтобы исправить счёт, установите новый результат.	Uchrashuv yakunlangan. Hisobni tuzatish uchun yangi natija kiriting.	The match is over. To fix the score, set a new result.
+Матч на рассмотрении у судьи	Uchrashuv hakam koʻrigida	The match is under referee review
+Матч не найден	Uchrashuv topilmadi	Match not found
+Матчей пока нет — они появятся после жеребьёвки.	Hozircha uchrashuvlar yoʻq — ular qurʼadan keyin paydo boʻladi.	No matches yet — they appear after the draw.
+Матчей с такими фильтрами нет	Bunday filtrlar bilan uchrashuvlar yoʻq	No matches for these filters
+Матчи	Uchrashuvlar	Matches
+Матчи и результаты	Uchrashuvlar va natijalar	Matches and results
+Меню	Menyu	Menu
+Мест нет — вы в листе ожидания	Joy yoʻq — siz kutish roʻyxatidasiz	No spots left — you’re on the waiting list
+Мест нет, работает лист ожидания	Joy yoʻq, kutish roʻyxati ishlamoqda	No spots left, waiting list is open
+Место	Oʻrin	Place
+Место (пусто — специальная награда)	Oʻrin (boʻsh — maxsus mukofot)	Place (empty — special award)
+Место: число от 1	Oʻrin: 1 dan boshlab son	Place: a number from 1
+Минимум 8 символов	Kamida 8 ta belgi	At least 8 characters
+Можно ли отменить регистрацию?	Roʻyxatdan oʻtishni bekor qilsa boʻladimi?	Can I cancel my registration?
+Можно ли участвовать в двух командах сразу?	Bir vaqtda ikki jamoada qatnashsa boʻladimi?	Can I be in two teams at once?
+Мои ближайшие матчи	Mening yaqin uchrashuvlarim	My upcoming matches
+Мои матчи	Mening uchrashuvlarim	My matches
+Мои соревнования	Mening musobaqalarim	My competitions
+Мой кабинет	Shaxsiy kabinet	My dashboard
+На главную	Bosh sahifaga	Go home
+На проверке	Tekshiruvda	Under review
+На рассмотрении	Koʻrib chiqilmoqda	Under review
+Награда	Mukofot	Prize
+Награда добавлена	Mukofot qoʻshildi	Prize added
+Награды	Mukofotlar	Prizes
+Награды не добавлены	Mukofotlar qoʻshilmagan	No prizes added
+Название	Nomi	Name
+Название / посев	Nomi / saralash	Name / seed
+Название команды	Jamoa nomi	Team name
+Название команды занято или вы уже участвуете в этом соревновании	Jamoa nomi band yoki siz bu musobaqada allaqachon qatnashyapsiz	The team name is taken, or you’re already in this competition
+Название награды	Mukofot nomi	Prize name
+Название платформы	Platforma nomi	Platform name
+Назначить	Belgilash	Set
+Назначить время целому туру	Butun turga vaqt belgilash	Set a time for the whole round
+Найти	Topish	Search
+Напоминание: матч #{n}	Eslatma: #{n} uchrashuv	Reminder: match #{n}
+Например Asia/Tashkent	Masalan, Asia/Tashkent	For example, Asia/Tashkent
+Например: Premier League, Сезон 1	Masalan: Premier League, 1-mavsum	For example: Premier League, Season 1
+Настройки	Sozlamalar	Settings
+Настройки матча	Uchrashuv sozlamalari	Match settings
+Настройки платформы	Platforma sozlamalari	Platform settings
+Настройки сохранены	Sozlamalar saqlandi	Settings saved
+Не настроено	Sozlanmagan	Not set up
+Не объявлен	Eʼlon qilinmagan	Not announced
+Не попадут	Qurʼaga tushmaydi	Not included
+Не проводилась	Oʻtkazilmagan	Not held
+Неверная дата	Notoʻgʻri sana	Invalid date
+Неверная дата окончания регистрации	Roʻyxatdan oʻtish tugash sanasi notoʻgʻri	Invalid registration deadline
+Неверная дата старта	Boshlanish sanasi notoʻgʻri	Invalid start date
+Неверный email	Notoʻgʻri email	Invalid email
+Неверный email или пароль	Email yoki parol notoʻgʻri	Wrong email or password
+Неверный идентификатор	Notoʻgʻri identifikator	Invalid ID
+Неизвестное действие	Nomaʼlum amal	Unknown action
+Неизвестный часовой пояс. Пример: Asia/Tashkent, Europe/Moscow	Nomaʼlum vaqt mintaqasi. Misol: Asia/Tashkent, Europe/Moscow	Unknown time zone. Example: Asia/Tashkent, Europe/Moscow
+Нельзя изменить собственную роль	Oʻz rolingizni oʻzgartira olmaysiz	You can’t change your own role
+Нельзя менять режим 1v1/2v2, когда уже есть заявки	Arizalar bor boʻlsa, 1v1/2v2 rejimini oʻzgartirib boʻlmaydi	You can’t switch between 1v1 and 2v2 once there are entries
+Нельзя скрыть идущее соревнование	Davom etayotgan musobaqani yashirib boʻlmaydi	You can’t hide a competition in progress
+Неполных команд	Toʻliq boʻlmagan jamoalar	Incomplete teams
+Нет	Yoʻq	No
+Нет аккаунта?	Akkauntingiz yoʻqmi?	No account?
+Нет доступа	Ruxsat yoʻq	Access denied
+Нет предстоящих матчей	Kelgusi uchrashuvlar yoʻq	No upcoming matches
+Нет свободных мест — увеличьте вместимость	Boʻsh joy yoʻq — sigʻimni oshiring	No free spots — increase capacity
+Нет, использовать счёт	Yoʻq, hisobdan foydalanish	No, use the score
+Нет. В одном соревновании игрок может состоять только в одной заявке, а один Rocket League аккаунт можно привязать только к одному профилю.	Yoʻq. Bitta musobaqada oʻyinchi faqat bitta arizada boʻlishi mumkin, bitta Rocket League akkaunti esa faqat bitta profilga bogʻlanadi.	No. A player can be in only one entry per competition, and a Rocket League account can be linked to only one profile.
+Нет. Официального публичного API Rocket League для турнирных результатов нет, поэтому результаты подтверждают сами участники и судьи.	Yoʻq. Turnir natijalari uchun Rocket League ning rasmiy ochiq API si yoʻq, shuning uchun natijalarni ishtirokchilar va hakamlar tasdiqlaydi.	No. There’s no official public Rocket League API for tournament results, so players and referees confirm results.
+Нечего публиковать — сначала проведите жеребьёвку	Eʼlon qiladigan narsa yoʻq — avval qurʼa tashlang	Nothing to publish — run the draw first
+Ник	Nik	Nickname
+Ник в Rocket League	Rocket League dagi nik	Rocket League nickname
+Ник игрока или название команды	Oʻyinchi niki yoki jamoa nomi	Player nickname or team name
+Ник, email или Rocket League ID	Nik, email yoki Rocket League ID	Nickname, email or Rocket League ID
+Никого не нашли	Hech kim topilmadi	Nobody found
+Новое время: {when}	Yangi vaqt: {when}	New time: {when}
+Новое правило	Yangi qoida	New rule
+Новое соревнование	Yangi musobaqa	New competition
+Новый пароль	Yangi parol	New password
+Номер участника #{n}	Ishtirokchi raqami #{n}	Participant #{n}
+О соревновании	Musobaqa haqida	About
+Обзор	Umumiy	Overview
+Общие правила	Umumiy qoidalar	General rules
+Объявление опубликовано	Eʼlon chop etildi	Announcement published
+Объявлений нет	Eʼlonlar yoʻq	No announcements
+Объявления	Eʼlonlar	Announcements
+Обязательный чек-ин перед жеребьёвкой	Qurʼadan oldin majburiy chek-in	Mandatory check-in before the draw
+Один аккаунт на игрока. После этого можно записаться в любую лигу или кубок в пару кликов.	Har bir oʻyinchiga bitta akkaunt. Shundan soʻng istalgan liga yoki kubokka bir necha bosishda yozilish mumkin.	One account per player. Then you can join any league or cup in a couple of clicks.
+Одобрить	Tasdiqlash	Approve
+Одобрить можно только заявку на проверке	Faqat tekshiruvdagi arizani tasdiqlash mumkin	Only entries under review can be approved
+Ожидает выплаты	Toʻlov kutilmoqda	Payout pending
+Окончание регистрации	Roʻyxatdan oʻtish tugashi	Registration deadline
+Он может оспорить результат. Тогда матч получает статус «На рассмотрении», и судья принимает решение по доказательствам.	U natijaga eʼtiroz bildirishi mumkin. Shunda uchrashuv «Koʻrib chiqilmoqda» holatini oladi va hakam dalillar asosida qaror qabul qiladi.	They can dispute the result. The match then goes “Under review” and a referee decides based on the evidence.
+Она появится автоматически, когда закончится групповой этап.	U guruh bosqichi tugagach avtomatik paydo boʻladi.	It appears automatically when the group stage ends.
+Она появится после публикации жеребьёвки.	U qurʼa eʼlon qilingandan keyin paydo boʻladi.	It appears once the draw is published.
+Она пройдёт после закрытия регистрации. Участники распределяются по группам случайно с посевом по корзинам, результат сохраняется и не меняется после публикации.	U roʻyxat yopilgandan keyin oʻtadi. Ishtirokchilar guruhlarga savatlar boʻyicha saralash bilan tasodifiy taqsimlanadi, natija saqlanadi va eʼlon qilingach oʻzgarmaydi.	It happens after registration closes. Participants are drawn into groups at random using seeding pots; the result is saved and doesn’t change after publishing.
+Она пройдёт после закрытия регистрации. Участники распределяются по группам случайно, результат сохраняется и не меняется после публикации.	U roʻyxat yopilgandan keyin oʻtadi. Ishtirokchilar guruhlarga tasodifiy taqsimlanadi, natija saqlanadi va eʼlon qilingach oʻzgarmaydi.	It happens after registration closes. Participants are drawn into groups at random; the result is saved and doesn’t change after publishing.
+Описание	Tavsif	Description
+Опишите, что не так с результатом	Natijada nima notoʻgʻri ekanini yozing	Describe what’s wrong with the result
+Опоздания и технические поражения	Kechikishlar va texnik magʻlubiyatlar	Late arrivals and forfeits
+Определится позже	Keyinroq aniqlanadi	TBD
+Опубликована и заблокирована	Eʼlon qilingan va bloklangan	Published and locked
+Опубликовано	Eʼlon qilingan	Published
+Опубликовано {date}. Код жеребьёвки: {seed}. Результат зафиксирован.	{date} da eʼlon qilingan. Qurʼa kodi: {seed}. Natija qayd etilgan.	Published {date}. Draw code: {seed}. The result is final.
+Опубликованы правила соревнований	Musobaqa qoidalari eʼlon qilindi	Competition rules are published
+Опубликовать	Eʼlon qilish	Publish
+Опубликовать все ({n})	Hammasini eʼlon qilish ({n})	Publish all ({n})
+Опубликовать жеребьёвку? После публикации её нельзя изменить.	Qurʼa eʼlon qilinsinmi? Eʼlon qilingach uni oʻzgartirib boʻlmaydi.	Publish the draw? It can’t be changed after publishing.
+Опубликовать черновики ({n}) и уведомить всех?	Qoralamalar ({n}) eʼlon qilinib, hammaga xabar berilsinmi?	Publish drafts ({n}) and notify everyone?
+Организатор опубликует официальные правила до начала соревнований. Разделы будут такими:	Tashkilotchi rasmiy qoidalarni musobaqalar boshlanishidan oldin eʼlon qiladi. Boʻlimlar quyidagicha boʻladi:	The organizer will publish the official rules before the competitions start. The sections will be:
+Организатор опубликует призовой фонд и распределение здесь.	Tashkilotchi sovrin jamgʻarmasi va uning taqsimotini shu yerda eʼlon qiladi.	The organizer will publish the prize pool and distribution here.
+Основная навигация	Asosiy navigatsiya	Main navigation
+Основное	Asosiy	General
+Оспорить	Eʼtiroz bildirish	Dispute
+Оспорить результат? Матч уйдёт судье.	Natijaga eʼtiroz bildirilsinmi? Uchrashuv hakamga oʻtadi.	Dispute the result? The match goes to a referee.
+Отклонить	Rad etish	Reject
+Отклонить заявку?	Ariza rad etilsinmi?	Reject this entry?
+Отклонён	Rad etilgan	Rejected
+Открепить	Mahkamlashni olish	Unpin
+Откройте страницу матча и введите счёт каждой игры серии. Можно приложить ссылку на скриншот. Соперник подтверждает результат, после этого он становится официальным и обновляет таблицу и сетку.	Uchrashuv sahifasini oching va seriyadagi har bir oʻyin hisobini kiriting. Skrinshot havolasini qoʻshish mumkin. Raqib natijani tasdiqlaydi, shundan soʻng u rasmiy boʻladi va jadval hamda setkani yangilaydi.	Open the match page and enter the score of each game in the series. You can attach a screenshot link. The opponent confirms, then the result becomes official and updates the table and bracket.
+Открытых споров нет	Ochiq bahslar yoʻq	No open disputes
+Открыть на сайте →	Saytda ochish →	Open on site →
+Открыть регистрацию	Roʻyxatni ochish	Open registration
+Открыть регистрацию сейчас нельзя	Hozir roʻyxatni ochib boʻlmaydi	Registration can’t be opened right now
+Открыть турнир	Turnirni ochish	Open tournament
+Открыть чек-ин	Chek-inni ochish	Open check-in
+Отменить регистрацию	Roʻyxatdan oʻtishni bekor qilish	Cancel registration
+Отменить регистрацию?	Roʻyxatdan oʻtish bekor qilinsinmi?	Cancel your registration?
+Отменён	Bekor qilingan	Cancelled
+Отметить выплату	Toʻlovni belgilash	Mark as paid
+Отправить заново	Qayta yuborish	Resubmit
+Отправить результат	Natijani yuborish	Submit result
+Отправить результат могут только участники этого матча	Natijani faqat shu uchrashuv ishtirokchilari yubora oladi	Only this match’s participants can submit a result
+Отправить уведомление	Bildirishnoma yuborish	Send notification
+Отправляем…	Yuborilmoqda…	Sending…
+Отправьте напарнику ссылку. Команда попадёт в жеребьёвку, только когда он подтвердит участие.	Sherigingizga havolani yuboring. Jamoa u ishtirokini tasdiqlagandan keyingina qurʼaga tushadi.	Send your teammate the link. The team enters the draw only after they confirm.
+Отчёт уже обработан	Hisobot allaqachon koʻrib chiqilgan	This report was already handled
+Отчёты	Hisobotlar	Reports
+Очки	Ochko	Points
+Очки за победу	Gʻalaba uchun ochko	Points for a win
+Очки за победу и поражение, затем разница голов, забитые голы и личные встречи. Точные настройки показаны на странице каждого соревнования.	Gʻalaba va magʻlubiyat uchun ochkolar, soʻng gollar farqi, urilgan gollar va oʻzaro uchrashuvlar. Aniq sozlamalar har bir musobaqa sahifasida koʻrsatilgan.	Points for wins and losses, then goal difference, goals scored and head-to-head. The exact settings are on each competition page.
+Очки за поражение	Magʻlubiyat uchun ochko	Points for a loss
+Очки и тай-брейки	Ochkolar va tay-breyklar	Points and tiebreakers
+П	M	L
+ПГ	OʻG	GA
+Пароль	Parol	Password
+Пароль изменён	Parol oʻzgartirildi	Password changed
+Перейти к жеребьёвке	Qurʼaga oʻtish	Go to the draw
+Перенесены	Koʻchirilgan	Postponed
+Перенесён	Koʻchirildi	Postponed
+Перетянуть заново	Qayta qurʼa tashlash	Redraw
+Платформа	Platforma	Platform
+Платформа вашего аккаунта ({platform}) не допущена к этому соревнованию.	Akkauntingiz platformasi ({platform}) bu musobaqaga ruxsat etilmagan.	Your account’s platform ({platform}) isn’t allowed in this competition.
+Платформы	Platformalar	Platforms
+Плей-офф	Pley-off	Playoffs
+Плей-офф (на выбывание)	Pley-off (chiqib ketish)	Playoffs (knockout)
+Плей-офф генерируется только для формата «Группы + плей-офф»	Pley-off faqat «Guruhlar + pley-off» formati uchun yaratiladi	Playoffs are generated only for the “Groups + playoffs” format
+Плей-офф: Bo{p}, финал: Bo{f}	Pley-off: Bo{p}, final: Bo{f}	Playoffs: Bo{p}, final: Bo{f}
+Победа	Gʻalaba	Win
+Победа {w} · поражение {l} · при равенстве: {tb}	Gʻalaba {w} · magʻlubiyat {l} · teng boʻlsa: {tb}	Win {w} · loss {l} · tiebreakers: {tb}
+Победа {w}, поражение {l}	Gʻalaba {w}, magʻlubiyat {l}	Win {w}, loss {l}
+Победа:	Gʻalaba:	Win:
+Победитель	Gʻolib	Winner
+Победитель матча автоматически проходит в следующий раунд. Нажмите на матч, чтобы открыть подробности.	Uchrashuv gʻolibi avtomatik ravishda keyingi raundga oʻtadi. Tafsilotlar uchun uchrashuvni bosing.	The match winner advances automatically. Tap a match for details.
+Победитель:	Gʻolib:	Winner:
+Победы	Gʻalabalar	Wins
+Победы гостей	Mehmonlar gʻalabalari	Away wins
+Победы хозяев	Mezbonlar gʻalabalari	Home wins
+Повторить	Qayta urinish	Try again
+Подзаголовок	Kichik sarlavha	Tagline
+Подключите базу данных	Maʼlumotlar bazasini ulang	Connect the database
+Подробнее	Batafsil	Details
+Подтвердите публикацию: после неё жеребьёвку нельзя изменить	Eʼlon qilishni tasdiqlang: undan keyin qurʼani oʻzgartirib boʻlmaydi	Confirm publishing: the draw can’t be changed afterwards
+Подтвердите согласие с правилами соревнования	Musobaqa qoidalariga roziligingizni tasdiqlang	Please accept the competition rules
+Подтвердите участие, иначе не попадёте в жеребьёвку	Ishtirokingizni tasdiqlang, aks holda qurʼaga tushmaysiz	Confirm your participation or you won’t be in the draw
+Подтвердить	Tasdiqlash	Confirm
+Подтвердить может только соперник	Faqat raqib tasdiqlay oladi	Only the opponent can confirm
+Подтверждено {c} · на проверке {p} · неполных {i} · ожидают {w} · мест {cap}	Tasdiqlangan {c} · tekshiruvda {p} · toʻliq emas {i} · kutmoqda {w} · joylar {cap}	Confirmed {c} · under review {p} · incomplete {i} · waiting {w} · spots {cap}
+Подтверждён	Tasdiqlangan	Confirmed
+Поиск игрока	Oʻyinchi qidirish	Search players
+Поиск команды или игрока	Jamoa yoki oʻyinchi qidirish	Search teams or players
+Поиск по названию, нику или ID	Nomi, nik yoki ID boʻyicha qidirish	Search by name, nickname or ID
+Пока без событий.	Hozircha voqealar yoʻq.	Nothing yet.
+Пока нет опубликованных правил, на сайте показывается пометка, что правила ещё не опубликованы.	Eʼlon qilingan qoidalar boʻlmaguncha, saytda qoidalar hali eʼlon qilinmagani haqida belgi koʻrsatiladi.	Until rules are published, the site shows a note that they aren’t published yet.
+Пока нет открытых соревнований	Hozircha ochiq musobaqalar yoʻq	No open competitions yet
+Пока никто не зарегистрировался	Hozircha hech kim roʻyxatdan oʻtmagan	Nobody has signed up yet
+Показывать на главной странице	Bosh sahifada koʻrsatish	Show on the home page
+Покинуть команду	Jamoani tark etish	Leave team
+Покинуть команду?	Jamoani tark etasizmi?	Leave the team?
+Полные правила ещё не опубликованы	Toʻliq qoidalar hali eʼlon qilinmagan	The full rules aren’t published yet
+Полуфинал	Yarim final	Semi-final
+Получатели 1–3 мест назначаются автоматически, когда соревнование завершается. Их можно изменить вручную.	1–3-oʻrin egalari musobaqa tugagach avtomatik belgilanadi. Ularni qoʻlda oʻzgartirish mumkin.	Places 1–3 are assigned automatically when the competition ends. You can change them manually.
+Получатель	Oluvchi	Recipient
+Получатель: {name}	Oluvchi: {name}	Recipient: {name}
+Получили ссылку от капитана? Просто откройте её.	Sardordan havola oldingizmi? Shunchaki uni oching.	Got a link from your captain? Just open it.
+Пользователи	Foydalanuvchilar	Users
+Понимаю, что после публикации изменить нельзя	Eʼlon qilingach oʻzgartirib boʻlmasligini tushunaman	I understand it can’t be changed after publishing
+Попробуйте обновить страницу. Если ошибка повторяется, сообщите организаторам.	Sahifani yangilab koʻring. Xato takrorlansa, tashkilotchilarga xabar bering.	Try refreshing the page. If the error persists, let the organizers know.
+Поражение	Magʻlubiyat	Loss
+Поражения	Magʻlubiyatlar	Losses
+Порядок тай-брейков	Tay-breyklar tartibi	Tiebreaker order
+Посев	Saralash	Seed
+Посев: целое число от 1	Saralash: 1 dan boshlab butun son	Seed: a whole number from 1
+После жеребьёвки нельзя менять формат, группы и серии	Qurʼadan keyin format, guruhlar va seriyalarni oʻzgartirib boʻlmaydi	After the draw, the format, groups and series can’t be changed
+После жеребьёвки отменить участие нельзя — свяжитесь с администратором	Qurʼadan keyin ishtirokni bekor qilib boʻlmaydi — administrator bilan bogʻlaning	You can’t withdraw after the draw — contact an admin
+После жеребьёвки смотрите соперников и время матчей	Qurʼadan keyin raqiblar va uchrashuv vaqtlarini koʻring	After the draw, see your opponents and match times
+После закрытия регистрации администратор запускает жеребьёвку. Участники случайно распределяются по группам максимально равномерно. При посеве сильнейшие разводятся по разным группам. После публикации результат фиксируется и больше не меняется.	Roʻyxat yopilgach administrator qurʼani boshlaydi. Ishtirokchilar guruhlarga iloji boricha teng va tasodifiy taqsimlanadi. Saralashda eng kuchlilar turli guruhlarga ajratiladi. Eʼlon qilingach natija qayd etiladi va boshqa oʻzgarmaydi.	After registration closes, an admin runs the draw. Participants are spread across groups at random as evenly as possible. With seeding, the strongest are kept apart. Once published, the result is final.
+После первых заявок режим не меняется	Birinchi arizalardan keyin rejim oʻzgarmaydi	The mode can’t change after the first entries
+После создания вы получите ссылку-приглашение. Второй игрок открывает её, входит в свой аккаунт и подтверждает участие. Неполные команды не попадают в жеребьёвку.	Yaratilgandan soʻng taklif havolasini olasiz. Ikkinchi oʻyinchi uni ochadi, akkauntiga kiradi va ishtirokini tasdiqlaydi. Toʻliq boʻlmagan jamoalar qurʼaga tushmaydi.	You’ll get an invite link after creating the team. The second player opens it, logs in and confirms. Incomplete teams aren’t included in the draw.
+Последнее обновление:	Oxirgi yangilanish:	Last updated:
+Посмотреть на сайте	Saytda koʻrish	View on site
+Правил пока нет. Добавьте их, когда будет готов официальный текст.	Hozircha qoidalar yoʻq. Rasmiy matn tayyor boʻlganda qoʻshing.	No rules yet. Add them when the official text is ready.
+Правила	Qoidalar	Rules
+Правила 1v1	1v1 qoidalari	1v1 rules
+Правила 2v2	2v2 qoidalari	2v2 rules
+Правила соревнований	Musobaqa qoidalari	Competition rules
+Правило сохранено	Qoida saqlandi	Rule saved
+Предварительная (видна только админам)	Dastlabki (faqat adminlarga koʻrinadi)	Preview (admins only)
+Предварительный результат виден только администраторам. Участники увидят группы после публикации.	Dastlabki natijani faqat administratorlar koʻradi. Ishtirokchilar guruhlarni eʼlon qilingandan keyin koʻrishadi.	Only admins can see the preview. Participants will see the groups after publishing.
+При равенстве	Teng boʻlganda	Tiebreakers
+Пригласите нового игрока по ссылке	Yangi oʻyinchini havola orqali taklif qiling	Invite a new player with the link
+Приглашение в команду	Jamoaga taklif	Team invite
+Приглашение не найдено	Taklif topilmadi	Invite not found
+Приглашение недействительно	Taklif yaroqsiz	Invalid invite
+Призовая зона	Sovrinli zona	Prize zone
+Призовой фонд	Sovrin jamgʻarmasi	Prize pool
+Призовой фонд: {amount}	Sovrin jamgʻarmasi: {amount}	Prize pool: {amount}
+Призы	Sovrinlar	Prizes
+Призы ещё не объявлены	Sovrinlar hali eʼlon qilinmagan	Prizes aren’t announced yet
+Причина	Sabab	Reason
+Приём заявок до {date} ({tz})	Arizalar {date} gacha qabul qilinadi ({tz})	Entries close {date} ({tz})
+Провести жеребьёвку	Qurʼa tashlash	Run the draw
+Провести жеребьёвку заново? Текущий предварительный результат будет заменён.	Qurʼa qayta tashlansinmi? Joriy dastlabki natija almashtiriladi.	Redraw? The current preview will be replaced.
+Прогресс соревнований	Musobaqalar jarayoni	Competition progress
+Прогресс турнира	Turnir jarayoni	Tournament progress
+Пройти чек-ин	Chek-indan oʻtish	Check in
+Протесты и споры	Protestlar va bahslar	Protests and disputes
+Профиль	Profil	Profile
+Профиль обновлён	Profil yangilandi	Profile updated
+Проход (bye)	Oʻtish (bye)	Bye
+Прочитать все	Hammasini oʻqilgan deb belgilash	Mark all as read
+Публичный профиль	Ochiq profil	Public profile
+Пусто — не объявлен	Boʻsh — eʼlon qilinmagan	Empty — not announced
+РГ	Farq	GD
+Раздел	Boʻlim	Section
+Разделы	Boʻlimlar	Sections
+Разделы правил	Qoidalar boʻlimlari	Rule sections
+Разделы управления	Boshqaruv boʻlimlari	Management sections
+Разница голов	Gollar farqi	Goal difference
+Расписание матчей	Uchrashuvlar jadvali	Match schedule
+Расписание обновлено	Jadval yangilandi	Schedule updated
+Расписание появится после жеребьёвки	Jadval qurʼadan keyin paydo boʻladi	The schedule appears after the draw
+Расписание тура обновлено	Tur jadvali yangilandi	Round schedule updated
+Распределение призов	Sovrinlarni taqsimlash	Prize distribution
+Раунд	Raund	Round
+Раунд {n}	{n}-raund	Round {n}

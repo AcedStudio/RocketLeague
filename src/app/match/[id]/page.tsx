@@ -4,16 +4,18 @@ import { getMatch, getCompetition, getEntry } from "@/lib/data";
 import { getUser, isReferee, isAdmin } from "@/lib/auth";
 import { q } from "@/lib/db";
 import { userSide } from "@/lib/tournament";
-import { fmtDateTime, toLocalInput, MATCH_STATUS_LABELS } from "@/lib/format";
+import { fmtDateTime, toLocalInput, MATCH_STATUS_LABELS, renderStored } from "@/lib/format";
 import { Flash, MatchStatusBadge, stageLabel, type SP } from "@/components/ui";
 import { GamesInput, SubmitButton, LocalTime } from "@/components/client";
 import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction } from "@/app/actions/match";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 type Report = { id: string; entry_id: string; games: { home: number; away: number }[]; proof_url: string; comment: string; status: string; response_comment: string; created_at: Date; reporter: string };
 
 export default async function MatchPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
+  const t = await getT();
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const m = await getMatch(id);
@@ -30,8 +32,8 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       "select r.*, u.rl_nickname as reporter from match_reports r join users u on u.id = r.reporter_id where r.match_id = $1 order by r.created_at desc",
       [m.id],
     ),
-    q<{ id: number; text: string; created_at: Date; actor: string | null }>(
-      "select e.id, e.text, e.created_at, u.rl_nickname as actor from match_events e left join users u on u.id = e.actor_id where e.match_id = $1 order by e.created_at desc",
+    q<{ id: number; text: string; params: Record<string, unknown>; created_at: Date; actor: string | null }>(
+      "select e.id, e.text, e.params, e.created_at, u.rl_nickname as actor from match_events e left join users u on u.id = e.actor_id where e.match_id = $1 order by e.created_at desc",
       [m.id],
     ),
     user ? userSide(m, user.id) : null,
@@ -50,9 +52,9 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
 
   const team = (e: typeof home, name: string | null, win: boolean) => (
     <div className="stack" style={{ gap: 6, alignItems: "center", textAlign: "center", minWidth: 0 }}>
-      <h2 style={{ fontSize: "clamp(1.1rem, 3vw, 1.6rem)", color: win ? "var(--gold)" : undefined, overflowWrap: "anywhere" }}>{name ?? "Определится позже"}</h2>
+      <h2 style={{ fontSize: "clamp(1.1rem, 3vw, 1.6rem)", color: win ? "var(--gold)" : undefined, overflowWrap: "anywhere" }}>{name ?? t("Определится позже")}</h2>
       {e && <span className="small muted">{e.members.map((x) => x.rl_nickname).join(" · ")}</span>}
-      {win && <span className="badge gold plain">Победитель</span>}
+      {win && <span className="badge gold plain">{t("Победитель")}</span>}
     </div>
   );
 
@@ -68,52 +70,52 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       <section className="panel stack" style={{ padding: "clamp(20px, 4vw, 40px)" }}>
         <div className="row between small muted">
           <span>
-            Матч #{m.number} · {stageLabel(m, rounds)} · Bo{m.best_of}
+            {t("Матч #{n}", { n: m.number })} · {stageLabel(t, m, rounds)} · Bo{m.best_of}
           </span>
           <MatchStatusBadge status={m.status} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 16, alignItems: "center", marginTop: 12 }}>
           {team(home, m.home_name, homeWin)}
           <div className="num" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 7vw, 3.6rem)", fontWeight: 700, whiteSpace: "nowrap" }}>
-            {done ? (m.forfeit ? "ТП" : `${m.home_wins} : ${m.away_wins}`) : "vs"}
+            {done ? (m.forfeit ? t("ТП") : `${m.home_wins} : ${m.away_wins}`) : "vs"}
           </div>
           {team(away, m.away_name, awayWin)}
         </div>
         <p className="muted" style={{ textAlign: "center" }}>
-          {fmtDateTime(m.scheduled_at, comp.timezone)} ({comp.timezone})
+          {fmtDateTime(m.scheduled_at, comp.timezone, t)} ({comp.timezone})
           {m.scheduled_at && <LocalTime iso={new Date(m.scheduled_at).toISOString()} />}
         </p>
         {done && m.games && m.games.length > 0 && (
           <div className="row" style={{ justifyContent: "center" }}>
             {m.games.map((g, i) => (
               <span key={i} className="tag num" style={{ fontSize: "0.85rem" }}>
-                И{i + 1}: {g.home}–{g.away}
+                {t("И{n}", { n: i + 1 })}: {g.home}–{g.away}
               </span>
             ))}
           </div>
         )}
-        {done && !m.forfeit && <p className="small faint" style={{ textAlign: "center" }}>Голы в сумме: {m.home_goals}–{m.away_goals}</p>}
-        {m.forfeit && <p className="small faint" style={{ textAlign: "center" }}>Техническая победа</p>}
+        {done && !m.forfeit && <p className="small faint" style={{ textAlign: "center" }}>{t("Голы в сумме:")} {m.home_goals}–{m.away_goals}</p>}
+        {m.forfeit && <p className="small faint" style={{ textAlign: "center" }}>{t("Техническая победа")}</p>}
       </section>
 
       <div className="split">
         <div className="stack-lg">
           {pendingFromOpponent && (
             <section className="panel stack" style={{ borderColor: "rgba(255,193,99,.5)" }}>
-              <h3>Соперник отправил результат</h3>
+              <h3>{t("Соперник отправил результат")}</h3>
               <p>
                 {pendingFromOpponent.games.map((g, i) => (
                   <span key={i} className="tag num" style={{ marginRight: 6 }}>
-                    И{i + 1}: {g.home}–{g.away}
+                    {t("И{n}", { n: i + 1 })}: {g.home}–{g.away}
                   </span>
                 ))}
               </p>
               <p className="small muted">
-                Счёт указан как {m.home_name} – {m.away_name}. Отправил {pendingFromOpponent.reporter}.
+                {t("Счёт указан как {home} – {away}. Отправил: {who}.", { home: m.home_name, away: m.away_name, who: pendingFromOpponent.reporter })}
                 {pendingFromOpponent.proof_url && (
                   <>
                     {" "}
-                    <a href={pendingFromOpponent.proof_url} target="_blank" rel="noopener noreferrer nofollow">Доказательство</a>
+                    <a href={pendingFromOpponent.proof_url} target="_blank" rel="noopener noreferrer nofollow">{t("Доказательство")}</a>
                   </>
                 )}
               </p>
@@ -121,13 +123,13 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
                 <input type="hidden" name="match_id" value={m.id} />
                 <input type="hidden" name="report_id" value={pendingFromOpponent.id} />
                 <label className="field">
-                  <span>Комментарий (обязателен, если оспариваете)</span>
+                  <span>{t("Комментарий (обязателен, если оспариваете)")}</span>
                   <input className="input" name="comment" maxLength={500} />
                 </label>
                 <div className="row">
-                  <SubmitButton className="btn" name="decision" value="accept">Подтвердить</SubmitButton>
-                  <SubmitButton className="btn btn-danger" name="decision" value="dispute" confirm="Оспорить результат? Матч уйдёт судье.">
-                    Оспорить
+                  <SubmitButton className="btn" name="decision" value="accept">{t("Подтвердить")}</SubmitButton>
+                  <SubmitButton className="btn btn-danger" name="decision" value="dispute" confirm={t("Оспорить результат? Матч уйдёт судье.")}>
+                    {t("Оспорить")}
                   </SubmitButton>
                 </div>
               </form>
@@ -136,50 +138,50 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
 
           {canReport && (
             <section className="panel stack">
-              <h3>{myPending ? "Вы уже отправили результат" : "Отправить результат"}</h3>
+              <h3>{myPending ? t("Вы уже отправили результат") : t("Отправить результат")}</h3>
               {myPending ? (
-                <p className="small muted">Ждём подтверждения соперника. Можно отправить исправленный счёт, старый будет заменён.</p>
+                <p className="small muted">{t("Ждём подтверждения соперника. Можно отправить исправленный счёт, старый будет заменён.")}</p>
               ) : (
-                <p className="small muted">Введите счёт каждой игры. Когда соперник подтвердит, результат станет официальным.</p>
+                <p className="small muted">{t("Введите счёт каждой игры. Когда соперник подтвердит, результат станет официальным.")}</p>
               )}
               <form action={reportAction} className="stack">
                 <input type="hidden" name="match_id" value={m.id} />
-                <GamesInput bestOf={m.best_of} homeName={m.home_name ?? "Хозяева"} awayName={m.away_name ?? "Гости"} initial={myPending?.games} />
+                <GamesInput bestOf={m.best_of} homeName={m.home_name ?? t("Хозяева")} awayName={m.away_name ?? t("Гости")} initial={myPending?.games} />
                 <label className="field">
-                  <span>Ссылка на скриншот (необязательно)</span>
+                  <span>{t("Ссылка на скриншот (необязательно)")}</span>
                   <input className="input" name="proof_url" type="url" placeholder="https://..." maxLength={500} />
-                  <small>Загрузите скриншот итогового экрана в Discord или Imgur и вставьте ссылку</small>
+                  <small>{t("Загрузите скриншот итогового экрана в Discord или Imgur и вставьте ссылку")}</small>
                 </label>
                 <label className="field">
-                  <span>Комментарий</span>
+                  <span>{t("Комментарий")}</span>
                   <input className="input" name="comment" maxLength={500} />
                 </label>
-                <SubmitButton className="btn">{myPending ? "Отправить заново" : "Отправить результат"}</SubmitButton>
+                <SubmitButton className="btn">{myPending ? t("Отправить заново") : t("Отправить результат")}</SubmitButton>
               </form>
             </section>
           )}
 
           {ref && m.home_entry_id && m.away_entry_id && !m.is_bye && (
             <section className="panel stack" style={{ borderColor: "rgba(217,173,80,.4)" }}>
-              <h3>Судейская панель</h3>
-              {m.status === "under_review" && <div className="notice small">Спор: сравните отчёты ниже и установите официальный результат.</div>}
+              <h3>{t("Судейская панель")}</h3>
+              {m.status === "under_review" && <div className="notice small">{t("Спор: сравните отчёты ниже и установите официальный результат.")}</div>}
               <form action={refereeResultAction} className="stack">
                 <input type="hidden" name="match_id" value={m.id} />
                 <GamesInput bestOf={m.best_of} homeName={m.home_name ?? ""} awayName={m.away_name ?? ""} initial={m.games ?? undefined} />
                 <label className="field">
-                  <span>Техническая победа</span>
+                  <span>{t("Техническая победа")}</span>
                   <select className="input" name="forfeit" defaultValue="">
-                    <option value="">Нет, использовать счёт</option>
-                    <option value="home">Победа: {m.home_name}</option>
-                    <option value="away">Победа: {m.away_name}</option>
+                    <option value="">{t("Нет, использовать счёт")}</option>
+                    <option value="home">{t("Победа:")} {m.home_name}</option>
+                    <option value="away">{t("Победа:")} {m.away_name}</option>
                   </select>
                 </label>
                 <label className="field">
-                  <span>Решение / комментарий</span>
+                  <span>{t("Решение / комментарий")}</span>
                   <input className="input" name="note" maxLength={500} />
                 </label>
-                <SubmitButton className="btn btn-gold" confirm="Утвердить результат? Таблица и сетка обновятся.">
-                  Утвердить результат
+                <SubmitButton className="btn btn-gold" confirm={t("Утвердить результат? Таблица и сетка обновятся.")}>
+                  {t("Утвердить результат")}
                 </SubmitButton>
               </form>
               {!done && (
@@ -187,16 +189,16 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
                   <input type="hidden" name="match_id" value={m.id} />
                   <select className="input" name="status" defaultValue={m.status} style={{ maxWidth: 240 }}>
                     {(["upcoming", "ready", "live", "under_review", "postponed"] as const).map((s) => (
-                      <option key={s} value={s}>{MATCH_STATUS_LABELS[s]}</option>
+                      <option key={s} value={s}>{t(MATCH_STATUS_LABELS[s])}</option>
                     ))}
                   </select>
-                  <SubmitButton className="btn btn-ghost">Сменить статус</SubmitButton>
+                  <SubmitButton className="btn btn-ghost">{t("Сменить статус")}</SubmitButton>
                 </form>
               )}
               <form action={scheduleAction} className="row">
                 <input type="hidden" name="match_id" value={m.id} />
                 <input className="input" type="datetime-local" name="scheduled_at" defaultValue={toLocalInput(m.scheduled_at, comp.timezone)} style={{ maxWidth: 260 }} />
-                <SubmitButton className="btn btn-ghost">Сохранить время</SubmitButton>
+                <SubmitButton className="btn btn-ghost">{t("Сохранить время")}</SubmitButton>
               </form>
             </section>
           )}
@@ -205,22 +207,22 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         <aside className="stack-lg">
           {(side || ref) && reports.length > 0 && (
             <section className="stack">
-              <h3>Отчёты</h3>
+              <h3>{t("Отчёты")}</h3>
               <div className="list">
                 {reports.map((r) => (
                   <div key={r.id} className="list-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
                     <div className="row">
                       <b>{entryName(r.entry_id)}</b>
                       <span className={`badge ${r.status === "confirmed" ? "ok" : r.status === "disputed" ? "danger" : r.status === "pending" ? "warn" : "dim"}`}>
-                        {{ pending: "ждёт ответа", confirmed: "подтверждён", disputed: "спор", superseded: "заменён" }[r.status]}
+                        {{ pending: t("ждёт ответа"), confirmed: t("подтверждён"), disputed: t("спор"), superseded: t("заменён") }[r.status]}
                       </span>
                     </div>
                     <span className="num">{r.games.map((g) => `${g.home}–${g.away}`).join(", ")}</span>
                     {r.comment && <span className="small muted">«{r.comment}»</span>}
-                    {r.response_comment && <span className="small" style={{ color: "var(--danger)" }}>Возражение: {r.response_comment}</span>}
+                    {r.response_comment && <span className="small" style={{ color: "var(--danger)" }}>{t("Возражение:")} {r.response_comment}</span>}
                     {r.proof_url && (
                       <a className="small" href={r.proof_url} target="_blank" rel="noopener noreferrer nofollow">
-                        Доказательство
+                        {t("Доказательство")}
                       </a>
                     )}
                   </div>
@@ -229,21 +231,21 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             </section>
           )}
           <section className="stack">
-            <h3>История матча</h3>
+            <h3>{t("История матча")}</h3>
             {events.length ? (
               <ol className="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
                 {events.map((e) => (
                   <li key={e.id} className="list-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-                    <span className="small">{e.text}</span>
+                    <span className="small">{renderStored(t, e.text, e.params)}</span>
                     <span className="small faint">
-                      {fmtDateTime(e.created_at, comp.timezone)}
+                      {fmtDateTime(e.created_at, comp.timezone, t)}
                       {e.actor ? ` · ${e.actor}` : ""}
                     </span>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="muted small">Пока без событий.</p>
+              <p className="muted small">{t("Пока без событий.")}</p>
             )}
           </section>
         </aside>

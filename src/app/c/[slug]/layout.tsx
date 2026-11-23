@@ -5,27 +5,29 @@ import { getUser, isAdmin } from "@/lib/auth";
 import { KIND_LABELS, FORMAT_LABELS } from "@/lib/format";
 import { CompStatusBadge } from "@/components/ui";
 import { Tabs } from "@/components/client";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const comp = await getCompetitionBySlug((await params).slug);
-  return { title: comp?.name ?? "Соревнование" };
+  const [comp, t] = await Promise.all([getCompetitionBySlug((await params).slug), getT()]);
+  return { title: comp?.name ?? t("Соревнование") };
 }
 
 export default async function CompLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
+  const t = await getT();
   const { slug } = await params;
   const [comp, user] = await Promise.all([getCompetitionBySlug(slug), getUser()]);
   if (!comp || (comp.status === "draft" && !isAdmin(user?.role))) notFound();
   const base = `/c/${comp.slug}`;
   const tabs = [
-    { href: base, label: "Обзор", exact: true },
-    { href: `${base}/participants`, label: "Участники" },
-    ...(comp.format === "groups_knockout" ? [{ href: `${base}/draw`, label: "Жеребьёвка" }] : []),
-    ...(comp.format !== "knockout" ? [{ href: `${base}/standings`, label: "Таблица" }] : []),
-    ...(comp.format !== "round_robin" ? [{ href: `${base}/bracket`, label: "Сетка" }] : []),
-    { href: `${base}/matches`, label: "Матчи" },
-    { href: `${base}/prizes`, label: "Призы" },
+    { href: base, label: t("Обзор"), exact: true },
+    { href: `${base}/participants`, label: t("Участники") },
+    ...(comp.format === "groups_knockout" ? [{ href: `${base}/draw`, label: t("Жеребьёвка") }] : []),
+    ...(comp.format !== "knockout" ? [{ href: `${base}/standings`, label: t("Таблица") }] : []),
+    ...(comp.format !== "round_robin" ? [{ href: `${base}/bracket`, label: t("Сетка") }] : []),
+    { href: `${base}/matches`, label: t("Матчи") },
+    { href: `${base}/prizes`, label: t("Призы") },
   ];
   return (
     <>
@@ -35,11 +37,11 @@ export default async function CompLayout({ children, params }: { children: React
             <CompStatusBadge status={comp.status} />
             <span className="tag">{comp.mode}</span>
             <span className="small muted">
-              {KIND_LABELS[comp.kind]} · {FORMAT_LABELS[comp.format]}
+              {t(KIND_LABELS[comp.kind])} · {t(FORMAT_LABELS[comp.format])}
             </span>
             {isAdmin(user?.role) && (
               <Link href={`/admin/c/${comp.id}`} className="btn btn-ghost btn-sm" style={{ marginLeft: "auto" }}>
-                Управлять
+                {t("Управлять")}
               </Link>
             )}
           </div>

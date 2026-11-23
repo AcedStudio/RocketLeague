@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { getT } from "./i18n/server";
 
 import { FormError } from "./errors";
 export { FormError };
@@ -10,14 +11,14 @@ export function str(fd: FormData, name: string, label: string, opts: { min?: num
   if (!v && opts.optional) return "";
   const min = opts.min ?? 1;
   const max = opts.max ?? 200;
-  if (v.length < min) throw new FormError(min <= 1 ? `Заполните поле «${label}»` : `«${label}»: минимум ${min} символов`);
-  if (v.length > max) throw new FormError(`«${label}»: максимум ${max} символов`);
+  if (v.length < min) throw new FormError(min <= 1 ? "Заполните поле «{label}»" : "«{label}»: минимум {n} символов", { label, n: min });
+  if (v.length > max) throw new FormError("«{label}»: максимум {n} символов", { label, n: max });
   return v;
 }
 
 export function int(fd: FormData, name: string, label: string, min: number, max: number): number {
   const v = Number(fd.get(name));
-  if (!Number.isInteger(v) || v < min || v > max) throw new FormError(`«${label}»: целое число от ${min} до ${max}`);
+  if (!Number.isInteger(v) || v < min || v > max) throw new FormError("«{label}»: целое число от {min} до {max}", { label, min, max });
   return v;
 }
 
@@ -25,7 +26,7 @@ export function optionalNumber(fd: FormData, name: string, label: string): numbe
   const raw = String(fd.get(name) ?? "").trim().replace(",", ".");
   if (!raw) return null;
   const v = Number(raw);
-  if (!Number.isFinite(v) || v < 0 || v > 1e9) throw new FormError(`«${label}»: неверное число`);
+  if (!Number.isFinite(v) || v < 0 || v > 1e9) throw new FormError("«{label}»: неверное число", { label });
   return v;
 }
 
@@ -36,7 +37,7 @@ export function bool(fd: FormData, name: string): boolean {
 
 export function oneOf<T extends string>(fd: FormData, name: string, label: string, allowed: readonly T[]): T {
   const v = String(fd.get(name) ?? "");
-  if (!(allowed as readonly string[]).includes(v)) throw new FormError(`Выберите «${label}»`);
+  if (!(allowed as readonly string[]).includes(v)) throw new FormError("Выберите «{label}»", { label });
   return v as T;
 }
 
@@ -54,7 +55,7 @@ export function url(fd: FormData, name: string, label: string): string {
     if (u.protocol !== "https:" && u.protocol !== "http:") throw new Error();
     return u.toString();
   } catch {
-    throw new FormError(`«${label}»: нужна ссылка вида https://...`);
+    throw new FormError("«{label}»: нужна ссылка вида https://...", { label });
   }
 }
 
@@ -86,7 +87,12 @@ export async function guard(path: string, fn: () => Promise<void>): Promise<void
   try {
     await fn();
   } catch (err) {
-    if (err instanceof FormError) message = err.message;
+    if (err instanceof FormError) {
+      const t = await getT();
+      // Params that are themselves Russian labels (field names) get translated too.
+      const params = Object.fromEntries(Object.entries(err.params ?? {}).map(([k, v]) => [k, typeof v === "string" ? t(v) : v]));
+      message = t(err.message, params);
+    }
     else if (isRedirect(err)) throw err;
     else {
       console.error(err);

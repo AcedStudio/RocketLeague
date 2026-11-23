@@ -6,10 +6,12 @@ import { FORMAT_LABELS, KIND_LABELS, fmtDate, fmtMoney } from "@/lib/format";
 import { ArenaArt } from "@/components/Art";
 import { Countdown } from "@/components/client";
 import { CompetitionRow, CompStatusBadge, Flash, MatchCard, SetupNotice, type SP } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }: { searchParams: SP }) {
+  const t = await getT();
   const sp = await searchParams;
   if (!dbConfigured()) return <SetupNotice />;
   const [settings, featured, comps, news, user, totals] = await Promise.all([
@@ -26,7 +28,7 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
   ]);
   const counts = featured ? await entryCounts(featured.id) : null;
   const upcoming = featured ? (await getMatches(featured.id)).filter((m) => ["ready", "live", "under_review"].includes(m.status) && !m.is_bye).slice(0, 6) : [];
-  const prize = featured ? fmtMoney(featured.prize_pool, featured.prize_currency) : null;
+  const prize = featured ? fmtMoney(featured.prize_pool, featured.prize_currency, t.intl) : null;
   const leagues = comps.filter((c) => c.kind === "league");
   const cups = comps.filter((c) => c.kind === "cup");
   const startsInFuture = featured?.start_at && new Date(featured.start_at).getTime() > Date.now();
@@ -42,59 +44,59 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
                 <div className="row">
                   <CompStatusBadge status={featured.status} />
                   <span className="badge plain">
-                    {KIND_LABELS[featured.kind]} · {featured.mode}
+                    {t(KIND_LABELS[featured.kind])} · {featured.mode}
                   </span>
                 </div>
                 <h1 style={{ marginTop: 16 }}>{featured.name}</h1>
-                <p className="lead">{FORMAT_LABELS[featured.format]}{featured.season ? ` · ${featured.season}` : ""}</p>
+                <p className="lead">{t(FORMAT_LABELS[featured.format])}{featured.season ? ` · ${featured.season}` : ""}</p>
                 <dl className="hero-facts">
                   <div>
-                    <dt>Участники</dt>
+                    <dt>{t("Участники")}</dt>
                     <dd className="num">
                       {counts?.active ?? 0}/{featured.capacity}
                     </dd>
                   </div>
                   <div>
-                    <dt>Призовой фонд</dt>
-                    <dd className="gold">{prize ?? "Будет объявлен"}</dd>
+                    <dt>{t("Призовой фонд")}</dt>
+                    <dd className="gold">{prize ?? t("Будет объявлен")}</dd>
                   </div>
                   <div>
-                    <dt>Старт</dt>
-                    <dd>{fmtDate(featured.start_at, featured.timezone)}</dd>
+                    <dt>{t("Старт")}</dt>
+                    <dd>{fmtDate(featured.start_at, featured.timezone, t)}</dd>
                   </div>
                 </dl>
                 {startsInFuture && <Countdown to={new Date(featured.start_at!).toISOString()} />}
                 <div className="row" style={{ marginTop: 28 }}>
                   {featured.status === "registration" ? (
                     <Link href={`/c/${featured.slug}/register`} className="btn btn-navy btn-lg">
-                      Зарегистрироваться
+                      {t("Зарегистрироваться")}
                     </Link>
                   ) : (
                     <Link href={`/c/${featured.slug}`} className="btn btn-navy btn-lg">
-                      Открыть турнир
+                      {t("Открыть турнир")}
                     </Link>
                   )}
                   <Link href={`/c/${featured.slug}`} className="btn btn-lg" style={{ ["--bg" as string]: "rgba(3,32,61,.1)", ["--fg" as string]: "#03203d" }}>
-                    Подробнее
+                    {t("Подробнее")}
                   </Link>
                 </div>
               </>
             ) : (
               <>
                 <h1>{settings.site_name}</h1>
-                <p className="lead">{settings.tagline}. Скоро здесь появится первое соревнование.</p>
+                <p className="lead">{t(settings.tagline)}. {t("Скоро здесь появится первое соревнование.")}</p>
                 <div className="row" style={{ marginTop: 28 }}>
                   {user ? (
-                    <Link href="/me" className="btn btn-navy btn-lg">Мой кабинет</Link>
+                    <Link href="/me" className="btn btn-navy btn-lg">{t("Мой кабинет")}</Link>
                   ) : (
-                    <Link href="/signup" className="btn btn-navy btn-lg">Создать аккаунт</Link>
+                    <Link href="/signup" className="btn btn-navy btn-lg">{t("Создать аккаунт")}</Link>
                   )}
                 </div>
               </>
             )}
           </div>
           <div className="hero-art">
-            <ArenaArt />
+            <ArenaArt label={t("Абстрактная арена с мячом и машиной")} />
           </div>
         </div>
       </section>
@@ -106,15 +108,15 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
       {news.length > 0 && (
         <section className="wrap section" style={{ paddingBottom: 0 }}>
           <div className="section-head">
-            <h2>Объявления</h2>
+            <h2>{t("Объявления")}</h2>
           </div>
           <div className="list">
             {news.map((a) => (
               <article key={a.id} className="list-row" style={{ alignItems: "flex-start", flexDirection: "column", gap: 6 }}>
                 <div className="row">
-                  {a.pinned && <span className="badge gold plain">Закреплено</span>}
+                  {a.pinned && <span className="badge gold plain">{t("Закреплено")}</span>}
                   {a.competition_name && <span className="tag">{a.competition_name}</span>}
-                  <span className="small faint">{fmtDate(a.created_at, featured?.timezone ?? "Asia/Tashkent")}</span>
+                  <span className="small faint">{fmtDate(a.created_at, featured?.timezone ?? "Asia/Tashkent", t)}</span>
                 </div>
                 <h3>{a.title}</h3>
                 <p className="muted measure" style={{ whiteSpace: "pre-line" }}>{a.body}</p>
@@ -127,9 +129,9 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
       {upcoming.length > 0 && featured && (
         <section className="wrap section" style={{ paddingBottom: 0 }}>
           <div className="section-head">
-            <h2>Ближайшие матчи</h2>
+            <h2>{t("Ближайшие матчи")}</h2>
             <Link href={`/c/${featured.slug}/matches`} className="btn btn-ghost btn-sm">
-              Все матчи
+              {t("Все матчи")}
             </Link>
           </div>
           <div className="matches">
@@ -145,46 +147,46 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
           <div className="stack-lg">
             <div>
               <div className="section-head">
-                <h2>Лиги</h2>
-                <span className="muted small">Сезон, все играют со всеми, таблица</span>
+                <h2>{t("Лиги")}</h2>
+                <span className="muted small">{t("Сезон, все играют со всеми, таблица")}</span>
               </div>
               {leagues.length ? (
                 <div className="comp-list">{leagues.map((c) => <CompetitionRow key={c.id} c={c} />)}</div>
               ) : (
-                <div className="empty">Лиг пока нет</div>
+                <div className="empty">{t("Лиг пока нет")}</div>
               )}
             </div>
             <div>
               <div className="section-head">
-                <h2>Кубки</h2>
-                <span className="muted small">Жеребьёвка, группы, плей-офф</span>
+                <h2>{t("Кубки")}</h2>
+                <span className="muted small">{t("Жеребьёвка, группы, плей-офф")}</span>
               </div>
               {cups.length ? (
                 <div className="comp-list">{cups.map((c) => <CompetitionRow key={c.id} c={c} />)}</div>
               ) : (
-                <div className="empty">Кубков пока нет</div>
+                <div className="empty">{t("Кубков пока нет")}</div>
               )}
             </div>
           </div>
           <aside className="stack">
             <div className="panel stack">
-              <h3>Как это работает</h3>
+              <h3>{t("Как это работает")}</h3>
               <ol className="muted" style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 8 }}>
-                <li>Создайте аккаунт с вашим Rocket League ID</li>
-                <li>Выберите лигу или кубок, 1v1 или 2v2</li>
-                <li>Для 2v2 пригласите напарника по ссылке</li>
-                <li>После жеребьёвки смотрите соперников и время матчей</li>
-                <li>Сыграйте и отправьте счёт, соперник подтверждает</li>
+                <li>{t("Создайте аккаунт с вашим Rocket League ID")}</li>
+                <li>{t("Выберите лигу или кубок, 1v1 или 2v2")}</li>
+                <li>{t("Для 2v2 пригласите напарника по ссылке")}</li>
+                <li>{t("После жеребьёвки смотрите соперников и время матчей")}</li>
+                <li>{t("Сыграйте и отправьте счёт, соперник подтверждает")}</li>
               </ol>
             </div>
             <div className="stat-strip" style={{ gridTemplateColumns: "1fr 1fr" }}>
               <div>
                 <b className="num">{totals?.players ?? 0}</b>
-                <span>игроков</span>
+                <span>{t("игроков")}</span>
               </div>
               <div>
                 <b className="num">{totals?.matches ?? 0}</b>
-                <span>матчей сыграно</span>
+                <span>{t("матчей сыграно")}</span>
               </div>
             </div>
           </aside>

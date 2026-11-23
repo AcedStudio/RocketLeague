@@ -2,11 +2,16 @@ import { getRules, RULE_CATEGORIES } from "@/lib/data";
 import { dbConfigured } from "@/lib/db";
 import { fmtDate } from "@/lib/format";
 import { SetupNotice } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Правила" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Правила") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function Rules() {
+  const t = await getT();
   if (!dbConfigured()) return <SetupNotice />;
   const rules = await getRules(true);
   const byCat = new Map<string, typeof rules>();
@@ -20,25 +25,25 @@ export default async function Rules() {
   return (
     <div className="wrap section stack-lg">
       <div>
-        <h1>Правила соревнований</h1>
-        {updated && <p className="muted" style={{ marginTop: 10 }}>Последнее обновление: {fmtDate(updated, "Asia/Tashkent")}</p>}
+        <h1>{t("Правила соревнований")}</h1>
+        {updated && <p className="muted" style={{ marginTop: 10 }}>{t("Последнее обновление:")} {fmtDate(updated, "Asia/Tashkent", t)}</p>}
       </div>
       {rules.length === 0 ? (
         <div className="notice stack measure">
-          <h3 style={{ color: "var(--ink)" }}>Полные правила ещё не опубликованы</h3>
-          <p>Организатор опубликует официальные правила до начала соревнований. Разделы будут такими:</p>
+          <h3 style={{ color: "var(--ink)" }}>{t("Полные правила ещё не опубликованы")}</h3>
+          <p>{t("Организатор опубликует официальные правила до начала соревнований. Разделы будут такими:")}</p>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {RULE_CATEGORIES.map((c) => (
-              <li key={c}>{c}</li>
+              <li key={c}>{t(c)}</li>
             ))}
           </ul>
         </div>
       ) : (
         <div className="with-toc">
-          <nav className="toc hide-m" aria-label="Разделы правил">
+          <nav className="toc hide-m" aria-label={t("Разделы правил")}>
             {order.map((c, i) => (
               <a key={c} href={`#cat-${i}`}>
-                {c}
+                {t(c)}
               </a>
             ))}
           </nav>
@@ -46,7 +51,7 @@ export default async function Rules() {
             {order.map((c, i) => (
               <section key={c} id={`cat-${i}`} className="stack" style={{ scrollMarginTop: 90 }}>
                 <h2 style={{ fontSize: "1.35rem" }}>
-                  {i + 1}. {c}
+                  {i + 1}. {t(c)}
                 </h2>
                 {byCat.get(c)!.map((r, j) => (
                   <article key={r.id} className="panel stack" style={{ gap: 8 }}>

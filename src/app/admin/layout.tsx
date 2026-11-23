@@ -1,22 +1,27 @@
 import { requireReferee, isAdmin, ROLE_LABELS } from "@/lib/auth";
 import { Tabs } from "@/components/client";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Админ-панель", robots: { index: false } };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Админ-панель"), robots: { index: false } };
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const t = await getT();
   const user = await requireReferee();
   const admin = isAdmin(user.role);
   const items = [
-    { href: "/admin", label: "Обзор", exact: true },
+    { href: "/admin", label: t("Обзор"), exact: true },
     ...(admin
       ? [
-          { href: "/admin/competitions", label: "Соревнования" },
-          { href: "/admin/rules", label: "Правила" },
-          { href: "/admin/announcements", label: "Объявления" },
-          { href: "/admin/users", label: "Пользователи" },
-          { href: "/admin/log", label: "Журнал" },
-          { href: "/admin/settings", label: "Настройки" },
+          { href: "/admin/competitions", label: t("Соревнования") },
+          { href: "/admin/rules", label: t("Правила") },
+          { href: "/admin/announcements", label: t("Объявления") },
+          { href: "/admin/users", label: t("Пользователи") },
+          { href: "/admin/log", label: t("Журнал") },
+          { href: "/admin/settings", label: t("Настройки") },
         ]
       : []),
   ];
@@ -24,7 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="wrap admin-shell">
       <div className="stack" style={{ alignSelf: "start", gap: 8 }}>
         <span className="small faint" style={{ padding: "0 12px" }}>
-          {ROLE_LABELS[user.role]}
+          {t(ROLE_LABELS[user.role])}
         </span>
         <Tabs items={items} className="admin-nav" />
       </div>

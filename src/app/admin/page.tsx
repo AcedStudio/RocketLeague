@@ -2,8 +2,10 @@ import Link from "next/link";
 import { requireReferee, isAdmin } from "@/lib/auth";
 import { q, one } from "@/lib/db";
 import { Flash, MatchStatusBadge, type SP } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
 export default async function AdminHome({ searchParams }: { searchParams: SP }) {
+  const t = await getT();
   const sp = await searchParams;
   const user = await requireReferee();
   const [k, review, pendingEntries, awaiting] = await Promise.all([
@@ -36,32 +38,32 @@ export default async function AdminHome({ searchParams }: { searchParams: SP }) 
   ]);
 
   const kpis: [string, number, boolean?][] = [
-    ["Игроков", k?.players ?? 0],
-    ["Команд 2v2", k?.teams ?? 0],
-    ["Активных матчей", k?.active ?? 0],
-    ["Сыграно матчей", k?.completed ?? 0],
-    ["Ждут подтверждения", k?.pending_reports ?? 0],
-    ["Споров", k?.disputed ?? 0, (k?.disputed ?? 0) > 0],
-    ["Заявок на проверке", k?.pending_entries ?? 0, (k?.pending_entries ?? 0) > 0],
-    ["В листе ожидания", k?.waitlist ?? 0],
-    ["Неполных команд", k?.incomplete ?? 0],
+    [t("Игроков"), k?.players ?? 0],
+    [t("Команд 2v2"), k?.teams ?? 0],
+    [t("Активных матчей"), k?.active ?? 0],
+    [t("Сыграно матчей"), k?.completed ?? 0],
+    [t("Ждут подтверждения"), k?.pending_reports ?? 0],
+    [t("Споров"), k?.disputed ?? 0, (k?.disputed ?? 0) > 0],
+    [t("Заявок на проверке"), k?.pending_entries ?? 0, (k?.pending_entries ?? 0) > 0],
+    [t("В листе ожидания"), k?.waitlist ?? 0],
+    [t("Неполных команд"), k?.incomplete ?? 0],
   ];
 
   return (
     <>
-      <h1 style={{ fontSize: "2rem" }}>Обзор</h1>
+      <h1 style={{ fontSize: "2rem" }}>{t("Обзор")}</h1>
       <Flash sp={sp} />
       <div className="kpis">
         {kpis.map(([label, n, alert]) => (
           <div key={label} className={`kpi ${alert ? "alert" : ""}`}>
             <b className="num">{n}</b>
-            <span>{label}</span>
+            <span>{t(label)}</span>
           </div>
         ))}
       </div>
 
       <section className="stack">
-        <h2 style={{ fontSize: "1.3rem" }}>Споры</h2>
+        <h2 style={{ fontSize: "1.3rem" }}>{t("Споры")}</h2>
         {review.length ? (
           <div className="list">
             {review.map((m) => (
@@ -77,13 +79,13 @@ export default async function AdminHome({ searchParams }: { searchParams: SP }) 
             ))}
           </div>
         ) : (
-          <div className="empty">Открытых споров нет</div>
+          <div className="empty">{t("Открытых споров нет")}</div>
         )}
       </section>
 
       {awaiting.length > 0 && (
         <section className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Результаты без ответа больше 12 часов</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Результаты без ответа больше 12 часов")}</h2>
           <div className="list">
             {awaiting.map((m) => (
               <Link key={m.id} href={`/match/${m.id}`} className="list-row">
@@ -99,7 +101,7 @@ export default async function AdminHome({ searchParams }: { searchParams: SP }) 
 
       {isAdmin(user.role) && pendingEntries.length > 0 && (
         <section className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Заявки на проверке</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Заявки на проверке")}</h2>
           <div className="list">
             {pendingEntries.map((e) => (
               <Link key={e.id} href={`/admin/c/${e.competition_id}?tab=participants`} className="list-row">

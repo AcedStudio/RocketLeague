@@ -4,7 +4,6 @@ export default function Loading() {
       <div className="stack">
         <div className="panel" style={{ height: 120, opacity: 0.5 }} />
         <div className="panel" style={{ height: 240, opacity: 0.35 }} />
-        <span className="small faint">Загрузка…</span>
       </div>
     </div>
   );

@@ -6,11 +6,16 @@ import { updateProfile, changePassword, logout } from "../actions/auth";
 import { Flash, MatchStatusBadge, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { ProfileFields } from "@/components/ProfileFields";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Мой кабинет" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Мой кабинет") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function Me({ searchParams }: { searchParams: SP }) {
+  const t = await getT();
   const sp = await searchParams;
   const user = await requireUser("/me");
   const [entries, matches] = await Promise.all([
@@ -38,13 +43,13 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
         <div>
           <h1 style={{ fontSize: "2.2rem" }}>{user.rl_nickname}</h1>
           <p className="muted" style={{ marginTop: 6 }}>
-            {PLATFORM_LABELS[user.platform]} · {user.rl_id} · {ROLE_LABELS[user.role]}
+            {PLATFORM_LABELS[user.platform]} · {user.rl_id} · {t(ROLE_LABELS[user.role])}
           </p>
         </div>
         <div className="row">
-          <Link href={`/players/${user.id}`} className="btn btn-ghost">Публичный профиль</Link>
+          <Link href={`/players/${user.id}`} className="btn btn-ghost">{t("Публичный профиль")}</Link>
           <form action={logout}>
-            <button className="btn btn-ghost">Выйти</button>
+            <button className="btn btn-ghost">{t("Выйти")}</button>
           </form>
         </div>
       </div>
@@ -53,7 +58,7 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
       <div className="split">
         <div className="stack-lg">
           <section className="stack">
-            <h2 style={{ fontSize: "1.3rem" }}>Мои ближайшие матчи</h2>
+            <h2 style={{ fontSize: "1.3rem" }}>{t("Мои ближайшие матчи")}</h2>
             {matches.length ? (
               <div className="list">
                 {matches.map((m) => (
@@ -63,7 +68,7 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
                         {m.home_name ?? "?"} vs {m.away_name ?? "?"}
                       </b>
                       <span className="small muted" style={{ display: "block" }}>
-                        {m.comp} · #{m.number} · {fmtDateTime(m.scheduled_at, m.timezone)}
+                        {m.comp} · #{m.number} · {fmtDateTime(m.scheduled_at, m.timezone, t)}
                       </span>
                     </span>
                     <MatchStatusBadge status={m.status} />
@@ -71,11 +76,11 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
                 ))}
               </div>
             ) : (
-              <div className="empty">Нет предстоящих матчей</div>
+              <div className="empty">{t("Нет предстоящих матчей")}</div>
             )}
           </section>
           <section className="stack">
-            <h2 style={{ fontSize: "1.3rem" }}>Мои соревнования</h2>
+            <h2 style={{ fontSize: "1.3rem" }}>{t("Мои соревнования")}</h2>
             {entries.length ? (
               <div className="list">
                 {entries.map((e) => (
@@ -83,17 +88,17 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
                     <span style={{ flex: 1 }}>
                       <b>{e.comp}</b>
                       <span className="small muted" style={{ display: "block" }}>
-                        {e.mode === "2v2" ? `Команда ${e.name}` : "1v1"} · #{e.number}
+                        {e.mode === "2v2" ? t("Команда {team}", { team: e.name }) : "1v1"} · #{e.number}
                       </span>
                     </span>
-                    <span className="badge">{ENTRY_STATUS_LABELS[e.status]}</span>
+                    <span className="badge">{t(ENTRY_STATUS_LABELS[e.status])}</span>
                   </Link>
                 ))}
               </div>
             ) : (
               <div className="empty">
-                <p>Вы ещё не участвуете ни в одном соревновании.</p>
-                <Link href="/competitions" className="btn" style={{ marginTop: 16 }}>Выбрать соревнование</Link>
+                <p>{t("Вы ещё не участвуете ни в одном соревновании.")}</p>
+                <Link href="/competitions" className="btn" style={{ marginTop: 16 }}>{t("Выбрать соревнование")}</Link>
               </div>
             )}
           </section>
@@ -101,23 +106,23 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
 
         <aside className="stack-lg">
           <form action={updateProfile} className="panel stack">
-            <h3>Профиль</h3>
+            <h3>{t("Профиль")}</h3>
             <div className="stack">
               <ProfileFields u={user} />
             </div>
-            <SubmitButton className="btn">Сохранить</SubmitButton>
+            <SubmitButton className="btn">{t("Сохранить")}</SubmitButton>
           </form>
           <form action={changePassword} className="panel stack">
-            <h3>Пароль</h3>
+            <h3>{t("Пароль")}</h3>
             <label className="field">
-              <span>Текущий пароль</span>
+              <span>{t("Текущий пароль")}</span>
               <input className="input" type="password" name="current" required autoComplete="current-password" />
             </label>
             <label className="field">
-              <span>Новый пароль</span>
+              <span>{t("Новый пароль")}</span>
               <input className="input" type="password" name="password" required minLength={8} autoComplete="new-password" />
             </label>
-            <SubmitButton className="btn btn-ghost">Сменить пароль</SubmitButton>
+            <SubmitButton className="btn btn-ghost">{t("Сменить пароль")}</SubmitButton>
           </form>
         </aside>
       </div>

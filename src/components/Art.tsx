@@ -17,9 +17,9 @@ export function LogoMark({ size = 30 }: { size?: number }) {
   );
 }
 
-export function ArenaArt() {
+export function ArenaArt({ label = "Абстрактная арена с мячом и машиной" }: { label?: string }) {
   return (
-    <svg viewBox="0 0 460 400" role="img" aria-label="Абстрактная арена с мячом и машиной">
+    <svg viewBox="0 0 460 400" role="img" aria-label={label}>
       <defs>
         <linearGradient id="trail" x1="0" x2="1">
           <stop offset="0" stopColor="#fff" stopOpacity="0" />
@@ -73,9 +73,9 @@ export function ArenaArt() {
   );
 }
 
-export function TrophyArt({ size = 220 }: { size?: number }) {
+export function TrophyArt({ size = 220, label = "Кубок чемпиона" }: { size?: number; label?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 200 220" role="img" aria-label="Кубок чемпиона">
+    <svg width={size} height={size} viewBox="0 0 200 220" role="img" aria-label={label}>
       <defs>
         <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
           <stop offset="0" stopColor="#F4D58A" />

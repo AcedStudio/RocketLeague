@@ -78,9 +78,11 @@ export function toLocalInput(value: string | Date | null | undefined, tz: string
   return new Date(wallClock(d, tz)).toISOString().slice(0, 16);
 }
 
-export function fmtDateTime(value: string | Date | null | undefined, tz: string): string {
-  if (!value) return "Время не назначено";
-  return new Intl.DateTimeFormat("ru-RU", {
+type Fmt = { intl: string; (key: string, params?: Record<string, string | number>): string };
+
+export function fmtDateTime(value: string | Date | null | undefined, tz: string, t: Fmt): string {
+  if (!value) return t("Время не назначено");
+  return new Intl.DateTimeFormat(t.intl, {
     timeZone: tz,
     day: "numeric",
     month: "long",
@@ -89,28 +91,28 @@ export function fmtDateTime(value: string | Date | null | undefined, tz: string)
   }).format(new Date(value));
 }
 
-export function fmtDate(value: string | Date | null | undefined, tz: string): string {
-  if (!value) return "Дата не назначена";
-  return new Intl.DateTimeFormat("ru-RU", { timeZone: tz, day: "numeric", month: "long", year: "numeric" }).format(new Date(value));
+export function fmtDate(value: string | Date | null | undefined, tz: string, t: Fmt): string {
+  if (!value) return t("Дата не назначена");
+  return new Intl.DateTimeFormat(t.intl, { timeZone: tz, day: "numeric", month: "long", year: "numeric" }).format(new Date(value));
 }
 
-export function fmtMoney(amount: number | string | null | undefined, currency: string): string | null {
+export function fmtMoney(amount: number | string | null | undefined, currency: string, intl = "ru-RU"): string | null {
   if (amount === null || amount === undefined || amount === "") return null;
   const n = Number(amount);
   if (!Number.isFinite(n)) return null;
   try {
-    return new Intl.NumberFormat("ru-RU", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
+    return new Intl.NumberFormat(intl, { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
   } catch {
-    return `${n.toLocaleString("ru-RU")} ${currency}`;
+    return `${n.toLocaleString(intl)} ${currency}`;
   }
 }
 
-export function plural(n: number, one: string, few: string, many: string): string {
-  const m10 = n % 10;
-  const m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return one;
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
-  return many;
+/** Group names are stored as "Группа A" / "Таблица"; translate at render time. */
+export function groupLabel(name: string | null | undefined, t: Fmt): string {
+  if (!name) return t("Группа");
+  const m = /^Группа (\w+)$/.exec(name);
+  if (m) return t("Группа {letter}", { letter: m[1] });
+  return t(name);
 }
 
 export function slugify(s: string): string {
@@ -127,4 +129,12 @@ export function slugify(s: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
+}
+
+/** Renders a stored template (notification, match event) in the reader's language. */
+export function renderStored(t: Fmt, text: string, params: Record<string, unknown> | null | undefined): string {
+  const p: Record<string, string | number> = {};
+  for (const [k, v] of Object.entries(params ?? {})) if (typeof v === "string" || typeof v === "number") p[k] = typeof v === "string" ? t(v) : v;
+  if (typeof params?.at === "string") p.when = fmtDateTime(params.at, typeof params.tz === "string" ? params.tz : "Asia/Tashkent", t);
+  return t(text, p);
 }
