@@ -1,7 +1,7 @@
 import "server-only";
 import type { PoolClient } from "@neondatabase/serverless";
 import { q, one, tx, lockCompetition, isUniqueViolation, type Queryable } from "./db";
-import { FormError } from "./forms";
+import { FormError } from "./errors";
 import { notify, notifyEntries, logAction, matchEvent } from "./notify";
 import { getCompetition, getStandings, entryCounts, type Competition, type Match, type Entry } from "./data";
 import { drawGroups, validateDraw, GROUP_LETTERS } from "./engine/draw.ts";
