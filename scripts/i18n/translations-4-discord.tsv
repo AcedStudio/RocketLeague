@@ -1,0 +1,67 @@
+Discord ID состоит только из цифр (включите режим разработчика в Discord и скопируйте ID)	Discord ID faqat raqamlardan iborat (Discord da dasturchi rejimini yoqing va ID ni nusxalang)	A Discord ID is digits only (turn on Developer Mode in Discord and copy the ID)
+Discord {name} подключён. Заполните профиль игрока, пароль можно не задавать.	Discord {name} ulandi. Oʻyinchi profilini toʻldiring, parol shart emas.	Discord {name} is connected. Fill in your player profile; a password is optional.
+Discord не подтвердил вход, попробуйте ещё раз	Discord kirishni tasdiqlamadi, qayta urinib koʻring	Discord didn’t confirm the sign-in, please try again
+Discord не привязан	Discord bogʻlanmagan	Discord isn’t linked
+Discord не принял сообщение: проверьте права бота в канале	Discord xabarni qabul qilmadi: botning kanaldagi huquqlarini tekshiring	Discord rejected the message: check the bot’s permissions in the channel
+Discord отвязан	Discord uzildi	Discord unlinked
+Discord привязан	Discord bogʻlandi	Discord linked
+ID сервера	Server ID	Server ID
+{comp} · матч #{n}	{comp} · #{n} uchrashuv	{comp} · match #{n}
+{comp}: регистрация открыта	{comp}: roʻyxatdan oʻtish ochildi	{comp}: registration is open
+{comp}: сетка плей-офф готова	{comp}: pley-off setkasi tayyor	{comp}: the playoff bracket is ready
+Бот	Bot	Bot
+Бот видит сервер «{name}»	Bot «{name}» serverini koʻryapti	The bot can see the server “{name}”
+Бот не настроен: добавьте DISCORD_BOT_TOKEN в Vercel	Bot sozlanmagan: Vercel ga DISCORD_BOT_TOKEN qoʻshing	The bot isn’t set up: add DISCORD_BOT_TOKEN in Vercel
+Бот подключён к сайту и может публиковать объявления.	Bot saytga ulangan va eʼlonlarni chop eta oladi.	The bot is connected to the site and can post announcements.
+В очереди на отправку	Yuborish navbatida	Queued to send
+Ваш профиль и статистика	Profilingiz va statistikangiz	Your profile and stats
+Включите в Discord: Настройки → Расширенные → Режим разработчика. Затем правый клик по серверу, каналу или роли → «Копировать ID».	Discord da yoqing: Sozlamalar → Kengaytirilgan → Dasturchi rejimi. Soʻng server, kanal yoki rolga oʻng tugma bilan bosing → «ID ni nusxalash».	In Discord turn on Settings → Advanced → Developer Mode. Then right-click a server, channel or role → “Copy ID”.
+Включить сообщения от бота	Bot xabarlarini yoqish	Turn on bot messages
+Войти через Discord	Discord orqali kirish	Sign in with Discord
+Вход через Discord	Discord orqali kirish	Discord sign-in
+Вход через Discord ещё не настроен	Discord orqali kirish hali sozlanmagan	Discord sign-in isn’t set up yet
+Вход через Discord отменён	Discord orqali kirish bekor qilindi	Discord sign-in was cancelled
+Вы входите через Discord. Задайте пароль, чтобы входить и по email.	Siz Discord orqali kirasiz. Email orqali ham kirish uchun parol oʻrnating.	You sign in with Discord. Set a password to also sign in with email.
+Выдаётся автоматически подтверждённым участникам. Роль бота должна быть выше этой роли.	Tasdiqlangan ishtirokchilarga avtomatik beriladi. Botning roli bu roldan yuqori boʻlishi kerak.	Given automatically to confirmed participants. The bot’s role must be above this role.
+Жеребьёвка, старт регистрации, чемпион, объявления	Qurʼa, roʻyxat ochilishi, chempion, eʼlonlar	Draws, registration openings, champions, announcements
+Зарегистрировать команды	Buyruqlarni roʻyxatdan oʻtkazish	Register commands
+Зарегистрироваться через Discord	Discord orqali roʻyxatdan oʻtish	Sign up with Discord
+Значения хранятся только в Vercel (Settings → Environment Variables). После изменения сделайте Redeploy.	Qiymatlar faqat Vercel da saqlanadi (Settings → Environment Variables). Oʻzgartirgandan soʻng Redeploy qiling.	Values live only in Vercel (Settings → Environment Variables). Redeploy after changing them.
+Канал для объявлений	Eʼlonlar kanali	Announcements channel
+Канал для результатов	Natijalar kanali	Results channel
+Команды /matches, /table, /profile зарегистрированы	/matches, /table, /profile buyruqlari roʻyxatdan oʻtkazildi	Commands /matches, /table and /profile are registered
+Не удалось отправить сообщений: {n}. Проверьте права бота.	Yuborib boʻlmagan xabarlar: {n}. Bot huquqlarini tekshiring.	Messages that failed to send: {n}. Check the bot’s permissions.
+Необязательно: можно входить через Discord	Ixtiyoriy: Discord orqali kirish mumkin	Optional: you can sign in with Discord
+Опубликовать в Discord	Discord ga joylash	Post to Discord
+Отвязать	Uzish	Unlink
+Отвязать Discord?	Discord uzilsinmi?	Unlink Discord?
+Отключить сообщения от бота	Bot xabarlarini oʻchirish	Turn off bot messages
+Отправить очередь	Navbatni yuborish	Send the queue
+Отправить тестовое сообщение	Sinov xabarini yuborish	Send a test message
+Отправлено: {sent}, ошибок: {failed}	Yuborildi: {sent}, xatolar: {failed}	Sent: {sent}, errors: {failed}
+Ошибка Discord: {hint}	Discord xatosi: {hint}	Discord error: {hint}
+Переменные в Vercel	Vercel dagi oʻzgaruvchilar	Variables in Vercel
+Привяжите Discord в профиле на сайте: {url}	Discord ni saytdagi profilingizda bogʻlang: {url}	Link Discord in your profile on the site: {url}
+Привяжите Discord: бот будет присылать соперников и напоминания о матчах, а входить можно будет в один клик.	Discord ni bogʻlang: bot raqiblar va uchrashuv eslatmalarini yuboradi, kirish esa bir bosishda boʻladi.	Link Discord: the bot will send you opponents and match reminders, and you can sign in with one click.
+Привязали Discord	Discord ni bogʻlaganlar	Linked Discord
+Привязан: {name}	Bogʻlangan: {name}	Linked: {name}
+Привязать Discord	Discord ni bogʻlash	Link Discord
+Проверить сервер	Serverni tekshirish	Check server
+Проверка	Tekshiruv	Checks
+Пусто — результаты идут в канал объявлений	Boʻsh — natijalar eʼlonlar kanaliga boradi	Empty — results go to the announcements channel
+Регистрируйтесь на сайте	Saytda roʻyxatdan oʻting	Sign up on the site
+Роль участника	Ishtirokchi roli	Participant role
+Сервер и каналы	Server va kanallar	Server and channels
+Сессия входа устарела, попробуйте ещё раз	Kirish sessiyasi eskirdi, qayta urinib koʻring	The sign-in session expired, please try again
+Сначала задайте пароль, иначе вы не сможете войти	Avval parol oʻrnating, aks holda kira olmaysiz	Set a password first, or you won’t be able to sign in
+Ссылка, чтобы добавить бота на сервер	Botni serverga qoʻshish havolasi	Link to add the bot to a server
+Таблица главного соревнования	Asosiy musobaqa jadvali	Standings of the featured competition
+Тестовое сообщение	Sinov xabari	Test message
+Тестовое сообщение отправлено	Sinov xabari yuborildi	Test message sent
+Укажите ID сервера	Server ID sini kiriting	Enter the server ID
+Укажите канал для объявлений	Eʼlonlar kanalini kiriting	Enter the announcements channel
+Этот Discord уже привязан к другому аккаунту	Bu Discord boshqa akkauntga bogʻlangan	This Discord is already linked to another account
+Язык сообщений в каналах	Kanallardagi xabarlar tili	Language of channel posts
+неверный токен бота	bot tokeni notoʻgʻri	invalid bot token
+сервер или канал не найден, либо бот не добавлен на сервер	server yoki kanal topilmadi yoki bot serverga qoʻshilmagan	the server or channel wasn’t found, or the bot isn’t on the server
+у бота нет прав (проверьте роль бота и доступ к каналу)	botda huquq yoʻq (bot roli va kanalga ruxsatni tekshiring)	the bot lacks permissions (check its role and channel access)

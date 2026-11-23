@@ -40,6 +40,7 @@ export default async function AdminAnnouncements({ searchParams }: { searchParam
         <div className="stack" style={{ gap: 10, justifyContent: "end" }}>
           <label className="check"><input type="checkbox" name="pinned" /> <span>{t("Закрепить")}</span></label>
           <label className="check"><input type="checkbox" name="notify" defaultChecked /> <span>{t("Отправить уведомление")}</span></label>
+          <label className="check"><input type="checkbox" name="discord" defaultChecked /> <span>{t("Опубликовать в Discord")}</span></label>
         </div>
         <div className="full"><SubmitButton className="btn">{t("Опубликовать")}</SubmitButton></div>
       </form>

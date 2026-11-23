@@ -11,6 +11,7 @@ import { createRng, randomSeed, shuffle } from "./engine/rng.ts";
 import { validateSeries, type GameScore } from "./engine/results.ts";
 import type { User } from "./auth";
 import type { Params } from "./i18n/core";
+import { enqueueChannel, enqueueParticipantRole, GOLD_COLOR } from "./discord";
 
 // ---------------------------------------------------------------- helpers
 
@@ -76,6 +77,7 @@ export async function registerSolo(competitionId: string, user: User): Promise<s
       );
       await q("insert into entry_members (entry_id, user_id, competition_id, is_captain) values ($1, $2, $3, true)", [entry!.id, user.id, comp.id], c);
       await notify(c, [user.id], "{comp}: " + ENTRY_STATUS_MESSAGE[status], "Ваш номер участника: #{n}", `/c/${comp.slug}`, { comp: comp.name, n: number });
+      await enqueueParticipantRole(c, entry!.id);
       return ENTRY_STATUS_MESSAGE[status];
     });
   } catch (err) {
@@ -123,6 +125,7 @@ export async function joinTeam(code: string, user: User): Promise<{ slug: string
       const status = await placeEntry(c, comp);
       await q("update entries set status = $2 where id = $1", [entry.id, status], c);
       await notifyEntries(c, [entry.id], "{team}: команда собрана", ENTRY_STATUS_MESSAGE[status], `/c/${comp.slug}`, { team: entry.name });
+      await enqueueParticipantRole(c, entry.id);
       return { slug: comp.slug, message: ENTRY_STATUS_MESSAGE[status] };
     });
   } catch (err) {
@@ -145,6 +148,7 @@ export async function promoteWaitlist(c: PoolClient, comp: Competition) {
     const status = comp.require_approval ? "pending" : "confirmed";
     await q("update entries set status = $2 where id = $1", [next.id, status], c);
     await notifyEntries(c, [next.id], "{comp}: освободилось место", ENTRY_STATUS_MESSAGE[status], `/c/${comp.slug}`, { comp: comp.name });
+    await enqueueParticipantRole(c, next.id);
   }
 }
 
@@ -210,12 +214,14 @@ export async function adminSetEntryStatus(entryId: string, action: "approve" | "
       if (entry.status !== "pending") throw new FormError("Одобрить можно только заявку на проверке");
       await q("update entries set status = 'confirmed' where id = $1", [entryId], c);
       await notifyEntries(c, [entryId], "{comp}: заявка одобрена", "Вы в списке участников", `/c/${comp.slug}`, { comp: comp.name });
+      await enqueueParticipantRole(c, entryId);
     } else if (action === "confirm_waitlist") {
       if (entry.status !== "waitlist") throw new FormError("Заявка не в листе ожидания");
       const counts = await entryCounts(comp.id, c);
       if (counts.active >= comp.capacity) throw new FormError("Нет свободных мест — увеличьте вместимость");
       await q("update entries set status = 'confirmed' where id = $1", [entryId], c);
       await notifyEntries(c, [entryId], "{comp}: вы в основном списке", "", `/c/${comp.slug}`, { comp: comp.name });
+      await enqueueParticipantRole(c, entryId);
     } else {
       if (comp.draw_state === "preview") throw new FormError("Сначала сбросьте предварительную жеребьёвку");
       await deactivate(c, entryId, action === "reject" ? "rejected" : "cancelled");
@@ -349,6 +355,20 @@ export async function publishDraw(competitionId: string, actor: User) {
       c,
     );
     await notifyEntries(c, ids.map((r) => r.entry_id), "{comp}: жеребьёвка опубликована", "Соперники и расписание уже на сайте", `/c/${comp.slug}/matches`, { comp: comp.name });
+    const groupRows = await q<{ name: string; members: string }>(
+      `select g.name, string_agg(e.name, E'\n' order by e.name) as members from groups g
+         join group_entries ge on ge.group_id = g.id join entries e on e.id = ge.entry_id
+        where g.competition_id = $1 group by g.id, g.name, g.position order by g.position`,
+      [comp.id],
+      c,
+    );
+    await enqueueChannel(c, "announce", {
+      title: "{comp}: жеребьёвка опубликована",
+      description: "Соперники и расписание уже на сайте",
+      params: { comp: comp.name },
+      link: `/c/${comp.slug}/${comp.format === "groups_knockout" ? "draw" : comp.format === "knockout" ? "bracket" : "matches"}`,
+      fields: comp.format === "groups_knockout" ? groupRows.map((g) => ({ name: g.name, value: g.members, inline: true })) : undefined,
+    });
     await logAction(c, actor.id, "draw.publish", comp.name);
   });
 }
@@ -377,6 +397,7 @@ async function buildPlayoffs(c: PoolClient, comp: Competition, actorId: string |
   await insertBracket(c, comp, seeds, await nextMatchNumber(c, comp.id));
   await q("update competitions set playoffs_generated = true, status = 'playoffs', updated_at = now() where id = $1", [comp.id], c);
   await notifyEntries(c, seeds, "{comp}: вы вышли в плей-офф!", "Сетка опубликована", `/c/${comp.slug}/bracket`, { comp: comp.name });
+  await enqueueChannel(c, "announce", { title: "{comp}: сетка плей-офф готова", description: "Сетка опубликована", params: { comp: comp.name }, link: `/c/${comp.slug}/bracket` });
   await logAction(c, actorId, "playoffs.generate", `${comp.name}: ${seeds.length} участников`);
 }
 
@@ -430,6 +451,14 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
   if (m.loser_next_match_id && m.loser_next_side) await placeIntoSlot(c, m.loser_next_match_id, m.loser_next_side, loser);
 
   await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "{comp}: результат матча #{n} утверждён", "", `/match/${m.id}`, { comp: comp.name, n: m.number });
+  const names = await q<{ id: string; name: string }>("select id, name from entries where id = any($1::uuid[])", [[m.home_entry_id, m.away_entry_id]], c);
+  const nameOf = (id: string) => names.find((x) => x.id === id)?.name ?? "?";
+  await enqueueChannel(c, "results", {
+    title: "{home} {score} {away}",
+    description: "{comp} · матч #{n}",
+    params: { home: nameOf(m.home_entry_id), away: nameOf(m.away_entry_id), score: result.forfeitWinner ? (winnerSide === "home" ? "W:FF" : "FF:W") : `${hw}:${aw}`, comp: comp.name, n: m.number },
+    link: `/match/${m.id}`,
+  });
   await maybeFinish(c, comp);
 }
 
@@ -474,6 +503,7 @@ async function maybeFinish(c: PoolClient, comp: Competition) {
     const name = await one<{ name: string }>("select name from entries where id = $1", [champion], c);
     const all = await q<{ user_id: string }>("select user_id from entry_members where competition_id = $1 and active", [comp.id], c);
     await notify(c, all.map((r) => r.user_id), "{comp} завершён", "Чемпион: {champion}", `/c/${comp.slug}`, { comp: comp.name, champion: name?.name ?? "" });
+    await enqueueChannel(c, "announce", { title: "{comp} завершён", description: "Чемпион: {champion}", params: { comp: comp.name, champion: name?.name ?? "" }, link: `/c/${comp.slug}`, color: GOLD_COLOR });
   }
 }
 

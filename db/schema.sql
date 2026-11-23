@@ -219,3 +219,23 @@ create table if not exists settings (
 -- i18n: notifications and match history are stored as Russian templates + params
 alter table notifications add column if not exists params jsonb not null default '{}';
 alter table match_events add column if not exists params jsonb not null default '{}';
+
+-- Discord integration
+alter table users alter column password_hash drop not null;
+alter table users add column if not exists discord_id text;
+alter table users add column if not exists discord_username text;
+alter table users add column if not exists discord_dm boolean not null default true;
+alter table users add column if not exists locale text not null default 'ru';
+create unique index if not exists users_discord_uniq on users (discord_id) where discord_id is not null;
+
+create table if not exists discord_outbox (
+  id bigserial primary key,
+  kind text not null check (kind in ('channel', 'dm', 'role')),
+  target text not null,
+  payload jsonb not null,
+  attempts int not null default 0,
+  last_error text,
+  sent_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists discord_outbox_pending on discord_outbox (created_at) where sent_at is null;

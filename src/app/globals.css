@@ -130,6 +130,8 @@ p { margin: 0; text-wrap: pretty; }
 @media (hover: hover) and (pointer: fine) { .btn-navy:hover:not(:disabled) { --bg: #0f2c55; } }
 .btn-gold { --bg: var(--gold); --fg: var(--gold-ink); }
 @media (hover: hover) and (pointer: fine) { .btn-gold:hover:not(:disabled) { --bg: #e7c274; } }
+.btn-discord { --bg: #5865f2; --fg: #fff; }
+@media (hover: hover) and (pointer: fine) { .btn-discord:hover:not(:disabled) { --bg: #6d78f4; } }
 .btn-danger { --bg: transparent; --fg: var(--danger); border-color: rgba(255, 123, 136, 0.4); }
 @media (hover: hover) and (pointer: fine) { .btn-danger:hover:not(:disabled) { --bg: rgba(255, 123, 136, 0.1); } }
 .icon-btn { width: 40px; height: 40px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: transparent; color: var(--ink); cursor: pointer; place-items: center; }

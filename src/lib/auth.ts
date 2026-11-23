@@ -101,3 +101,25 @@ export const ROLE_LABELS: Record<Role, string> = {
   referee: "Судья",
   participant: "Участник",
 };
+
+/** Short-lived signed tokens for OAuth state and the pending Discord signup. */
+export async function signShort(payload: Record<string, unknown>, ttl: string) {
+  return new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(ttl).sign(secret());
+}
+
+export async function verifyShort<T>(token: string | undefined): Promise<T | null> {
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
+    return payload as T;
+  } catch {
+    return null;
+  }
+}
+
+export const DISCORD_PENDING_COOKIE = "rla_discord_pending";
+export type DiscordPending = { id: string; username: string; displayName: string; accessToken: string };
+
+export async function getDiscordPending(): Promise<DiscordPending | null> {
+  return verifyShort<DiscordPending>((await cookies()).get(DISCORD_PENDING_COOKIE)?.value);
+}

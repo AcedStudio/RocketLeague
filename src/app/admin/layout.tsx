@@ -20,6 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           { href: "/admin/rules", label: t("Правила") },
           { href: "/admin/announcements", label: t("Объявления") },
           { href: "/admin/users", label: t("Пользователи") },
+          { href: "/admin/discord", label: "Discord" },
           { href: "/admin/log", label: t("Журнал") },
           { href: "/admin/settings", label: t("Настройки") },
         ]
