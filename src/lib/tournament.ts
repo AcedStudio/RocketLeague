@@ -490,6 +490,8 @@ export async function submitReport(matchId: string, user: User, games: GameScore
     const m = await one<Match>("select * from matches where id = $1", [matchId], c);
     if (!m) throw new FormError("Матч не найден");
     await lockCompetition(c, m.competition_id);
+    const comp = await getCompetition(m.competition_id, c);
+    if (comp?.draw_state !== "published") throw new FormError("Жеребьёвка ещё не опубликована");
     if (m.status === "completed") throw new FormError("Результат уже утверждён");
     if (m.status === "under_review") throw new FormError("Матч на рассмотрении у судьи");
     if (!m.home_entry_id || !m.away_entry_id) throw new FormError("Соперники ещё не определены");

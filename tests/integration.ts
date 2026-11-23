@@ -1,0 +1,268 @@
+// End-to-end test of the tournament service against a real Postgres (Neon branch).
+// Run: DATABASE_URL=... npx tsx --conditions=react-server tests/integration.ts
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { q, one } from "../src/lib/db";
+import {
+  registerSolo, createTeam, joinTeam, withdraw, runDraw, resetDraw, publishDraw, submitReport, respondToReport, refereeResult, checkIn,
+} from "../src/lib/tournament";
+import { getStandings, getCompetition, getMatches, entryCounts, type Match } from "../src/lib/data";
+import type { User } from "../src/lib/auth";
+
+let passed = 0;
+const step = async (name: string, fn: () => Promise<void>) => {
+  await fn();
+  passed++;
+  console.log(`ok  ${name}`);
+};
+const rejects = async (p: Promise<unknown>, re: RegExp) => {
+  try {
+    await p;
+  } catch (e) {
+    assert.match((e as Error).message, re);
+    return;
+  }
+  assert.fail(`expected rejection ${re}`);
+};
+
+const RUN = Date.now().toString(36);
+async function mkUser(name: string, role = "participant"): Promise<User> {
+  const u = await one<User>(
+    `insert into users (email, password_hash, display_name, rl_nickname, rl_id, platform, contact, role)
+     values ($1, 'x', $2, $2, $3, 'pc', 'test', $4) returning *`,
+    [`${name}-${RUN}@t.test`, `${name}_${RUN}`, `id-${name}-${RUN}`, role],
+  );
+  return u!;
+}
+async function mkComp(over: Record<string, unknown>) {
+  const base = { slug: `t-${RUN}-${Math.random().toString(36).slice(2, 7)}`, name: "T", kind: "cup", mode: "1v1", format: "groups_knockout", status: "registration", capacity: 16, group_count: 2, qualifiers_per_group: 2, group_best_of: 1, playoff_best_of: 3, final_best_of: 3, third_place: true };
+  const v = { ...base, ...over };
+  const keys = Object.keys(v);
+  const row = await one<{ id: string }>(`insert into competitions (${keys.join(",")}) values (${keys.map((_, i) => `$${i + 1}`).join(",")}) returning id`, Object.values(v));
+  return row!.id;
+}
+const close = (id: string) => q("update competitions set status = 'closed' where id = $1", [id]);
+const membersOf = async (entryId: string) => (await q<{ user_id: string }>("select user_id from entry_members where entry_id = $1 and active", [entryId])).map((r) => r.user_id);
+
+/** Plays every open match: home wins unless `awayWins` says otherwise, both sides report. */
+async function playAll(compId: string, users: Map<string, User>, stage?: string, awayWins = (_m: Match) => false) {
+  for (let guard = 0; guard < 50; guard++) {
+    const open = (await getMatches(compId)).filter((m) => m.status === "ready" && !m.is_bye && (!stage || m.stage === stage));
+    if (!open.length) return;
+    for (const m of open) {
+      const need = Math.floor(m.best_of / 2) + 1;
+      const g = Array.from({ length: need }, () => (awayWins(m) ? { home: 1, away: 3 } : { home: 2, away: 0 }));
+      const h = users.get((await membersOf(m.home_entry_id!))[0])!;
+      const a = users.get((await membersOf(m.away_entry_id!))[0])!;
+      await submitReport(m.id, h, g, "", "");
+      const msg = await submitReport(m.id, a, g, "", "");
+      assert.match(msg, /совпали/);
+    }
+  }
+}
+
+async function main() {
+  await q(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"));
+  const admin = await mkUser("admin", "admin");
+  const users = new Map<string, User>();
+  const players: User[] = [];
+  for (let i = 0; i < 12; i++) {
+    const u = await mkUser(`p${i}`);
+    players.push(u);
+    users.set(u.id, u);
+  }
+
+  // ---------------------------------------------------------------- 1v1 cup
+  const cup = await mkComp({ capacity: 6, third_place: true });
+  await step("1v1: capacity 6 → 7th player goes to waitlist", async () => {
+    for (let i = 0; i < 7; i++) await registerSolo(cup, players[i]);
+    const c = await entryCounts(cup);
+    assert.equal(c.confirmed, 6);
+    assert.equal(c.waitlist, 1);
+  });
+  await step("1v1: duplicate registration rejected", async () => {
+    await rejects(registerSolo(cup, players[0]), /уже зарегистрированы/);
+  });
+  await step("1v1: withdrawal promotes waitlist automatically", async () => {
+    const e = await one<{ id: string }>("select e.id from entries e join entry_members m on m.entry_id = e.id where e.competition_id = $1 and m.user_id = $2", [cup, players[0].id]);
+    await withdraw(e!.id, players[0]);
+    const c = await entryCounts(cup);
+    assert.equal(c.confirmed, 6);
+    assert.equal(c.waitlist, 0);
+    const n = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '%освободилось%'", [players[6].id]);
+    assert.equal(n!.n, 1);
+  });
+  await step("draw: refused while registration is open", async () => {
+    await rejects(runDraw(cup, admin), /закройте регистрацию/);
+  });
+  await step("draw: balanced groups, fixtures, can redraw before publishing", async () => {
+    await close(cup);
+    await runDraw(cup, admin);
+    const g1 = (await q<{ n: number }>("select count(*)::int as n from group_entries where competition_id = $1 group by group_id", [cup])).map((r) => r.n).sort();
+    assert.deepEqual(g1, [3, 3]);
+    assert.equal((await getMatches(cup)).length, 6); // 2 groups × 3 matches
+    await runDraw(cup, admin);
+    assert.equal((await getMatches(cup)).length, 6, "redraw replaces, never duplicates");
+    const dup = await one<{ n: number }>("select count(*)::int as n from (select least(home_entry_id, away_entry_id), greatest(home_entry_id, away_entry_id) from matches where competition_id = $1 group by 1, 2 having count(*) > 1) x", [cup]);
+    assert.equal(dup!.n, 0);
+  });
+  await step("results rejected before publication; publish locks draw", async () => {
+    const m = (await getMatches(cup))[0];
+    const h = users.get((await membersOf(m.home_entry_id!))[0])!;
+    const a = users.get((await membersOf(m.away_entry_id!))[0])!;
+    await rejects(submitReport(m.id, h, [{ home: 1, away: 0 }], "", ""), /не опубликована/);
+    void a;
+    await publishDraw(cup, admin);
+    await rejects(runDraw(cup, admin), /заблокирована/);
+    await rejects(resetDraw(cup, admin), /неопубликованную/);
+  });
+  await step("results: outsider cannot report; invalid series rejected", async () => {
+    const m = (await getMatches(cup)).find((x) => x.status === "ready")!;
+    const h = users.get((await membersOf(m.home_entry_id!))[0])!;
+    await rejects(submitReport(m.id, players[11], [{ home: 1, away: 0 }], "", ""), /только участники/);
+    await rejects(submitReport(m.id, h, [{ home: 2, away: 2 }], "", ""), /ничьих/);
+  });
+  await step("results: mismatch → under review → referee resolves", async () => {
+    const m = (await getMatches(cup)).find((x) => x.status === "ready")!;
+    const h = users.get((await membersOf(m.home_entry_id!))[0])!;
+    const a = users.get((await membersOf(m.away_entry_id!))[0])!;
+    await submitReport(m.id, h, [{ home: 3, away: 1 }], "https://example.com/s.png", "");
+    const msg = await submitReport(m.id, a, [{ home: 1, away: 3 }], "", "");
+    assert.match(msg, /не совпали/);
+    assert.equal((await getMatches(cup)).find((x) => x.id === m.id)!.status, "under_review");
+    await rejects(submitReport(m.id, h, [{ home: 3, away: 1 }], "", ""), /рассмотрении/);
+    await refereeResult(m.id, admin, { games: [{ home: 3, away: 1 }] }, "по скриншоту");
+    const done = (await getMatches(cup)).find((x) => x.id === m.id)!;
+    assert.equal(done.status, "completed");
+    assert.equal(done.winner_entry_id, m.home_entry_id);
+  });
+  await step("results: opponent confirms / disputes a pending report", async () => {
+    const [m1, m2] = (await getMatches(cup)).filter((x) => x.status === "ready");
+    const h1 = users.get((await membersOf(m1.home_entry_id!))[0])!;
+    const a1 = users.get((await membersOf(m1.away_entry_id!))[0])!;
+    await submitReport(m1.id, h1, [{ home: 0, away: 2 }], "", "");
+    const r1 = await one<{ id: string }>("select id from match_reports where match_id = $1 and status = 'pending'", [m1.id]);
+    await rejects(respondToReport(r1!.id, h1, true, ""), /только соперник/);
+    await respondToReport(r1!.id, a1, true, "");
+    assert.equal((await getMatches(cup)).find((x) => x.id === m1.id)!.winner_entry_id, m1.away_entry_id);
+
+    const h2 = users.get((await membersOf(m2.home_entry_id!))[0])!;
+    const a2 = users.get((await membersOf(m2.away_entry_id!))[0])!;
+    await submitReport(m2.id, h2, [{ home: 5, away: 0 }], "", "");
+    const r2 = await one<{ id: string }>("select id from match_reports where match_id = $1 and status = 'pending'", [m2.id]);
+    await rejects(respondToReport(r2!.id, a2, false, ""), /Опишите/);
+    await respondToReport(r2!.id, a2, false, "Мы выиграли 2:1");
+    assert.equal((await getMatches(cup)).find((x) => x.id === m2.id)!.status, "under_review");
+    await refereeResult(m2.id, admin, { games: [], forfeitWinner: "away" }, "техническое поражение");
+  });
+  await step("group stage complete → playoffs generated automatically, standings consistent", async () => {
+    await playAll(cup, users, "group");
+    const comp = (await getCompetition(cup))!;
+    assert.equal(comp.status, "playoffs");
+    assert.equal(comp.playoffs_generated, true);
+    const tables = await getStandings(comp);
+    for (const t of tables) {
+      assert.equal(t.rows.reduce((s, r) => s + r.played, 0), 6, "3 matches × 2 sides per group");
+      for (let i = 1; i < t.rows.length; i++) assert.ok(t.rows[i - 1].points >= t.rows[i].points);
+    }
+    const ko = (await getMatches(cup)).filter((m) => m.stage === "knockout");
+    assert.equal(ko.length, 3, "2 semis + final");
+    assert.ok((await getMatches(cup)).some((m) => m.stage === "third_place"));
+    const qualifiers = tables.flatMap((t) => t.rows.slice(0, 2).map((r) => r.id));
+    const semis = ko.filter((m) => m.round === 1);
+    for (const s of semis) {
+      assert.ok(qualifiers.includes(s.home_entry_id!) && qualifiers.includes(s.away_entry_id!));
+      const gh = tables.find((t) => t.rows.some((r) => r.id === s.home_entry_id))!.group!.id;
+      const ga = tables.find((t) => t.rows.some((r) => r.id === s.away_entry_id))!.group!.id;
+      assert.notEqual(gh, ga, "group-mates don't meet in the first knockout round");
+    }
+  });
+  await step("knockout: winner advances; loser goes to 3rd place; champion and prizes set", async () => {
+    await q("insert into prizes (competition_id, place, title, amount) values ($1, 1, 'Чемпион', 100), ($1, 2, 'Финалист', 50), ($1, 3, 'Бронза', 25)", [cup]);
+    await playAll(cup, users, "knockout", (m) => m.round === 1); // away wins semis
+    const ms = await getMatches(cup);
+    const semis = ms.filter((m) => m.stage === "knockout" && m.round === 1);
+    const final = ms.find((m) => m.stage === "knockout" && m.round === 2)!;
+    const third = ms.find((m) => m.stage === "third_place")!;
+    assert.deepEqual(new Set([final.home_entry_id, final.away_entry_id]), new Set(semis.map((s) => s.away_entry_id)));
+    assert.deepEqual(new Set([third.home_entry_id, third.away_entry_id]), new Set(semis.map((s) => s.home_entry_id)));
+    await playAll(cup, users);
+    const comp = (await getCompetition(cup))!;
+    assert.equal(comp.status, "finished");
+    const prizes = await q<{ place: number; recipient_entry_id: string }>("select place, recipient_entry_id from prizes where competition_id = $1 order by place", [cup]);
+    const f = (await getMatches(cup)).find((m) => m.id === final.id)!;
+    assert.equal(prizes[0].recipient_entry_id, f.winner_entry_id);
+    assert.ok(prizes.every((p) => p.recipient_entry_id));
+  });
+
+  // ---------------------------------------------------------------- 2v2 knockout with byes
+  const duo = await mkComp({ mode: "2v2", format: "knockout", capacity: 8, third_place: false, playoff_best_of: 1, final_best_of: 1 });
+  const teams: string[] = [];
+  await step("2v2: team creation, invite, duplicate player and own-team join rejected", async () => {
+    for (let i = 0; i < 6; i++) {
+      await createTeam(duo, players[i * 2], `Team ${i} ${RUN}`);
+      const e = await one<{ id: string; invite_code: string }>("select id, invite_code from entries where competition_id = $1 and captain_id = $2", [duo, players[i * 2].id]);
+      teams.push(e!.id);
+      if (i < 5) {
+        if (i === 0) await rejects(joinTeam(e!.invite_code, players[0]), /Это ваша команда/);
+        await joinTeam(e!.invite_code, players[i * 2 + 1]);
+      }
+    }
+    await rejects(createTeam(duo, players[1], `Dup ${RUN}`), /уже участвуете|занято/);
+    const c = await entryCounts(duo);
+    assert.equal(c.confirmed, 5);
+    assert.equal(c.incomplete, 1);
+    const full = await one<{ invite_code: string }>("select coalesce(invite_code, '') as invite_code from entries where id = $1", [teams[0]]);
+    if (full!.invite_code) await rejects(joinTeam(full!.invite_code, players[10]), /нет свободного места/);
+  });
+  await step("2v2: incomplete team excluded from draw; 5 teams → 3 byes, bracket of 8", async () => {
+    await close(duo);
+    await runDraw(duo, admin);
+    const ms = await getMatches(duo);
+    const inDraw = new Set(ms.flatMap((m) => [m.home_entry_id, m.away_entry_id]).filter(Boolean));
+    assert.ok(!inDraw.has(teams[5]), "incomplete team not in bracket");
+    assert.equal(ms.filter((m) => m.is_bye).length, 3);
+    assert.equal(ms.length, 7);
+    await publishDraw(duo, admin);
+  });
+  await step("2v2: play to the final; competition finishes", async () => {
+    await playAll(duo, users);
+    assert.equal((await getCompetition(duo))!.status, "finished");
+  });
+
+  // ---------------------------------------------------------------- league (round robin), odd count, check-in
+  const league = await mkComp({ kind: "league", format: "round_robin", double_round_robin: true, checkin_required: true, group_best_of: 3 });
+  await step("league: check-in required — non-checked-in excluded", async () => {
+    const ids: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      await registerSolo(league, players[i]);
+      ids.push((await one<{ id: string }>("select entry_id as id from entry_members where competition_id = $1 and user_id = $2", [league, players[i].id]))!.id);
+    }
+    await rejects(checkIn(ids[0], players[0]), /закрыт/);
+    await q("update competitions set checkin_open = true where id = $1", [league]);
+    for (let i = 0; i < 5; i++) await checkIn(ids[i], players[i]);
+    await close(league);
+    await runDraw(league, admin);
+    const ms = await getMatches(league);
+    assert.equal(ms.length, 5 * 4, "5 players, double round robin = 20 matches");
+    assert.ok(!ms.some((m) => m.home_entry_id === ids[5] || m.away_entry_id === ids[5]));
+    await publishDraw(league, admin);
+  });
+  await step("league: Bo3 series, table, finish", async () => {
+    await playAll(league, users, undefined, (m) => m.round % 2 === 0);
+    const comp = (await getCompetition(league))!;
+    assert.equal(comp.status, "finished");
+    const [t] = await getStandings(comp);
+    assert.equal(t.rows.reduce((s, r) => s + r.wins, 0), 20);
+    assert.ok(t.rows.every((r) => r.played === 8));
+    assert.equal(t.rows.reduce((s, r) => s + r.goalsFor - r.goalsAgainst, 0), 0);
+  });
+
+  console.log(`\n${passed} integration checks passed`);
+  process.exit(0);
+}
+
+main().catch((e) => {
+  console.error("FAIL", e);
+  process.exit(1);
+});
