@@ -1,7 +1,8 @@
 import "server-only";
 import { redirect } from "next/navigation";
 
-export class FormError extends Error {}
+import { FormError } from "./errors";
+export { FormError };
 
 export function str(fd: FormData, name: string, label: string, opts: { min?: number; max?: number; optional?: boolean } = {}): string {
   const raw = fd.get(name);

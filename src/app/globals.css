@@ -74,7 +74,7 @@ p { margin: 0; text-wrap: pretty; }
 .num, table, .score { font-variant-numeric: tabular-nums; }
 
 .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter); }
-.section { padding: var(--section) 0; }
+.section { padding-top: var(--section); padding-bottom: var(--section); }
 .stack { display: flex; flex-direction: column; gap: var(--s4); }
 .stack-lg { display: flex; flex-direction: column; gap: var(--s7); }
 .row { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
