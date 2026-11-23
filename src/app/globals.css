@@ -99,6 +99,10 @@ p { margin: 0; text-wrap: pretty; }
 .bell:hover { color: var(--ink); background: rgba(136, 237, 255, 0.07); }
 .bell .dot { position: absolute; top: 6px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
 .menu-btn { display: none; }
+.lang { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line-strong); border-radius: 999px; }
+.lang button { min-width: 36px; height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-soft); font: 700 0.75rem/1 var(--font-text); letter-spacing: 0.04em; cursor: pointer; transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out); }
+.lang button:hover { color: var(--ink); }
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .mobile-nav { display: none; }
 @media (max-width: 860px) {
   .nav, .top-actions .hide-m { display: none; }

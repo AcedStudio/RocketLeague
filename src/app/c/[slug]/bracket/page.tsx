@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { getCompetitionBySlug, getMatches, getPrizes } from "@/lib/data";
 import { Bracket } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
 export default async function BracketPage({ params }: { params: Promise<{ slug: string }> }) {
+  const t = await getT();
   const { slug } = await params;
   const comp = await getCompetitionBySlug(slug);
   if (!comp) notFound();
@@ -11,11 +13,11 @@ export default async function BracketPage({ params }: { params: Promise<{ slug: 
   if (!ko.length) {
     return (
       <div className="empty">
-        <h3>Сетка плей-офф ещё не сформирована</h3>
+        <h3>{t("Сетка плей-офф ещё не сформирована")}</h3>
         <p>
           {comp.format === "groups_knockout"
-            ? "Она появится автоматически, когда закончится групповой этап."
-            : "Она появится после публикации жеребьёвки."}
+            ? t("Она появится автоматически, когда закончится групповой этап.")
+            : t("Она появится после публикации жеребьёвки.")}
         </p>
       </div>
     );
@@ -27,12 +29,12 @@ export default async function BracketPage({ params }: { params: Promise<{ slug: 
     <div className="stack-lg">
       {(champion || winnerName) && (
         <div className="champion-card">
-          <span className="badge gold plain">Чемпион</span>
+          <span className="badge gold plain">{t("Чемпион")}</span>
           <b>{champion ?? winnerName}</b>
         </div>
       )}
       <Bracket matches={ko} />
-      <p className="small faint">Победитель матча автоматически проходит в следующий раунд. Нажмите на матч, чтобы открыть подробности.</p>
+      <p className="small faint">{t("Победитель матча автоматически проходит в следующий раунд. Нажмите на матч, чтобы открыть подробности.")}</p>
     </div>
   );
 }

@@ -2,17 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompetitionBySlug, getMatches, getGroups, getEntries } from "@/lib/data";
 import { getUser } from "@/lib/auth";
-import { MATCH_STATUS_LABELS } from "@/lib/format";
+import { MATCH_STATUS_LABELS, groupLabel } from "@/lib/format";
 import { MatchCard, pick, type SP } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
 export default async function Matches({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: SP }) {
+  const t = await getT();
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const comp = await getCompetitionBySlug(slug);
   if (!comp) notFound();
   if (comp.draw_state !== "published") {
     return (
       <div className="empty">
-        <h3>Расписание появится после жеребьёвки</h3>
+        <h3>{t("Расписание появится после жеребьёвки")}</h3>
       </div>
     );
   }
@@ -45,7 +47,7 @@ export default async function Matches({ params, searchParams }: { params: Promis
   // Group the list by stage heading for readability.
   const sections = new Map<string, typeof visible>();
   for (const m of visible) {
-    const key = m.stage === "group" ? m.group_name ?? "Группа" : m.stage === "league" ? `Тур ${m.round}` : "Плей-офф";
+    const key = m.stage === "group" ? groupLabel(m.group_name, t) : m.stage === "league" ? t("Тур {n}", { n: m.round }) : t("Плей-офф");
     if (!sections.has(key)) sections.set(key, []);
     sections.get(key)!.push(m);
   }
@@ -54,30 +56,30 @@ export default async function Matches({ params, searchParams }: { params: Promis
     <div className="stack-lg">
       <div className="stack" style={{ gap: 10 }}>
         <div className="subtabs" style={{ marginBottom: 0 }}>
-          <Link href={link({ status: "" })} aria-current={!status ? "page" : undefined}>Все</Link>
+          <Link href={link({ status: "" })} aria-current={!status ? "page" : undefined}>{t("Все")}</Link>
           {(["ready", "live", "under_review", "completed", "postponed"] as const).map((s) => (
             <Link key={s} href={link({ status: s })} aria-current={status === s ? "page" : undefined}>
-              {MATCH_STATUS_LABELS[s]}
+              {t(MATCH_STATUS_LABELS[s])}
             </Link>
           ))}
         </div>
         <div className="subtabs" style={{ marginBottom: 0 }}>
           {myId && (
             <Link href={link({ entry: entry ? "" : myId })} aria-current={entry === myId ? "page" : undefined}>
-              Только мои
+              {t("Только мои")}
             </Link>
           )}
           {comp.format === "groups_knockout" &&
             groups.map((g) => (
               <Link key={g.id} href={link({ group: group === g.id ? "" : g.id })} aria-current={group === g.id ? "page" : undefined}>
-                {g.name}
+                {groupLabel(g.name, t)}
               </Link>
             ))}
         </div>
       </div>
 
       {visible.length === 0 ? (
-        <div className="empty">Матчей с такими фильтрами нет</div>
+        <div className="empty">{t("Матчей с такими фильтрами нет")}</div>
       ) : (
         [...sections.entries()].map(([title, list]) => (
           <section key={title} className="stack">
@@ -90,7 +92,7 @@ export default async function Matches({ params, searchParams }: { params: Promis
           </section>
         ))
       )}
-      <p className="small faint">Время указано в часовом поясе {comp.timezone}.</p>
+      <p className="small faint">{t("Время указано в часовом поясе {tz}.", { tz: comp.timezone })}</p>
     </div>
   );
 }

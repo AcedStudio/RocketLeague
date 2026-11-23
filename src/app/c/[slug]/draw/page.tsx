@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { getCompetitionBySlug, getGroups, getEntries } from "@/lib/data";
 import { getUser, isAdmin } from "@/lib/auth";
-import { fmtDateTime } from "@/lib/format";
+import { fmtDateTime, groupLabel } from "@/lib/format";
+import { getT } from "@/lib/i18n/server";
 
 export default async function Draw({ params }: { params: Promise<{ slug: string }> }) {
+  const t = await getT();
   const { slug } = await params;
   const comp = await getCompetitionBySlug(slug);
   if (!comp) notFound();
@@ -12,10 +14,11 @@ export default async function Draw({ params }: { params: Promise<{ slug: string 
   if (!visible) {
     return (
       <div className="empty">
-        <h3>Жеребьёвка ещё не проведена</h3>
+        <h3>{t("Жеребьёвка ещё не проведена")}</h3>
         <p>
-          Она пройдёт после закрытия регистрации. Участники распределяются по группам случайно
-          {comp.seeded_draw ? " с посевом по корзинам" : ""}, результат сохраняется и не меняется после публикации.
+          {comp.seeded_draw
+            ? t("Она пройдёт после закрытия регистрации. Участники распределяются по группам случайно с посевом по корзинам, результат сохраняется и не меняется после публикации.")
+            : t("Она пройдёт после закрытия регистрации. Участники распределяются по группам случайно, результат сохраняется и не меняется после публикации.")}
         </p>
       </div>
     );
@@ -27,17 +30,16 @@ export default async function Draw({ params }: { params: Promise<{ slug: string 
   return (
     <div className="stack-lg">
       {comp.draw_state === "preview" ? (
-        <div className="notice">Предварительный результат виден только администраторам. Участники увидят группы после публикации.</div>
+        <div className="notice">{t("Предварительный результат виден только администраторам. Участники увидят группы после публикации.")}</div>
       ) : (
         <p className="muted small">
-          Опубликовано {fmtDateTime(comp.draw_published_at, comp.timezone)}. Код жеребьёвки: <span className="num">{comp.draw_seed}</span>. Результат
-          зафиксирован.
+          {t("Опубликовано {date}. Код жеребьёвки: {seed}. Результат зафиксирован.", { date: fmtDateTime(comp.draw_published_at, comp.timezone, t), seed: comp.draw_seed })}
         </p>
       )}
       <div className="groups reveal">
         {groups.map((g) => (
           <section key={g.id} className="group-card">
-            <h3>{g.name}</h3>
+            <h3>{groupLabel(g.name, t)}</h3>
             <ol>
               {g.entry_ids.map((id) => (
                 <li key={id} style={mine.has(id) ? { color: "var(--accent-light)", fontWeight: 700 } : undefined}>
@@ -48,7 +50,7 @@ export default async function Draw({ params }: { params: Promise<{ slug: string 
           </section>
         ))}
       </div>
-      <p className="small faint">Из каждой группы в плей-офф выходят {comp.qualifiers_per_group}. Победители групп посеяны выше, соперники из одной группы не встречаются в первом раунде, если этого можно избежать.</p>
+      <p className="small faint">{t("Из каждой группы в плей-офф выходят: {q}. Победители групп посеяны выше, соперники из одной группы не встречаются в первом раунде, если этого можно избежать.", { q: comp.qualifiers_per_group })}</p>
     </div>
   );
 }

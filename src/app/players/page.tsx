@@ -2,11 +2,16 @@ import Link from "next/link";
 import { q, dbConfigured } from "@/lib/db";
 import { PLATFORM_LABELS } from "@/lib/format";
 import { pick, SetupNotice, type SP } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Игроки" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Игроки") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function Players({ searchParams }: { searchParams: SP }) {
+  const t = await getT();
   if (!dbConfigured()) return <SetupNotice />;
   const sp = await searchParams;
   const search = pick(sp, "q").slice(0, 60);
@@ -26,21 +31,21 @@ export default async function Players({ searchParams }: { searchParams: SP }) {
   );
   return (
     <div className="wrap section stack-lg">
-      <h1>Игроки и команды</h1>
+      <h1>{t("Игроки и команды")}</h1>
       <form className="row" role="search">
-        <input className="input" name="q" defaultValue={search} placeholder="Ник игрока или название команды" style={{ maxWidth: 380 }} />
-        <button className="btn btn-ghost">Найти</button>
+        <input className="input" name="q" defaultValue={search} placeholder={t("Ник игрока или название команды")} style={{ maxWidth: 380 }} />
+        <button className="btn btn-ghost">{t("Найти")}</button>
       </form>
       {rows.length ? (
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Игрок</th>
-                <th>Платформа</th>
-                <th>Команды 2v2</th>
-                <th className="c">В</th>
-                <th className="c">П</th>
+                <th>{t("Игрок")}</th>
+                <th>{t("Платформа")}</th>
+                <th>{t("Команды 2v2")}</th>
+                <th className="c">{t("В")}</th>
+                <th className="c">{t("П")}</th>
               </tr>
             </thead>
             <tbody>
@@ -59,7 +64,7 @@ export default async function Players({ searchParams }: { searchParams: SP }) {
           </table>
         </div>
       ) : (
-        <div className="empty">Никого не нашли</div>
+        <div className="empty">{t("Никого не нашли")}</div>
       )}
     </div>
   );

@@ -4,17 +4,22 @@ import { login } from "../actions/auth";
 import { getUser } from "@/lib/auth";
 import { Flash, pick, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Вход" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Вход") };
+}
 
 export default async function LoginPage({ searchParams }: { searchParams: SP }) {
+  const t = await getT();
   const sp = await searchParams;
   const next = pick(sp, "next") || "/me";
   if (await getUser()) redirect(next.startsWith("/") ? next : "/me");
   return (
     <div className="wrap section" style={{ maxWidth: 480 }}>
       <div className="stack">
-        <h1 style={{ fontSize: "2rem" }}>Вход</h1>
+        <h1 style={{ fontSize: "2rem" }}>{t("Вход")}</h1>
         <Flash sp={sp} />
         <form action={login} className="panel stack">
           <input type="hidden" name="next" value={next} />
@@ -23,15 +28,15 @@ export default async function LoginPage({ searchParams }: { searchParams: SP }) 
             <input className="input" type="email" name="email" required autoComplete="email" />
           </label>
           <label className="field">
-            <span>Пароль</span>
+            <span>{t("Пароль")}</span>
             <input className="input" type="password" name="password" required autoComplete="current-password" />
           </label>
-          <SubmitButton className="btn btn-lg" pendingText="Входим…">
-            Войти
+          <SubmitButton className="btn btn-lg" pendingText={t("Входим…")}>
+            {t("Войти")}
           </SubmitButton>
         </form>
         <p className="muted">
-          Нет аккаунта? <Link href={`/signup?next=${encodeURIComponent(next)}`}>Создать</Link>
+          {t("Нет аккаунта?")} <Link href={`/signup?next=${encodeURIComponent(next)}`}>{t("Создать")}</Link>
         </p>
       </div>
     </div>

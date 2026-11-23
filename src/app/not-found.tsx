@@ -1,13 +1,15 @@
 import Link from "next/link";
+import { getT } from "@/lib/i18n/server";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getT();
   return (
     <div className="wrap section">
       <div className="empty">
-        <h3>Страница не найдена</h3>
-        <p>Возможно, ссылка устарела или соревнование ещё не опубликовано.</p>
+        <h3>{t("Страница не найдена")}</h3>
+        <p>{t("Возможно, ссылка устарела или соревнование ещё не опубликовано.")}</p>
         <Link href="/" className="btn" style={{ marginTop: 16 }}>
-          На главную
+          {t("На главную")}
         </Link>
       </div>
     </div>

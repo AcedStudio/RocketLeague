@@ -5,8 +5,10 @@ import { PLATFORM_LABELS } from "@/lib/format";
 import { setRole } from "@/app/actions/admin";
 import { Flash, pick, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
+import { getT } from "@/lib/i18n/server";
 
 export default async function AdminUsers({ searchParams }: { searchParams: SP }) {
+  const t = await getT();
   const sp = await searchParams;
   const me = await requireAdmin();
   const search = pick(sp, "q").slice(0, 60);
@@ -17,16 +19,16 @@ export default async function AdminUsers({ searchParams }: { searchParams: SP })
   );
   return (
     <>
-      <h1 style={{ fontSize: "2rem" }}>Пользователи</h1>
+      <h1 style={{ fontSize: "2rem" }}>{t("Пользователи")}</h1>
       <Flash sp={sp} />
       <form className="row" role="search">
-        <input className="input" name="q" defaultValue={search} placeholder="Ник, email или Rocket League ID" style={{ maxWidth: 340 }} />
-        <button className="btn btn-ghost">Найти</button>
+        <input className="input" name="q" defaultValue={search} placeholder={t("Ник, email или Rocket League ID")} style={{ maxWidth: 340 }} />
+        <button className="btn btn-ghost">{t("Найти")}</button>
       </form>
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>Игрок</th><th>Email</th><th>Контакт</th><th>Роль</th></tr>
+            <tr><th>{t("Игрок")}</th><th>Email</th><th>{t("Контакт")}</th><th>{t("Роль")}</th></tr>
           </thead>
           <tbody>
             {users.map((u) => (
@@ -41,13 +43,13 @@ export default async function AdminUsers({ searchParams }: { searchParams: SP })
                   {me.role === "superadmin" && u.id !== me.id ? (
                     <form action={setRole} className="inline-form">
                       <input type="hidden" name="user_id" value={u.id} />
-                      <select className="input" name="role" defaultValue={u.role} style={{ minHeight: 36, maxWidth: 200 }} aria-label="Роль">
-                        {Object.entries(ROLE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      <select className="input" name="role" defaultValue={u.role} style={{ minHeight: 36, maxWidth: 200 }} aria-label={t("Роль")}>
+                        {Object.entries(ROLE_LABELS).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}
                       </select>
                       <SubmitButton className="btn btn-ghost btn-sm">OK</SubmitButton>
                     </form>
                   ) : (
-                    <span className="badge dim plain">{ROLE_LABELS[u.role]}</span>
+                    <span className="badge dim plain">{t(ROLE_LABELS[u.role])}</span>
                   )}
                 </td>
               </tr>

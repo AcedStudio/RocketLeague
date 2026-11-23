@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { q } from "@/lib/db";
 import { notifyEntries } from "@/lib/notify";
-import { fmtDateTime } from "@/lib/format";
 
 // Daily (Vercel Hobby allows one cron per day): reminds about matches in the next 36 hours.
 export async function GET(req: Request) {
@@ -17,7 +16,7 @@ export async function GET(req: Request) {
         and m.scheduled_at between now() and now() + interval '36 hours'`,
   );
   for (const m of due) {
-    await notifyEntries(undefined, [m.home_entry_id, m.away_entry_id], `Напоминание: матч #${m.number}`, `${m.comp} · ${fmtDateTime(m.scheduled_at, m.timezone)}`, `/match/${m.id}`);
+    await notifyEntries(undefined, [m.home_entry_id, m.away_entry_id], "Напоминание: матч #{n}", "{comp} · {when}", `/match/${m.id}`, { n: m.number, comp: m.comp, at: new Date(m.scheduled_at).toISOString(), tz: m.timezone });
     await q("update matches set reminded_at = now() where id = $1", [m.id]);
   }
   return NextResponse.json({ reminded: due.length });

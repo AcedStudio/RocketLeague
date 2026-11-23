@@ -6,39 +6,43 @@ import { getUser, isAdmin, isReferee } from "@/lib/auth";
 import { getSettings } from "@/lib/data";
 import { one, dbConfigured } from "@/lib/db";
 import { LogoMark, BellIcon } from "@/components/Art";
-import { MobileMenu } from "@/components/client";
+import { Suspense } from "react";
+import { MobileMenu, I18nProvider, LangSwitch } from "@/components/client";
+import { getT } from "@/lib/i18n/server";
+import { DICTS } from "@/lib/i18n/dicts";
 import { logout } from "./actions/auth";
 
 const display = Unbounded({ subsets: ["latin", "cyrillic"], variable: "--font-unbounded", weight: ["500", "700"], display: "swap" });
 const text = Onest({ subsets: ["latin", "cyrillic"], variable: "--font-onest", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const s = await getSettings();
+  const [s, t] = await Promise.all([getSettings(), getT()]);
   return {
     title: { default: s.site_name, template: `%s · ${s.site_name}` },
-    description: s.tagline,
+    description: t(s.tagline),
   };
 }
 
 export const viewport: Viewport = { themeColor: "#081A32", width: "device-width", initialScale: 1 };
 
-const LINKS = [
-  { href: "/competitions", label: "Соревнования" },
-  { href: "/players", label: "Игроки" },
-  { href: "/stats", label: "Статистика" },
-  { href: "/rules", label: "Правила" },
-  { href: "/faq", label: "FAQ" },
-];
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [user, settings] = await Promise.all([getUser(), getSettings()]);
+  const [user, settings, t] = await Promise.all([getUser(), getSettings(), getT()]);
+  const LINKS = [
+    { href: "/competitions", label: t("Соревнования") },
+    { href: "/players", label: t("Игроки") },
+    { href: "/stats", label: t("Статистика") },
+    { href: "/rules", label: t("Правила") },
+    { href: "/faq", label: "FAQ" },
+  ];
   const unread = user && dbConfigured()
     ? (await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and read_at is null", [user.id]))?.n ?? 0
     : 0;
 
   return (
-    <html lang="ru" className={`${display.variable} ${text.variable}`}>
+    <html lang={t.locale} className={`${display.variable} ${text.variable}`}>
       <body>
+        <I18nProvider locale={t.locale} dict={DICTS[t.locale]}>
         <header className="topbar">
           <div className="wrap">
             <Link href="/" className="brand">
@@ -50,7 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               )}
               <span>{settings.site_name}</span>
             </Link>
-            <nav className="nav" aria-label="Основная навигация">
+            <nav className="nav" aria-label={t("Основная навигация")}>
               {LINKS.map((l) => (
                 <Link key={l.href} href={l.href}>
                   {l.label}
@@ -58,14 +62,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               ))}
             </nav>
             <div className="top-actions">
+              <div className="hide-m">
+                <Suspense>
+                  <LangSwitch />
+                </Suspense>
+              </div>
               {user ? (
                 <>
                   {isReferee(user.role) && (
                     <Link href="/admin" className="btn btn-ghost btn-sm hide-m">
-                      {isAdmin(user.role) ? "Админка" : "Судейская"}
+                      {isAdmin(user.role) ? t("Админка") : t("Судейская")}
                     </Link>
                   )}
-                  <Link href="/me/notifications" className="bell" aria-label={`Уведомления${unread ? `: ${unread} новых` : ""}`}>
+                  <Link href="/me/notifications" className="bell" aria-label={unread ? t("Уведомления: {n} новых", { n: unread }) : t("Уведомления")}>
                     <BellIcon />
                     {unread > 0 && <span className="dot">{unread > 99 ? "99+" : unread}</span>}
                   </Link>
@@ -74,21 +83,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </Link>
                   <form action={logout} className="hide-m">
                     <button className="btn btn-ghost btn-sm" type="submit">
-                      Выйти
+                      {t("Выйти")}
                     </button>
                   </form>
                 </>
               ) : (
                 <>
                   <Link href="/login" className="btn btn-ghost btn-sm hide-m">
-                    Войти
+                    {t("Войти")}
                   </Link>
                   <Link href="/signup" className="btn btn-sm">
-                    Регистрация
+                    {t("Регистрация")}
                   </Link>
                 </>
               )}
-              <MobileMenu links={LINKS} authed={!!user} admin={isReferee(user?.role)} />
+              <Suspense>
+                <MobileMenu links={LINKS} authed={!!user} admin={isReferee(user?.role)} />
+              </Suspense>
             </div>
           </div>
         </header>
@@ -96,15 +107,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <footer className="footer">
           <div className="wrap">
             <span>
-              © {new Date().getFullYear()} {settings.site_name}. Фан-платформа, не связана с Psyonix и Epic Games.
+              © {new Date().getFullYear()} {settings.site_name}. {t("Фан-платформа, не связана с Psyonix и Epic Games.")}
             </span>
             <span className="row">
               {settings.discord_url && <a href={settings.discord_url} rel="noopener noreferrer" target="_blank">Discord</a>}
               {settings.contact_email && <a href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a>}
-              <Link href="/faq">Контакты</Link>
+              <Link href="/faq">{t("Контакты")}</Link>
             </span>
           </div>
         </footer>
+        </I18nProvider>
       </body>
     </html>
   );

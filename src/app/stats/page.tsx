@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { q, one, dbConfigured } from "@/lib/db";
 import { SetupNotice } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Статистика" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Статистика") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function Stats() {
+  const t = await getT();
   if (!dbConfigured()) return <SetupNotice />;
   const [totals, players, teams, comps] = await Promise.all([
     one<{ matches: number; goals: number; players: number; teams: number }>(
@@ -40,17 +45,17 @@ export default async function Stats() {
 
   return (
     <div className="wrap section stack-lg">
-      <h1>Статистика</h1>
+      <h1>{t("Статистика")}</h1>
       <div className="stat-strip">
-        <div><b className="num">{totals?.matches ?? 0}</b><span>матчей сыграно</span></div>
-        <div><b className="num">{totals?.goals ?? 0}</b><span>голов забито</span></div>
-        <div><b className="num">{totals?.players ?? 0}</b><span>игроков</span></div>
-        <div><b className="num">{totals?.teams ?? 0}</b><span>команд 2v2</span></div>
+        <div><b className="num">{totals?.matches ?? 0}</b><span>{t("матчей сыграно")}</span></div>
+        <div><b className="num">{totals?.goals ?? 0}</b><span>{t("голов забито")}</span></div>
+        <div><b className="num">{totals?.players ?? 0}</b><span>{t("игроков")}</span></div>
+        <div><b className="num">{totals?.teams ?? 0}</b><span>{t("команд 2v2")}</span></div>
       </div>
 
       {comps.length > 0 && (
         <section className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Прогресс соревнований</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Прогресс соревнований")}</h2>
           <div className="list">
             {comps.map((c) => {
               const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
@@ -70,11 +75,11 @@ export default async function Stats() {
 
       <div className="two">
         <section className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Лучшие игроки 1v1</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Лучшие игроки 1v1")}</h2>
           {players.length ? (
             <div className="table-wrap">
               <table>
-                <thead><tr><th>#</th><th>Игрок</th><th className="c">Победы</th><th className="c">Матчи</th><th className="c">Голы</th></tr></thead>
+                <thead><tr><th>#</th><th>{t("Игрок")}</th><th className="c">{t("Победы")}</th><th className="c">{t("Матчи")}</th><th className="c">{t("Голы")}</th></tr></thead>
                 <tbody>
                   {players.map((p, i) => (
                     <tr key={p.id} className={i === 0 ? "champion" : ""}>
@@ -86,14 +91,14 @@ export default async function Stats() {
                 </tbody>
               </table>
             </div>
-          ) : <div className="empty">Данных пока нет</div>}
+          ) : <div className="empty">{t("Данных пока нет")}</div>}
         </section>
         <section className="stack">
-          <h2 style={{ fontSize: "1.3rem" }}>Лучшие команды 2v2</h2>
+          <h2 style={{ fontSize: "1.3rem" }}>{t("Лучшие команды 2v2")}</h2>
           {teams.length ? (
             <div className="table-wrap">
               <table>
-                <thead><tr><th>#</th><th>Команда</th><th className="c">Победы</th><th className="c">Матчи</th></tr></thead>
+                <thead><tr><th>#</th><th>{t("Команда")}</th><th className="c">{t("Победы")}</th><th className="c">{t("Матчи")}</th></tr></thead>
                 <tbody>
                   {teams.map((t, i) => (
                     <tr key={t.id} className={i === 0 ? "champion" : ""}>
@@ -105,7 +110,7 @@ export default async function Stats() {
                 </tbody>
               </table>
             </div>
-          ) : <div className="empty">Данных пока нет</div>}
+          ) : <div className="empty">{t("Данных пока нет")}</div>}
         </section>
       </div>
     </div>
