@@ -3,7 +3,6 @@ import { dbConfigured, one } from "@/lib/db";
 import { getFeaturedCompetition, listCompetitions, getAnnouncements, entryCounts, getMatches, getSettings } from "@/lib/data";
 import { getUser } from "@/lib/auth";
 import { FORMAT_LABELS, KIND_LABELS, fmtDate, fmtMoney } from "@/lib/format";
-import { ArenaArt } from "@/components/Art";
 import { Countdown } from "@/components/client";
 import { CompetitionRow, CompStatusBadge, Flash, MatchCard, SetupNotice, type SP } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
@@ -35,68 +34,98 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
 
   return (
     <>
-      <section className="hero">
-        <div className="hero-grain" />
+      <section className="hero-banner">
+        <picture>
+          <source type="image/webp" srcSet="/brand/hero-960.webp 960w, /brand/hero-1672.webp 1672w" sizes="100vw" />
+          <img
+            src="/brand/hero-1672.jpg"
+            srcSet="/brand/hero-960.jpg 960w, /brand/hero-1672.jpg 1672w"
+            sizes="100vw"
+            width={1672}
+            height={941}
+            fetchPriority="high"
+            alt={t("RLC — Rocket League Championship. Играй, соревнуйся, стань легендой")}
+          />
+        </picture>
+      </section>
+
+      <section className="hero-panel">
         <div className="wrap">
-          <div>
+          <div className="hero-card">
             {featured ? (
               <>
-                <div className="row">
-                  <CompStatusBadge status={featured.status} />
-                  <span className="badge plain">
-                    {t(KIND_LABELS[featured.kind])} · {featured.mode}
-                  </span>
+                <div className="stack" style={{ gap: 14, minWidth: 0 }}>
+                  <div className="row">
+                    <CompStatusBadge status={featured.status} />
+                    <span className="badge plain">
+                      {t(KIND_LABELS[featured.kind])} · {featured.mode}
+                    </span>
+                  </div>
+                  <h1>{featured.name}</h1>
+                  <p className="muted">
+                    {t(FORMAT_LABELS[featured.format])}
+                    {featured.season ? ` · ${featured.season}` : ""}
+                  </p>
+                  <dl className="hero-facts">
+                    <div>
+                      <dt>{t("Участники")}</dt>
+                      <dd className="num">
+                        {counts?.active ?? 0}/{featured.capacity}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{t("Призовой фонд")}</dt>
+                      <dd className="gold">{prize ?? t("Будет объявлен")}</dd>
+                    </div>
+                    <div>
+                      <dt>{t("Старт")}</dt>
+                      <dd>{fmtDate(featured.start_at, featured.timezone, t)}</dd>
+                    </div>
+                  </dl>
                 </div>
-                <h1 style={{ marginTop: 16 }}>{featured.name}</h1>
-                <p className="lead">{t(FORMAT_LABELS[featured.format])}{featured.season ? ` · ${featured.season}` : ""}</p>
-                <dl className="hero-facts">
-                  <div>
-                    <dt>{t("Участники")}</dt>
-                    <dd className="num">
-                      {counts?.active ?? 0}/{featured.capacity}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t("Призовой фонд")}</dt>
-                    <dd className="gold">{prize ?? t("Будет объявлен")}</dd>
-                  </div>
-                  <div>
-                    <dt>{t("Старт")}</dt>
-                    <dd>{fmtDate(featured.start_at, featured.timezone, t)}</dd>
-                  </div>
-                </dl>
-                {startsInFuture && <Countdown to={new Date(featured.start_at!).toISOString()} />}
-                <div className="row" style={{ marginTop: 28 }}>
-                  {featured.status === "registration" ? (
-                    <Link href={`/c/${featured.slug}/register`} className="btn btn-navy btn-lg">
-                      {t("Зарегистрироваться")}
-                    </Link>
-                  ) : (
-                    <Link href={`/c/${featured.slug}`} className="btn btn-navy btn-lg">
-                      {t("Открыть турнир")}
-                    </Link>
+                <div className="hero-actions">
+                  {startsInFuture && (
+                    <div className="stack" style={{ gap: 8 }}>
+                      <span className="small faint">{t("До старта")}</span>
+                      <Countdown to={new Date(featured.start_at!).toISOString()} />
+                    </div>
                   )}
-                  <Link href={`/c/${featured.slug}`} className="btn btn-lg" style={{ ["--bg" as string]: "rgba(3,32,61,.1)", ["--fg" as string]: "#03203d" }}>
-                    {t("Подробнее")}
-                  </Link>
+                  <div className="row">
+                    {featured.status === "registration" ? (
+                      <Link href={`/c/${featured.slug}/register`} className="btn btn-gold btn-lg">
+                        {t("Зарегистрироваться")}
+                      </Link>
+                    ) : (
+                      <Link href={`/c/${featured.slug}`} className="btn btn-gold btn-lg">
+                        {t("Открыть турнир")}
+                      </Link>
+                    )}
+                    <Link href={`/c/${featured.slug}`} className="btn btn-ghost btn-lg">
+                      {t("Подробнее")}
+                    </Link>
+                  </div>
                 </div>
               </>
             ) : (
               <>
-                <h1>{settings.site_name}</h1>
-                <p className="lead">{t(settings.tagline)}. {t("Скоро здесь появится первое соревнование.")}</p>
-                <div className="row" style={{ marginTop: 28 }}>
-                  {user ? (
-                    <Link href="/me" className="btn btn-navy btn-lg">{t("Мой кабинет")}</Link>
-                  ) : (
-                    <Link href="/signup" className="btn btn-navy btn-lg">{t("Создать аккаунт")}</Link>
-                  )}
+                <div className="stack" style={{ gap: 12, minWidth: 0 }}>
+                  <h1>{settings.site_name}</h1>
+                  <p className="muted">
+                    {t(settings.tagline)}. {t("Скоро здесь появится первое соревнование.")}
+                  </p>
+                </div>
+                <div className="hero-actions">
+                  <div className="row">
+                    {user ? (
+                      <Link href="/me" className="btn btn-gold btn-lg">{t("Мой кабинет")}</Link>
+                    ) : (
+                      <Link href="/signup" className="btn btn-gold btn-lg">{t("Создать аккаунт")}</Link>
+                    )}
+                    <Link href="/competitions" className="btn btn-ghost btn-lg">{t("Соревнования")}</Link>
+                  </div>
                 </div>
               </>
             )}
-          </div>
-          <div className="hero-art">
-            <ArenaArt label={t("Абстрактная арена с мячом и машиной")} />
           </div>
         </div>
       </section>

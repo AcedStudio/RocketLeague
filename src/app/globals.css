@@ -195,6 +195,31 @@ legend { padding: 0 var(--s2); font-family: var(--font-display); font-size: 0.95
   .hero-facts { grid-template-columns: repeat(2, auto); gap: var(--s4) var(--s6); }
 }
 
+/* ---------- banner hero (brand artwork + live card) ---------- */
+.hero-banner { position: relative; background: #050d1b; overflow: hidden; }
+.hero-banner img { display: block; width: 100%; height: auto; max-height: min(76vh, 860px); object-fit: cover; object-position: center 42%; }
+.hero-banner::after { content: ""; position: absolute; inset: auto 0 0 0; height: 38%; background: linear-gradient(to bottom, rgba(8, 26, 50, 0), var(--canvas)); pointer-events: none; }
+.hero-panel { position: relative; z-index: 1; margin-top: clamp(-140px, -9vw, -28px); }
+.hero-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s7); align-items: end;
+  padding: clamp(20px, 3.4vw, 40px); border-radius: var(--r-lg);
+  background: linear-gradient(180deg, rgba(14, 38, 74, 0.94), rgba(8, 26, 50, 0.97));
+  border: 1px solid var(--line-strong); border-top-color: rgba(217, 173, 80, 0.45);
+  box-shadow: var(--e2), 0 40px 80px -40px rgba(2, 159, 252, 0.35);
+}
+.hero-card h1 { font-size: clamp(1.6rem, 3.6vw, 2.7rem); }
+.hero-card .hero-facts { margin: var(--s2) 0 0; }
+.hero-card .hero-facts dt { color: var(--ink-faint); }
+.hero-card .hero-facts dd { color: var(--ink); }
+.hero-card .hero-facts dd.gold { color: var(--gold); }
+.hero-card .countdown div { background: var(--canvas-deep); border: 1px solid var(--line); }
+.hero-actions { display: flex; flex-direction: column; gap: var(--s5); align-items: flex-end; }
+@media (max-width: 860px) {
+  .hero-card { grid-template-columns: 1fr; gap: var(--s6); align-items: start; }
+  .hero-actions { align-items: stretch; }
+  .hero-actions .row > .btn { flex: 1; }
+}
+
 .countdown { display: flex; gap: var(--s2); }
 .countdown div { min-width: 64px; padding: 10px 8px; border-radius: var(--r-md); background: rgba(3, 32, 61, 0.9); color: #fff; text-align: center; }
 .countdown b { display: block; font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; font-variant-numeric: tabular-nums; }

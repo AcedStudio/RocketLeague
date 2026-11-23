@@ -775,6 +775,7 @@ const dict: Dict = {
   "Discord: nickname или Telegram: @nickname": "Discord: nickname or Telegram: @nickname",
   "Epic ID, PSN ID или Xbox Gamertag. Один аккаунт — одна регистрация.": "Epic ID, PSN ID or Xbox Gamertag. One account, one registration.",
   "FAQ и контакты": "FAQ and contacts",
+  "RLC — Rocket League Championship. Играй, соревнуйся, стань легендой": "RLC — Rocket League Championship. Play, compete, be a legend",
 };
 
 export default dict;
