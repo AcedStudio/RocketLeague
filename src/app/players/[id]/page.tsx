@@ -1,0 +1,131 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { q, one } from "@/lib/db";
+import { PLATFORM_LABELS, fmtDate } from "@/lib/format";
+import { stageLabel } from "@/components/ui";
+
+export const dynamic = "force-dynamic";
+
+export default async function Player({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  const u = await one<{ id: string; rl_nickname: string; platform: string; created_at: Date }>(
+    "select id, rl_nickname, platform, created_at from users where id = $1",
+    [id],
+  );
+  if (!u) notFound();
+
+  const [entries, matches, awards] = await Promise.all([
+    q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
+      `select e.id, e.name, c.name as comp, c.slug, c.mode, c.status
+         from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
+        where em.user_id = $1 and em.active and c.status <> 'draft' order by e.created_at desc`,
+      [id],
+    ),
+    q<{ id: string; stage: "group"; round: number; group_name: string | null; home_name: string; away_name: string; home_wins: number; away_wins: number; won: boolean; comp: string; forfeit: boolean }>(
+      `select m.id, m.stage, m.round, g.name as group_name, he.name as home_name, ae.name as away_name, m.home_wins, m.away_wins, m.forfeit,
+              m.winner_entry_id in (select entry_id from entry_members where user_id = $1 and active) as won, c.name as comp
+         from matches m join competitions c on c.id = m.competition_id
+         join entries he on he.id = m.home_entry_id join entries ae on ae.id = m.away_entry_id
+         left join groups g on g.id = m.group_id
+        where m.status = 'completed' and not m.is_bye
+          and (m.home_entry_id in (select entry_id from entry_members where user_id = $1 and active)
+            or m.away_entry_id in (select entry_id from entry_members where user_id = $1 and active))
+        order by m.updated_at desc limit 50`,
+      [id],
+    ),
+    q<{ place: number; comp: string; slug: string; ended: Date }>(
+      `select p.place, c.name as comp, c.slug, c.updated_at as ended from prizes p join competitions c on c.id = p.competition_id
+        where c.status = 'finished' and p.place between 1 and 3 and p.recipient_entry_id in (select entry_id from entry_members where user_id = $1 and active)
+        order by c.updated_at desc`,
+      [id],
+    ),
+  ]);
+  const wins = matches.filter((m) => m.won).length;
+  const losses = matches.length - wins;
+  const medal = (p: number) => (p === 1 ? "Чемпион" : p === 2 ? "Финалист" : "Бронза");
+
+  return (
+    <div className="wrap section stack-lg">
+      <div>
+        <h1>{u.rl_nickname}</h1>
+        <p className="muted" style={{ marginTop: 8 }}>
+          {PLATFORM_LABELS[u.platform]} · на платформе с {fmtDate(u.created_at, "Asia/Tashkent")}
+        </p>
+      </div>
+      <div className="stat-strip">
+        <div>
+          <b className="num">{matches.length}</b>
+          <span>матчей</span>
+        </div>
+        <div>
+          <b className="num">{wins}</b>
+          <span>побед</span>
+        </div>
+        <div>
+          <b className="num">{losses}</b>
+          <span>поражений</span>
+        </div>
+        <div>
+          <b className="num">{matches.length ? Math.round((wins / matches.length) * 100) : 0}%</b>
+          <span>побед в процентах</span>
+        </div>
+      </div>
+      {awards.length > 0 && (
+        <section className="stack">
+          <h2 style={{ fontSize: "1.3rem" }}>Достижения</h2>
+          <div className="row">
+            {awards.map((a, i) => (
+              <Link key={i} href={`/c/${a.slug}`} className={`badge ${a.place === 1 ? "gold" : "dim"} plain`} style={{ height: 32, padding: "0 14px" }}>
+                {medal(a.place)} · {a.comp}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+      <div className="split">
+        <section className="stack">
+          <h2 style={{ fontSize: "1.3rem" }}>История матчей</h2>
+          {matches.length ? (
+            <div className="list">
+              {matches.map((m) => (
+                <Link key={m.id} href={`/match/${m.id}`} className="list-row">
+                  <span className={`badge ${m.won ? "ok" : "danger"} plain`} style={{ width: 28, justifyContent: "center", padding: 0 }}>
+                    {m.won ? "В" : "П"}
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <b>
+                      {m.home_name} {m.forfeit ? "ТП" : `${m.home_wins}:${m.away_wins}`} {m.away_name}
+                    </b>
+                    <span className="small muted" style={{ display: "block" }}>
+                      {m.comp} · {stageLabel(m)}
+                    </span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="empty">Сыгранных матчей пока нет</div>
+          )}
+        </section>
+        <aside className="stack">
+          <h2 style={{ fontSize: "1.3rem" }}>Соревнования</h2>
+          {entries.length ? (
+            <div className="list">
+              {entries.map((e) => (
+                <Link key={e.id} href={`/c/${e.slug}`} className="list-row">
+                  <span>
+                    <b>{e.comp}</b>
+                    {e.mode === "2v2" && <span className="small muted" style={{ display: "block" }}>Команда {e.name}</span>}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="empty">Нет</div>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}

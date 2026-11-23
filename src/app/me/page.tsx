@@ -1,0 +1,126 @@
+import Link from "next/link";
+import { requireUser, ROLE_LABELS } from "@/lib/auth";
+import { q } from "@/lib/db";
+import { ENTRY_STATUS_LABELS, PLATFORM_LABELS, fmtDateTime } from "@/lib/format";
+import { updateProfile, changePassword, logout } from "../actions/auth";
+import { Flash, MatchStatusBadge, type SP } from "@/components/ui";
+import { SubmitButton } from "@/components/client";
+import { ProfileFields } from "@/components/ProfileFields";
+
+export const metadata = { title: "Мой кабинет" };
+export const dynamic = "force-dynamic";
+
+export default async function Me({ searchParams }: { searchParams: SP }) {
+  const sp = await searchParams;
+  const user = await requireUser("/me");
+  const [entries, matches] = await Promise.all([
+    q<{ id: string; name: string; status: string; number: number; slug: string; comp: string; mode: string }>(
+      `select e.id, e.name, e.status, e.number, c.slug, c.name as comp, c.mode
+         from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
+        where em.user_id = $1 and em.active order by e.created_at desc`,
+      [user.id],
+    ),
+    q<{ id: string; number: number; status: "ready"; scheduled_at: Date | null; home_name: string | null; away_name: string | null; comp: string; timezone: string }>(
+      `select m.id, m.number, m.status, m.scheduled_at, he.name as home_name, ae.name as away_name, c.name as comp, c.timezone
+         from matches m join competitions c on c.id = m.competition_id
+         left join entries he on he.id = m.home_entry_id left join entries ae on ae.id = m.away_entry_id
+        where c.draw_state = 'published' and m.status not in ('completed') and not m.is_bye
+          and (m.home_entry_id in (select entry_id from entry_members where user_id = $1 and active)
+            or m.away_entry_id in (select entry_id from entry_members where user_id = $1 and active))
+        order by m.scheduled_at nulls last, m.number limit 10`,
+      [user.id],
+    ),
+  ]);
+
+  return (
+    <div className="wrap section stack-lg">
+      <div className="row between">
+        <div>
+          <h1 style={{ fontSize: "2.2rem" }}>{user.rl_nickname}</h1>
+          <p className="muted" style={{ marginTop: 6 }}>
+            {PLATFORM_LABELS[user.platform]} · {user.rl_id} · {ROLE_LABELS[user.role]}
+          </p>
+        </div>
+        <div className="row">
+          <Link href={`/players/${user.id}`} className="btn btn-ghost">Публичный профиль</Link>
+          <form action={logout}>
+            <button className="btn btn-ghost">Выйти</button>
+          </form>
+        </div>
+      </div>
+      <Flash sp={sp} />
+
+      <div className="split">
+        <div className="stack-lg">
+          <section className="stack">
+            <h2 style={{ fontSize: "1.3rem" }}>Мои ближайшие матчи</h2>
+            {matches.length ? (
+              <div className="list">
+                {matches.map((m) => (
+                  <Link key={m.id} href={`/match/${m.id}`} className="list-row">
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <b>
+                        {m.home_name ?? "?"} vs {m.away_name ?? "?"}
+                      </b>
+                      <span className="small muted" style={{ display: "block" }}>
+                        {m.comp} · #{m.number} · {fmtDateTime(m.scheduled_at, m.timezone)}
+                      </span>
+                    </span>
+                    <MatchStatusBadge status={m.status} />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="empty">Нет предстоящих матчей</div>
+            )}
+          </section>
+          <section className="stack">
+            <h2 style={{ fontSize: "1.3rem" }}>Мои соревнования</h2>
+            {entries.length ? (
+              <div className="list">
+                {entries.map((e) => (
+                  <Link key={e.id} href={`/c/${e.slug}`} className="list-row">
+                    <span style={{ flex: 1 }}>
+                      <b>{e.comp}</b>
+                      <span className="small muted" style={{ display: "block" }}>
+                        {e.mode === "2v2" ? `Команда ${e.name}` : "1v1"} · #{e.number}
+                      </span>
+                    </span>
+                    <span className="badge">{ENTRY_STATUS_LABELS[e.status]}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="empty">
+                <p>Вы ещё не участвуете ни в одном соревновании.</p>
+                <Link href="/competitions" className="btn" style={{ marginTop: 16 }}>Выбрать соревнование</Link>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <aside className="stack-lg">
+          <form action={updateProfile} className="panel stack">
+            <h3>Профиль</h3>
+            <div className="stack">
+              <ProfileFields u={user} />
+            </div>
+            <SubmitButton className="btn">Сохранить</SubmitButton>
+          </form>
+          <form action={changePassword} className="panel stack">
+            <h3>Пароль</h3>
+            <label className="field">
+              <span>Текущий пароль</span>
+              <input className="input" type="password" name="current" required autoComplete="current-password" />
+            </label>
+            <label className="field">
+              <span>Новый пароль</span>
+              <input className="input" type="password" name="password" required minLength={8} autoComplete="new-password" />
+            </label>
+            <SubmitButton className="btn btn-ghost">Сменить пароль</SubmitButton>
+          </form>
+        </aside>
+      </div>
+    </div>
+  );
+}
