@@ -200,6 +200,7 @@ legend { padding: 0 var(--s2); font-family: var(--font-display); font-size: 0.95
 .hero-banner img { display: block; width: 100%; height: auto; max-height: min(76vh, 860px); object-fit: cover; object-position: center 42%; }
 .hero-banner::after { content: ""; position: absolute; inset: auto 0 0 0; height: 38%; background: linear-gradient(to bottom, rgba(8, 26, 50, 0), var(--canvas)); pointer-events: none; }
 .hero-panel { position: relative; z-index: 1; margin-top: clamp(-140px, -9vw, -28px); }
+@media (max-width: 640px) { .hero-banner img { height: 300px; object-position: center 40%; } }
 .hero-card {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s7); align-items: end;
   padding: clamp(20px, 3.4vw, 40px); border-radius: var(--r-lg);
