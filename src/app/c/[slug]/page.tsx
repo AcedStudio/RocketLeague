@@ -8,6 +8,7 @@ import { TIEBREAKER_LABELS } from "@/lib/engine/standings.ts";
 import { Countdown } from "@/components/client";
 import { Flash, type SP } from "@/components/ui";
 import { MyEntry } from "@/components/MyEntry";
+import { getT } from "@/lib/i18n/server";
 
 export default async function Overview({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: SP }) {
   const t = await getT();

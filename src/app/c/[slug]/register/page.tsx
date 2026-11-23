@@ -6,6 +6,7 @@ import { PLATFORM_LABELS } from "@/lib/format";
 import { registerAction } from "@/app/actions/registration";
 import { Flash, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
+import { getT } from "@/lib/i18n/server";
 
 export default async function Register({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: SP }) {
   const t = await getT();

@@ -6,6 +6,7 @@ import { FORMAT_LABELS, KIND_LABELS, fmtDate, fmtMoney } from "@/lib/format";
 import { ArenaArt } from "@/components/Art";
 import { Countdown } from "@/components/client";
 import { CompetitionRow, CompStatusBadge, Flash, MatchCard, SetupNotice, type SP } from "@/components/ui";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
