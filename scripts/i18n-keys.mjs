@@ -28,6 +28,8 @@ export function collectKeys(root = new URL("../src", import.meta.url).pathname) 
   keys.add("Группа {letter}");
   // Rank tier names live in the pure engine (src/lib/engine/elo.ts), which is not scanned.
   for (const m of readFileSync(join(root, "lib/engine/elo.ts"), "utf8").matchAll(/name: "([^"]+)"/g)) keys.add(m[1]);
+  // Series validation messages (src/lib/engine/results.ts) are shown to players via FormError.
+  for (const m of readFileSync(join(root, "lib/engine/results.ts"), "utf8").matchAll(/error: "([^"]+)"/g)) keys.add(m[1]);
   return [...keys].sort();
 }
 
