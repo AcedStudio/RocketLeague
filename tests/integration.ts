@@ -396,6 +396,30 @@ async function main() {
     for (const k of ["atk", "def", "win", "clu", "frm", "exp"] as const) assert.ok(card.stats[k] >= 30 && card.stats[k] <= 99, k);
   });
 
+  await step("season calendar: double round robin over 30 days, every tour has a growing deadline", async () => {
+    const lc = await mkComp({ kind: "league", format: "round_robin", double_round_robin: true, season_days: 30, timezone: "Asia/Tashkent" });
+    for (const p of players.slice(0, 5)) await registerSolo(lc, p);
+    await close(lc);
+    await runDraw(lc, admin);
+    await publishDraw(lc, admin);
+    const ms = (await getMatches(lc)).filter((m) => m.stage === "league" && !m.is_bye);
+    const rounds = Math.max(...ms.map((m) => m.round));
+    assert.equal(rounds, 10, "5 players, home and away → 10 tours (one rests each tour)");
+    assert.equal(ms.length, 20);
+    assert.ok(ms.every((m) => m.play_by), "every match has a deadline");
+    const byRound = new Map(ms.map((m) => [m.round, new Date(m.play_by!).getTime()]));
+    for (let r = 2; r <= rounds; r++) assert.ok(byRound.get(r)! > byRound.get(r - 1)!, `tour ${r} after tour ${r - 1}`);
+    const lastMs = byRound.get(rounds)! - Date.now();
+    assert.ok(lastMs > 28 * 86400_000 && lastMs < 31 * 86400_000, "last tour ends ~30 days from now");
+    // Each pair meets twice, with home and away swapped.
+    const pairs = new Map<string, number>();
+    for (const m of ms) {
+      const k = [m.home_entry_id, m.away_entry_id].sort().join();
+      pairs.set(k, (pairs.get(k) ?? 0) + 1);
+    }
+    assert.ok([...pairs.values()].every((n) => n === 2));
+  });
+
   console.log(`\n${passed} integration checks passed`);
   process.exit(0);
 }

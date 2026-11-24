@@ -6,7 +6,8 @@ import { FormError } from "./errors";
 import { notify, notifyEntries, logAction, matchEvent } from "./notify";
 import { getCompetition, getStandings, entryCounts, type Competition, type Match, type Entry } from "./data";
 import { drawGroups, validateDraw, GROUP_LETTERS } from "./engine/draw.ts";
-import { roundRobin } from "./engine/roundRobin.ts";
+import { roundRobin, seasonDeadlineDays } from "./engine/roundRobin.ts";
+import { fromLocalInput, toLocalInput } from "./format";
 import { buildKnockout, seedQualifiers, type QualifierRow } from "./engine/knockout.ts";
 import { createRng, randomSeed, shuffle } from "./engine/rng.ts";
 import { validateSeries, type GameScore } from "./engine/results.ts";
@@ -341,6 +342,33 @@ export async function resetDraw(competitionId: string, actor: User) {
   });
 }
 
+const addDays = (ymd: string, n: number) => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+};
+
+/**
+ * Football-style calendar: spreads the league/group tours over the season length,
+ * giving every tour a deadline (23:59 local time of its last day). Returns the tour count.
+ */
+export async function applySeasonCalendar(c: PoolClient, comp: Competition, days = comp.season_days): Promise<number> {
+  if (!days || comp.format === "knockout") return 0;
+  const stage = comp.format === "round_robin" ? "league" : "group";
+  const rounds = (await one<{ r: number | null }>("select max(round)::int as r from matches where competition_id = $1 and stage = $2", [comp.id, stage], c))?.r ?? 0;
+  const deadlines = seasonDeadlineDays(rounds, days);
+  const startMs = Math.max(Date.now(), comp.start_at ? new Date(comp.start_at).getTime() : 0);
+  const firstDay = toLocalInput(new Date(startMs), comp.timezone).slice(0, 10);
+  for (let r = 1; r <= rounds; r++) {
+    const at = fromLocalInput(`${addDays(firstDay, deadlines[r - 1] - 1)}T23:59`, comp.timezone);
+    await q(
+      "update matches set play_by = $4, auto_handled_at = null, updated_at = now() where competition_id = $1 and stage = $2 and round = $3 and status <> 'completed'",
+      [comp.id, stage, r, at],
+      c,
+    );
+  }
+  return rounds;
+}
+
 export async function publishDraw(competitionId: string, actor: User) {
   return tx(async (c) => {
     const comp = await compForUpdate(c, competitionId);
@@ -351,12 +379,13 @@ export async function publishDraw(competitionId: string, actor: User) {
       [comp.id, status, comp.format === "knockout"],
       c,
     );
+    await applySeasonCalendar(c, comp);
     const ids = await q<{ entry_id: string }>(
       "select distinct x.entry_id from (select home_entry_id as entry_id from matches where competition_id = $1 union select away_entry_id from matches where competition_id = $1) x where x.entry_id is not null",
       [comp.id],
       c,
     );
-    await notifyEntries(c, ids.map((r) => r.entry_id), "{comp}: жеребьёвка опубликована", "Соперники и расписание уже на сайте", `/c/${comp.slug}/matches`, { comp: comp.name });
+    await notifyEntries(c, ids.map((r) => r.entry_id), "{comp}: жеребьёвка опубликована", "Соперники и расписание уже на сайте", `/c/${comp.slug}/${comp.format === "knockout" ? "matches" : "calendar"}`, { comp: comp.name });
     const groupRows = await q<{ name: string; members: string }>(
       `select g.name, string_agg(e.name, E'\n' order by e.name) as members from groups g
          join group_entries ge on ge.group_id = g.id join entries e on e.id = ge.entry_id

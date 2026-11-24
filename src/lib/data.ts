@@ -4,6 +4,7 @@ import { q, one, dbConfigured, type Queryable } from "./db";
 import { computeStandings, type StandingRow, type Tiebreaker } from "./engine/standings.ts";
 
 export type Competition = {
+  season_days: number;
   noshow_minutes: number;
   deadline_forfeit: boolean;
   id: string;

@@ -7,7 +7,7 @@ import { CompetitionForm } from "@/components/CompetitionForm";
 import { CompStatusBadge, Flash, MatchStatusBadge, pick, stageLabel, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import {
-  setCompetitionStatus, deleteCompetition, entryAction, editEntry, seedByElo, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
+  setCompetitionStatus, deleteCompetition, entryAction, editEntry, seedByElo, seasonCalendarAction, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
 } from "@/app/actions/admin";
 import { scheduleAction } from "@/app/actions/match";
 import { getT } from "@/lib/i18n/server";
@@ -292,6 +292,20 @@ async function MatchesTab({ comp, status }: { comp: Competition; status: string 
   if (!all.length) return <div className="empty">{t("Матчей пока нет — они появятся после жеребьёвки.")}</div>;
   return (
     <div className="stack-lg">
+      {comp.format !== "knockout" && comp.draw_state === "published" && (
+        <form action={seasonCalendarAction} className="panel row" style={{ justifyContent: "space-between" }}>
+          <input type="hidden" name="competition_id" value={comp.id} />
+          <span className="stack-sm" style={{ maxWidth: 560 }}>
+            <b>{t("Календарь сезона")}</b>
+            <span className="small muted">{t("Равномерно распределить туры на срок сезона: каждому туру — крайний день. Уже сыгранные матчи не меняются.")}</span>
+          </span>
+          <span className="row">
+            <input className="input" type="number" name="season_days" min={1} max={365} defaultValue={comp.season_days || 30} style={{ width: 100 }} aria-label={t("Длительность сезона, дней")} />
+            <span className="small muted">{t("дней")}</span>
+            <SubmitButton className="btn btn-ghost">{t("Построить календарь")}</SubmitButton>
+          </span>
+        </form>
+      )}
       <form action={scheduleRound} className="panel stack">
         <input type="hidden" name="id" value={comp.id} />
         <h3>{t("Расписание тура")}</h3>

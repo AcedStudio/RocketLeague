@@ -464,3 +464,24 @@ details.qa > div { padding: 0 0 var(--s5); color: var(--ink-soft); white-space: 
 .fut-legend b { font-family: var(--font-display); margin-right: 8px; }
 .cards-row { display: flex; flex-wrap: wrap; gap: var(--s6); }
 .kpi > span { display: block; }
+
+/* Season calendar */
+.badge.accent { background: rgba(55, 190, 254, 0.14); color: var(--accent); }
+.row-current td { background: rgba(55, 190, 254, 0.06); }
+.tours { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s4); }
+.tour-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s4) var(--s5); display: flex; flex-direction: column; gap: var(--s3); scroll-margin-top: 90px; }
+.tour-card.is-current { border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 12px 30px rgba(2, 159, 252, 0.12); }
+.tour-card.is-done { opacity: .82; }
+.tour-card header { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); }
+.tour-card header b { font-family: var(--font-display); font-size: 1.05rem; }
+.tour-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.tour-card li { position: relative; border-radius: var(--r-sm); }
+.tour-card li a { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s3); padding: 8px 10px; text-decoration: none; color: var(--ink-soft); border-radius: var(--r-sm); }
+.tour-card li a:hover { background: rgba(136, 237, 255, 0.06); color: var(--ink); }
+.tour-card li.mine a { background: rgba(217, 173, 80, 0.1); color: var(--ink); box-shadow: inset 3px 0 0 var(--gold); }
+.t-home { text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-away { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-home.win, .t-away.win { color: var(--ink); font-weight: 700; }
+.t-score { min-width: 44px; text-align: center; font: 700 0.85rem/1 var(--font-display); padding: 5px 8px; border-radius: 6px; background: rgba(136, 237, 255, 0.06); color: var(--ink-faint); }
+.t-score.done { color: var(--ink); background: rgba(136, 237, 255, 0.12); }
+.t-group { position: absolute; right: 8px; top: -6px; font-size: 0.65rem; color: var(--ink-faint); }
