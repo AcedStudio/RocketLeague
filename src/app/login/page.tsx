@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { login } from "../actions/auth";
 import { getUser } from "@/lib/auth";
+import { DiscordButton } from "@/components/DiscordButton";
 import { Flash, pick, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { getT } from "@/lib/i18n/server";
@@ -21,6 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: SP }) 
       <div className="stack">
         <h1 style={{ fontSize: "2rem" }}>{t("Вход")}</h1>
         <Flash sp={sp} />
+        <DiscordButton mode="login" next={next} />
         <form action={login} className="panel stack">
           <input type="hidden" name="next" value={next} />
           <label className="field">

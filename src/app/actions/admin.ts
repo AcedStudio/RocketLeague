@@ -10,6 +10,10 @@ import { runDraw, resetDraw, publishDraw, generatePlayoffs, adminSetEntryStatus,
 import { getCompetition, entryCounts } from "@/lib/data";
 import { BEST_OF_OPTIONS } from "@/lib/engine/results.ts";
 import type { Tiebreaker } from "@/lib/engine/standings.ts";
+import { enqueueChannel, flushOutbox, discordApi, registerCommands, botConfigured, getDiscordSettings, DiscordError } from "@/lib/discord";
+import { isLocale } from "@/lib/i18n/core";
+import { getT } from "@/lib/i18n/server";
+import { entryRatings, recomputeAll } from "@/lib/rating";
 
 const uuid = (v: unknown) => {
   const s = String(v ?? "");
@@ -149,6 +153,7 @@ export async function setCompetitionStatus(fd: FormData) {
         case "open":
           if (!["draft", "closed"].includes(comp.status) || comp.draw_state !== "none") throw new FormError("Открыть регистрацию сейчас нельзя");
           await set("registration");
+          await enqueueChannel(c, "announce", { title: "{comp}: регистрация открыта", description: "Регистрируйтесь на сайте", params: { comp: comp.name }, link: `/c/${comp.slug}/register` });
           message = "Регистрация открыта";
           break;
         case "close":
@@ -230,6 +235,44 @@ export async function editEntry(fd: FormData) {
     await logAction(undefined, user.id, "entry.edit", `${name}, посев ${seed ?? "—"}`);
   });
   ok(compPath(compId, "participants"), "Сохранено");
+}
+
+export async function seedByElo(fd: FormData) {
+  const user = await requireAdmin();
+  const compId = uuid(fd.get("competition_id"));
+  await guard(compPath(compId, "participants"), async () => {
+    await tx(async (c) => {
+      await lockCompetition(c, compId);
+      const comp = await one<{ draw_state: string; name: string }>("select draw_state, name from competitions where id = $1", [compId], c);
+      if (!comp) throw new FormError("Соревнование не найдено");
+      if (comp.draw_state !== "none") throw new FormError("Посев меняется только до жеребьёвки");
+      const rows = await entryRatings(compId, c);
+      const order = await q<{ id: string }>(
+        "select id from entries where competition_id = $1 and status = 'confirmed' order by number",
+        [compId],
+        c,
+      );
+      const rating = new Map(rows.map((r) => [r.entry_id, r.rating]));
+      const ranked = [...order].sort((a, b) => (rating.get(b.id) ?? 1000) - (rating.get(a.id) ?? 1000));
+      await q("update entries set seed = null where competition_id = $1", [compId], c);
+      for (const [i, e] of ranked.entries()) await q("update entries set seed = $2 where id = $1", [e.id, i + 1], c);
+      await logAction(c, user.id, "entry.seed_elo", `${comp.name}: ${ranked.length}`);
+    });
+  });
+  ok(compPath(compId, "participants"), "Посев расставлен по рейтингу");
+}
+
+export async function recomputeRatings() {
+  const user = await requireAdmin();
+  let n = 0;
+  await guard("/admin/settings", async () => {
+    await tx(async (c) => {
+      n = await recomputeAll(c);
+      await logAction(c, user.id, "rating.recompute", String(n));
+    });
+  });
+  revalidatePath("/players");
+  ok("/admin/settings", (await getT())("Рейтинг пересчитан: матчей {n}", { n }));
 }
 
 // ---------------------------------------------------------------- draw & playoffs
@@ -419,6 +462,7 @@ export async function saveAnnouncement(fd: FormData) {
         : await q<{ user_id: string }>("select id as user_id from users");
       await notify(undefined, targets.map((t) => t.user_id), title, body.slice(0, 200), "/");
     }
+    if (bool(fd, "discord")) await enqueueChannel(undefined, "announce", { title, description: body.slice(0, 3800), link: "/" });
     await logAction(undefined, user.id, "announcement.add", title);
   });
   revalidatePath("/", "layout");
@@ -471,4 +515,64 @@ export async function saveSettings(fd: FormData) {
   });
   revalidatePath("/", "layout");
   ok("/admin/settings", "Настройки сохранены");
+}
+
+// ---------------------------------------------------------------- discord
+
+const SNOWFLAKE = /^\d{15,22}$/;
+
+export async function saveDiscordSettings(fd: FormData) {
+  const user = await requireAdmin();
+  await guard("/admin/discord", async () => {
+    const vals: Record<string, string> = {};
+    for (const k of ["discord_guild_id", "discord_announce_channel", "discord_results_channel", "discord_participant_role"]) {
+      const v = String(fd.get(k) ?? "").trim();
+      if (v && !SNOWFLAKE.test(v)) throw new FormError("Discord ID состоит только из цифр (включите режим разработчика в Discord и скопируйте ID)");
+      vals[k] = v;
+    }
+    const loc = String(fd.get("discord_locale") ?? "ru");
+    vals.discord_locale = isLocale(loc) ? loc : "ru";
+    for (const [k, v] of Object.entries(vals)) {
+      await q("insert into settings (key, value) values ($1, $2) on conflict (key) do update set value = excluded.value", [k, v]);
+    }
+    await logAction(undefined, user.id, "discord.settings", "");
+  });
+  ok("/admin/discord", "Настройки сохранены");
+}
+
+export async function discordAction(fd: FormData) {
+  const user = await requireAdmin();
+  const action = String(fd.get("action"));
+  let message = "Готово";
+  await guard("/admin/discord", async () => {
+    if (!botConfigured()) throw new FormError("Бот не настроен: добавьте DISCORD_BOT_TOKEN в Vercel");
+    const s = await getDiscordSettings();
+    try {
+      if (action === "check") {
+        if (!s.guildId) throw new FormError("Укажите ID сервера");
+        const g = await discordApi<{ name: string }>(`/guilds/${s.guildId}`);
+        message = (await getT())("Бот видит сервер «{name}»", { name: g.name });
+      } else if (action === "commands") {
+        await registerCommands();
+        message = "Команды /matches, /table, /profile, /top зарегистрированы";
+      } else if (action === "test") {
+        if (!s.announceChannel) throw new FormError("Укажите канал для объявлений");
+        await enqueueChannel(undefined, "announce", { title: "Тестовое сообщение", description: "Бот подключён к сайту и может публиковать объявления.", link: "/" });
+        const r = await flushOutbox();
+        if (r.failed) throw new FormError("Discord не принял сообщение: проверьте права бота в канале");
+        message = "Тестовое сообщение отправлено";
+      } else if (action === "flush") {
+        const r = await flushOutbox(200);
+        message = (await getT())("Отправлено: {sent}, ошибок: {failed}", { sent: r.sent, failed: r.failed });
+      }
+    } catch (err) {
+      if (err instanceof DiscordError) {
+        const hint = err.status === 401 ? "неверный токен бота" : err.status === 403 ? "у бота нет прав (проверьте роль бота и доступ к каналу)" : err.status === 404 ? "сервер или канал не найден, либо бот не добавлен на сервер" : err.message;
+        throw new FormError("Ошибка Discord: {hint}", { hint });
+      }
+      throw err;
+    }
+    await logAction(undefined, user.id, `discord.${action}`, message);
+  });
+  ok("/admin/discord", message);
 }

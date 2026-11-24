@@ -4,6 +4,8 @@ import { q, one } from "@/lib/db";
 import { PLATFORM_LABELS, fmtDate } from "@/lib/format";
 import { stageLabel } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
+import { playerRatings, ratingHistory } from "@/lib/rating";
+import { RatingCard, Delta } from "@/components/rating";
 
 export const dynamic = "force-dynamic";
 
@@ -17,23 +19,24 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   );
   if (!u) notFound();
 
-  const [entries, matches, awards] = await Promise.all([
+  const [entries, matches, awards, ratings, h1, h2] = await Promise.all([
     q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
       `select e.id, e.name, c.name as comp, c.slug, c.mode, c.status
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
         where em.user_id = $1 and em.active and c.status <> 'draft' order by e.created_at desc`,
       [id],
     ),
-    q<{ id: string; stage: "group"; round: number; group_name: string | null; home_name: string; away_name: string; home_wins: number; away_wins: number; won: boolean; comp: string; forfeit: boolean }>(
+    q<{ id: string; stage: "group"; round: number; group_name: string | null; home_name: string; away_name: string; home_wins: number; away_wins: number; won: boolean; comp: string; forfeit: boolean; delta: number | null }>(
       `select m.id, m.stage, m.round, g.name as group_name, he.name as home_name, ae.name as away_name, m.home_wins, m.away_wins, m.forfeit,
-              m.winner_entry_id in (select entry_id from entry_members where user_id = $1 and active) as won, c.name as comp
+              m.winner_entry_id in (select entry_id from entry_members where user_id = $1 and active) as won, c.name as comp,
+              (select r.delta from rating_changes r where r.match_id = m.id and r.user_id = $1) as delta
          from matches m join competitions c on c.id = m.competition_id
          join entries he on he.id = m.home_entry_id join entries ae on ae.id = m.away_entry_id
          left join groups g on g.id = m.group_id
         where m.status = 'completed' and not m.is_bye
           and (m.home_entry_id in (select entry_id from entry_members where user_id = $1 and active)
             or m.away_entry_id in (select entry_id from entry_members where user_id = $1 and active))
-        order by m.updated_at desc limit 50`,
+        order by coalesce(m.completed_at, m.updated_at) desc limit 50`,
       [id],
     ),
     q<{ place: number; comp: string; slug: string; ended: Date }>(
@@ -42,6 +45,9 @@ export default async function Player({ params }: { params: Promise<{ id: string 
         order by c.updated_at desc`,
       [id],
     ),
+    playerRatings(id),
+    ratingHistory(id, "1v1"),
+    ratingHistory(id, "2v2"),
   ]);
   const wins = matches.filter((m) => m.won).length;
   const losses = matches.length - wins;
@@ -54,6 +60,11 @@ export default async function Player({ params }: { params: Promise<{ id: string 
         <p className="muted" style={{ marginTop: 8 }}>
           {PLATFORM_LABELS[u.platform]} · {t("на платформе с {date}", { date: fmtDate(u.created_at, "Asia/Tashkent", t) })}
         </p>
+      </div>
+      <div className="rating-cards">
+        {ratings.map((r) => (
+          <RatingCard key={r.mode} r={r} history={(r.mode === "1v1" ? h1 : h2).map((x) => x.rating)} />
+        ))}
       </div>
       <div className="stat-strip">
         <div>
@@ -103,6 +114,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
                       {m.comp} · {stageLabel(t, m)}
                     </span>
                   </span>
+                  <Delta value={m.delta} />
                 </Link>
               ))}
             </div>

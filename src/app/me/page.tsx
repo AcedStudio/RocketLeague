@@ -2,7 +2,9 @@ import Link from "next/link";
 import { requireUser, ROLE_LABELS } from "@/lib/auth";
 import { q } from "@/lib/db";
 import { ENTRY_STATUS_LABELS, PLATFORM_LABELS, fmtDateTime } from "@/lib/format";
-import { updateProfile, changePassword, logout } from "../actions/auth";
+import { updateProfile, changePassword, logout, discordPrefs } from "../actions/auth";
+import { DiscordButton } from "@/components/DiscordButton";
+import { one } from "@/lib/db";
 import { Flash, MatchStatusBadge, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { ProfileFields } from "@/components/ProfileFields";
@@ -18,6 +20,10 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
   const t = await getT();
   const sp = await searchParams;
   const user = await requireUser("/me");
+  const extra = await one<{ discord_username: string | null; discord_dm: boolean; has_password: boolean }>(
+    "select discord_username, discord_dm, password_hash is not null as has_password from users where id = $1",
+    [user.id],
+  );
   const [entries, matches] = await Promise.all([
     q<{ id: string; name: string; status: string; number: number; slug: string; comp: string; mode: string }>(
       `select e.id, e.name, e.status, e.number, c.slug, c.name as comp, c.mode
@@ -105,6 +111,29 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
         </div>
 
         <aside className="stack-lg">
+          <section className="panel stack">
+            <h3>Discord</h3>
+            {extra?.discord_username ? (
+              <>
+                <p className="muted small">{t("Привязан: {name}", { name: extra.discord_username })}</p>
+                <div className="row">
+                  <form action={discordPrefs}>
+                    <input type="hidden" name="action" value={extra.discord_dm ? "dm_off" : "dm_on"} />
+                    <SubmitButton className="btn btn-ghost btn-sm">{extra.discord_dm ? t("Отключить сообщения от бота") : t("Включить сообщения от бота")}</SubmitButton>
+                  </form>
+                  <form action={discordPrefs}>
+                    <input type="hidden" name="action" value="unlink" />
+                    <SubmitButton className="btn btn-danger btn-sm" confirm={t("Отвязать Discord?")}>{t("Отвязать")}</SubmitButton>
+                  </form>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="muted small">{t("Привяжите Discord: бот будет присылать соперников и напоминания о матчах, а входить можно будет в один клик.")}</p>
+                <DiscordButton mode="link" label={t("Привязать Discord")} />
+              </>
+            )}
+          </section>
           <form action={updateProfile} className="panel stack">
             <h3>{t("Профиль")}</h3>
             <div className="stack">
@@ -114,10 +143,14 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
           </form>
           <form action={changePassword} className="panel stack">
             <h3>{t("Пароль")}</h3>
-            <label className="field">
-              <span>{t("Текущий пароль")}</span>
-              <input className="input" type="password" name="current" required autoComplete="current-password" />
-            </label>
+            {extra?.has_password ? (
+              <label className="field">
+                <span>{t("Текущий пароль")}</span>
+                <input className="input" type="password" name="current" required autoComplete="current-password" />
+              </label>
+            ) : (
+              <p className="small muted">{t("Вы входите через Discord. Задайте пароль, чтобы входить и по email.")}</p>
+            )}
             <label className="field">
               <span>{t("Новый пароль")}</span>
               <input className="input" type="password" name="password" required minLength={8} autoComplete="new-password" />

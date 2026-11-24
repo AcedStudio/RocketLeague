@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signup } from "../actions/auth";
-import { getUser } from "@/lib/auth";
+import { getUser, getDiscordPending } from "@/lib/auth";
+import { DiscordButton } from "@/components/DiscordButton";
 import { Flash, pick, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { ProfileFields } from "@/components/ProfileFields";
@@ -17,12 +18,20 @@ export default async function SignupPage({ searchParams }: { searchParams: SP })
   const sp = await searchParams;
   const next = pick(sp, "next") || "/competitions";
   if (await getUser()) redirect(next.startsWith("/") ? next : "/me");
+  const discord = await getDiscordPending();
   return (
     <div className="wrap section" style={{ maxWidth: 720 }}>
       <div className="stack">
         <h1 style={{ fontSize: "2rem" }}>{t("Создать аккаунт")}</h1>
         <p className="muted measure">{t("Один аккаунт на игрока. После этого можно записаться в любую лигу или кубок в пару кликов.")}</p>
         <Flash sp={sp} />
+        {discord ? (
+          <div className="flash flash-ok">{t("Discord {name} подключён. Заполните профиль игрока, пароль можно не задавать.", { name: discord.username })}</div>
+        ) : (
+          <div className="stack" style={{ gap: 10 }}>
+            <DiscordButton mode="login" next={next} label={t("Зарегистрироваться через Discord")} />
+          </div>
+        )}
         <form action={signup} className="panel stack">
           <input type="hidden" name="next" value={next} />
           <div className="form-grid">
@@ -32,10 +41,10 @@ export default async function SignupPage({ searchParams }: { searchParams: SP })
             </label>
             <label className="field">
               <span>{t("Пароль")}</span>
-              <input className="input" type="password" name="password" required minLength={8} autoComplete="new-password" />
-              <small>{t("Минимум 8 символов")}</small>
+              <input className="input" type="password" name="password" required={!discord} minLength={8} autoComplete="new-password" />
+              <small>{discord ? t("Необязательно: можно входить через Discord") : t("Минимум 8 символов")}</small>
             </label>
-            <ProfileFields />
+            <ProfileFields u={discord ? { display_name: discord.displayName, contact: `Discord: ${discord.username}` } : undefined} />
           </div>
           <SubmitButton className="btn btn-lg" pendingText={t("Создаём…")}>
             {t("Создать аккаунт")}

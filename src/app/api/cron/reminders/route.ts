@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { q } from "@/lib/db";
 import { notifyEntries } from "@/lib/notify";
+import { flushOutbox } from "@/lib/discord";
 
 // Daily (Vercel Hobby allows one cron per day): reminds about matches in the next 36 hours.
 export async function GET(req: Request) {
@@ -19,5 +20,6 @@ export async function GET(req: Request) {
     await notifyEntries(undefined, [m.home_entry_id, m.away_entry_id], "Напоминание: матч #{n}", "{comp} · {when}", `/match/${m.id}`, { n: m.number, comp: m.comp, at: new Date(m.scheduled_at).toISOString(), tz: m.timezone });
     await q("update matches set reminded_at = now() where id = $1", [m.id]);
   }
-  return NextResponse.json({ reminded: due.length });
+  const discord = await flushOutbox(200);
+  return NextResponse.json({ reminded: due.length, discord });
 }

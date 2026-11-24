@@ -26,6 +26,8 @@ export function collectKeys(root = new URL("../src", import.meta.url).pathname) 
   for (const k of [...keys]) if (/^, .: $/.test(k) || /insert into|select |values \(/i.test(k)) keys.delete(k);
   // Group names are stored in the DB as "Группа A"; rendered via this template.
   keys.add("Группа {letter}");
+  // Rank tier names live in the pure engine (src/lib/engine/elo.ts), which is not scanned.
+  for (const m of readFileSync(join(root, "lib/engine/elo.ts"), "utf8").matchAll(/name: "([^"]+)"/g)) keys.add(m[1]);
   return [...keys].sort();
 }
 
