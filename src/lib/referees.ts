@@ -3,7 +3,10 @@ import type { PoolClient } from "@neondatabase/serverless";
 import { q, one, tx, lockCompetition } from "./db";
 import { FormError } from "./errors";
 import { notify, matchEvent, logAction } from "./notify";
-import { isReferee, type User } from "./auth";
+import type { User } from "./auth";
+
+// Same roles as isReferee() in auth.ts; kept here so this module stays free of next/navigation.
+const STAFF = new Set<string>(["superadmin", "admin", "referee"]);
 
 // Match referees are picked from the competition's own players: whoever doesn't play
 // in a match can referee it. The referee enters the official score.
@@ -128,5 +131,5 @@ export async function autoAssignReferees(competitionId: string, stage: string, r
 
 /** Staff can referee anything; a player only the matches they were assigned to. */
 export function canReferee(user: Pick<User, "id" | "role"> | null | undefined, m: { referee_user_id: string | null }) {
-  return !!user && (isReferee(user.role) || m.referee_user_id === user.id);
+  return !!user && (STAFF.has(user.role) || m.referee_user_id === user.id);
 }
