@@ -4,6 +4,7 @@ import { q, one, dbConfigured, type Queryable } from "./db";
 import { computeStandings, type StandingRow, type Tiebreaker } from "./engine/standings.ts";
 
 export type Competition = {
+  referee_only: boolean;
   season_days: number;
   noshow_minutes: number;
   deadline_forfeit: boolean;
@@ -94,6 +95,8 @@ export type Match = {
   loser_next_match_id: string | null;
   loser_next_side: "home" | "away" | null;
   play_by: Date | null;
+  referee_user_id: string | null;
+  referee_name?: string | null;
   time_confirmed: boolean;
   home_checkin_at: Date | null;
   away_checkin_at: Date | null;
@@ -221,11 +224,12 @@ export async function getGroups(competitionId: string, c?: Queryable) {
 }
 
 const MATCH_SELECT = `
-  select m.*, he.name as home_name, ae.name as away_name, g.name as group_name
+  select m.*, he.name as home_name, ae.name as away_name, g.name as group_name, ru.rl_nickname as referee_name
     from matches m
     left join entries he on he.id = m.home_entry_id
     left join entries ae on ae.id = m.away_entry_id
-    left join groups g on g.id = m.group_id`;
+    left join groups g on g.id = m.group_id
+    left join users ru on ru.id = m.referee_user_id`;
 
 const STAGE_ORDER = "case m.stage when 'group' then 0 when 'league' then 0 when 'knockout' then 1 else 2 end";
 

@@ -127,6 +127,10 @@ export async function CompetitionForm({ c }: { c?: Competition }) {
           <small>{t("Если один игрок отметился «Я на месте», а соперник нет — через столько минут после начала засчитывается техническое поражение. 0 — выключено.")}</small>
         </label>
         <label className="check">
+          <input type="checkbox" name="referee_only" defaultChecked={c?.referee_only ?? false} />
+          <span>{t("Счёт вносит только судья матча (игроки результат не отправляют)")}</span>
+        </label>
+        <label className="check">
           <input type="checkbox" name="deadline_forfeit" defaultChecked={c?.deadline_forfeit ?? true} />
           <span>{t("Техническое поражение тому, кто не договорился о времени до срока тура")}</span>
         </label>

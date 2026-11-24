@@ -19,6 +19,7 @@ type M = {
   home_entry_id: string | null; away_entry_id: string | null; scheduled_at: Date | null; play_by: Date | null;
   time_confirmed: boolean; home_checkin_at: Date | null; away_checkin_at: Date | null;
   timezone: string; comp: string; draw_state: string; noshow_minutes: number; deadline_forfeit: boolean;
+  referee_user_id: string | null;
 };
 
 async function lockMatch(c: PoolClient, matchId: string): Promise<M> {
@@ -29,7 +30,7 @@ async function lockMatch(c: PoolClient, matchId: string): Promise<M> {
   await q("select id from matches where id = $1 for update", [matchId], c);
   const m = await one<M>(
     `select m.id, m.number, m.competition_id, m.status, m.is_bye, m.home_entry_id, m.away_entry_id, m.scheduled_at, m.play_by,
-            m.time_confirmed, m.home_checkin_at, m.away_checkin_at, c.timezone, c.name as comp, c.draw_state, c.noshow_minutes, c.deadline_forfeit
+            m.referee_user_id, m.time_confirmed, m.home_checkin_at, m.away_checkin_at, c.timezone, c.name as comp, c.draw_state, c.noshow_minutes, c.deadline_forfeit
        from matches m join competitions c on c.id = m.competition_id where m.id = $1`,
     [matchId],
     c,
@@ -106,6 +107,7 @@ export async function respondProposal(proposalId: string, userId: string, accept
       );
       await matchEvent(c, m.id, userId, "Время согласовано: {when}", when(p.at, m.timezone));
       await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "Матч #{n}: время согласовано", "{when}", `/match/${m.id}`, { n: m.number, ...when(p.at, m.timezone) });
+      if (m.referee_user_id) await notify(c, [m.referee_user_id], "Матч #{n}: время согласовано", "Вы судья этого матча · {when}", `/match/${m.id}`, { n: m.number, ...when(p.at, m.timezone) });
       return "Время согласовано";
     }
     await q("update match_proposals set status = 'declined', responded_by = $2, responded_at = now() where id = $1", [proposalId, userId], c);
@@ -184,16 +186,17 @@ export async function sweep(force = false): Promise<{ reminded: number; forfeits
     ["remind60_at", 65, "Матч #{n} через час", false],
     ["remind10_at", 12, "Матч #{n} через 10 минут", true],
   ] as const) {
-    const due = await q<{ id: string; number: number; scheduled_at: Date; home_entry_id: string; away_entry_id: string; timezone: string; comp: string }>(
+    const due = await q<{ id: string; number: number; scheduled_at: Date; home_entry_id: string; away_entry_id: string; timezone: string; comp: string; referee_user_id: string | null }>(
       `update matches m set ${col} = now() from competitions c
         where c.id = m.competition_id and m.${col} is null and m.status in ('upcoming', 'ready', 'live') and not m.is_bye
           and m.home_entry_id is not null and m.away_entry_id is not null and c.draw_state = 'published'
           and m.scheduled_at between now() and now() + interval '${minutes} minutes'
-        returning m.id, m.number, m.scheduled_at, m.home_entry_id, m.away_entry_id, c.timezone, c.name as comp`,
+        returning m.id, m.number, m.scheduled_at, m.home_entry_id, m.away_entry_id, c.timezone, c.name as comp, m.referee_user_id`,
     );
     for (const m of due) {
       await notifyEntries(undefined, [m.home_entry_id, m.away_entry_id], title, "{comp} · {when}", `/match/${m.id}`, { n: m.number, comp: m.comp, ...when(m.scheduled_at, m.timezone) },
         buttons ? [{ label: "Я на месте", id: `in:${m.id}`, style: 3 }] : undefined);
+      if (m.referee_user_id) await notify(undefined, [m.referee_user_id], title, "Вы судья этого матча · {comp} · {when}", `/match/${m.id}`, { n: m.number, comp: m.comp, ...when(m.scheduled_at, m.timezone) });
       out.reminded++;
     }
   }

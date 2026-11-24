@@ -1,0 +1,39 @@
+{home} — {away} · тур {round}. Счёт вносите вы на странице матча.	{home} — {away} · {round}-tur. Hisobni uchrashuv sahifasida siz kiritasiz.	{home} — {away} · tour {round}. You enter the score on the match page.
+Без изменений	Oʻzgarishsiz	No changes
+В этом соревновании счёт вносит судья матча	Bu musobaqada hisobni uchrashuv hakami kiritadi	In this competition the match referee enters the score
+В этом туре нет матчей	Bu turda uchrashuvlar yoʻq	No matches in this tour
+Внести счёт	Hisobni kiritish	Enter score
+Вы назначены судьёй этого матча. Впишите итоговый счёт после игры — он сразу станет официальным.	Siz ushbu uchrashuvning hakami etib tayinlandingiz. Oʻyindan soʻng yakuniy hisobni yozing — u darhol rasmiy boʻladi.	You are this match’s referee. Enter the final score after the game — it becomes official right away.
+Вы судья матча #{n}	Siz #{n} uchrashuv hakamisiz	You referee match #{n}
+Вы судья этого матча · {comp} · {when}	Siz ushbu uchrashuv hakamisiz · {comp} · {when}	You referee this match · {comp} · {when}
+Вы судья этого матча · {when}	Siz ushbu uchrashuv hakamisiz · {when}	You referee this match · {when}
+Матч #{n}: игрок не может судить свой матч	#{n} uchrashuv: oʻyinchi oʻz uchrashuvini hakamlik qila olmaydi	Match #{n}: a player can’t referee their own match
+Матч #{n}: судья — {name}	#{n} uchrashuv: hakam — {name}	Match #{n}: referee — {name}
+Матчи, которые я сужу	Men hakamlik qiladigan uchrashuvlar	Matches I referee
+Назначен судья: {name}	Hakam tayinlandi: {name}	Referee assigned: {name}
+Назначено судей: {n}	Tayinlangan hakamlar: {n}	Referees assigned: {n}
+Назначить автоматически ({n})	Avtomatik tayinlash ({n})	Assign automatically ({n})
+Назначить судью	Hakam tayinlash	Assign referee
+Открыть тур	Turni ochish	Open tour
+Результат	Natija	Result
+Сначала те, кто отдыхает в этом туре, потом те, кто судил меньше всех.	Avval shu turda dam olayotganlar, soʻng eng kam hakamlik qilganlar.	Players resting this tour first, then whoever has refereed least.
+Сохранить судей	Hakamlarni saqlash	Save referees
+Судьи сохранены: изменений {n}	Hakamlar saqlandi: {n} ta oʻzgarish	Referees saved: {n} changes
+Судьи тура	Tur hakamlari	Tour referees
+Судья ещё не назначен	Hakam hali tayinlanmagan	No referee assigned yet
+Судья матча	Uchrashuv hakami	Match referee
+Судья матча #{n}	#{n} uchrashuv hakami	Referee of match #{n}
+Судья назначен	Hakam tayinlandi	Referee assigned
+Судья получает уведомление на сайте и в Discord, игроки матча — тоже. Игрок не может судить свой матч.	Hakam saytda va Discord da xabar oladi, uchrashuv oʻyinchilari ham. Oʻyinchi oʻz uchrashuvini hakamlik qila olmaydi.	The referee is notified on the site and in Discord, and so are the match players. A player can’t referee their own match.
+Судья снят	Hakam olib tashlandi	Referee removed
+Судья: {name}	Hakam: {name}	Referee: {name}
+Судьёй может быть только участник соревнования	Faqat musobaqa ishtirokchisi hakam boʻlishi mumkin	Only a competition player can be a referee
+Счёт вносит судья матча — {name}. Пригласите его в лобби зрителем или отправьте ему скриншот итогового счёта.	Hisobni uchrashuv hakami — {name} kiritadi. Uni lobbiga tomoshabin sifatida taklif qiling yoki yakuniy hisob skrinshotini yuboring.	The match referee — {name} — enters the score. Invite them to the lobby as a spectator or send them a screenshot of the final score.
+Счёт вносит судья матча. Судью назначит администратор — вы получите уведомление.	Hisobni uchrashuv hakami kiritadi. Hakamni administrator tayinlaydi — sizga xabar keladi.	The match referee enters the score. An admin will assign one — you’ll be notified.
+Счёт вносит только судья матча (игроки результат не отправляют)	Hisobni faqat uchrashuv hakami kiritadi (oʻyinchilar natija yubormaydi)	Only the match referee enters the score (players don’t submit results)
+Счёт вносит только судья этого матча	Hisobni faqat shu uchrashuv hakami kiritadi	Only this match’s referee can enter the score
+Сыграйте матч при судье: он внесёт счёт	Uchrashuvni hakam ishtirokida oʻynang: u hisobni kiritadi	Play the match with the referee present: they’ll enter the score
+игроки тоже могут отправлять счёт	oʻyinchilar ham hisob yuborishi mumkin	players can also submit scores
+судил: {n}	hakamlik qilgan: {n}	refereed: {n}
+счёт вносит судья	hisobni hakam kiritadi	referee enters the score
+— без судьи —	— hakamsiz —	— no referee —

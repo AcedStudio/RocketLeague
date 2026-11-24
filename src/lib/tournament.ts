@@ -561,6 +561,7 @@ export async function submitReport(matchId: string, user: User, games: GameScore
     await lockCompetition(c, m.competition_id);
     const comp = await getCompetition(m.competition_id, c);
     if (comp?.draw_state !== "published") throw new FormError("Жеребьёвка ещё не опубликована");
+    if (comp.referee_only) throw new FormError("В этом соревновании счёт вносит судья матча");
     if (m.status === "completed") throw new FormError("Результат уже утверждён");
     if (m.status === "under_review") throw new FormError("Матч на рассмотрении у судьи");
     if (!m.home_entry_id || !m.away_entry_id) throw new FormError("Соперники ещё не определены");

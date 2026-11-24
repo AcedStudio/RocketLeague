@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { getCompetition, getEntries, entryCounts, getMatches, getGroups, getPrizes, type Competition } from "@/lib/data";
+import { getCompetition, getEntries, entryCounts, getMatches, getGroups, getPrizes, type Competition, type Match } from "@/lib/data";
 import { ENTRY_STATUS_LABELS, PAYOUT_LABELS, fmtDateTime, fmtMoney, toLocalInput, groupLabel } from "@/lib/format";
 import { CompetitionForm } from "@/components/CompetitionForm";
 import { CompStatusBadge, Flash, MatchStatusBadge, pick, stageLabel, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import {
-  setCompetitionStatus, deleteCompetition, entryAction, editEntry, seedByElo, seasonCalendarAction, seriesLengthAction, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
+  setCompetitionStatus, deleteCompetition, entryAction, editEntry, seedByElo, seasonCalendarAction, seriesLengthAction, saveRefereesAction, autoRefereesAction, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
 } from "@/app/actions/admin";
 import { scheduleAction } from "@/app/actions/match";
 import { getT } from "@/lib/i18n/server";
 import { entryRatings } from "@/lib/rating";
+import { refereeCandidates } from "@/lib/referees";
 
 const TABS = [
   ["settings", "Настройки"],
@@ -77,7 +78,7 @@ export default async function ManageCompetition({ params, searchParams }: { para
       )}
       {tab === "participants" && <ParticipantsTab comp={comp} q={pick(sp, "q")} status={pick(sp, "status")} />}
       {tab === "draw" && <DrawTab comp={comp} />}
-      {tab === "matches" && <MatchesTab comp={comp} status={pick(sp, "status")} />}
+      {tab === "matches" && <MatchesTab comp={comp} status={pick(sp, "status")} rt={pick(sp, "rt")} />}
       {tab === "prizes" && <PrizesTab comp={comp} />}
     </>
   );
@@ -283,7 +284,7 @@ async function DrawTab({ comp }: { comp: Competition }) {
   );
 }
 
-async function MatchesTab({ comp, status }: { comp: Competition; status: string }) {
+async function MatchesTab({ comp, status, rt }: { comp: Competition; status: string; rt: string }) {
   const t = await getT();
   const all = (await getMatches(comp.id)).filter((m) => !m.is_bye);
   const list = status ? all.filter((m) => m.status === status) : all;
@@ -306,6 +307,7 @@ async function MatchesTab({ comp, status }: { comp: Competition; status: string 
           </span>
         </form>
       )}
+      <RefereesPanel comp={comp} all={all} roundKeys={roundKeys} rt={rt} />
       <form action={seriesLengthAction} className="panel stack">
         <input type="hidden" name="id" value={comp.id} />
         <h3>{t("Игр в серии")}</h3>
@@ -500,5 +502,77 @@ async function PrizesTab({ comp }: { comp: Competition }) {
         <div className="full"><SubmitButton className="btn">{t("Добавить")}</SubmitButton></div>
       </form>
     </div>
+  );
+}
+
+
+/** Referees for one tour: pick a player (not in that match) for every match, or fill automatically. */
+async function RefereesPanel({ comp, all, roundKeys, rt }: { comp: Competition; all: Match[]; roundKeys: [string, string][]; rt: string }) {
+  const t = await getT();
+  if (!roundKeys.length) return null;
+  const candidates = await refereeCandidates(comp.id);
+  // Default tour: the first one that still has unplayed matches.
+  const firstOpen = all.find((m) => m.status !== "completed" && !m.is_bye);
+  const key = roundKeys.some(([k]) => k === rt) ? rt : firstOpen ? `${firstOpen.stage}:${firstOpen.round}` : roundKeys[0][0];
+  const [stage, round] = key.split(":");
+  const list = all.filter((m) => m.stage === stage && String(m.round) === round && !m.is_bye && m.home_entry_id && m.away_entry_id);
+  const missing = list.filter((m) => !m.referee_user_id && m.status !== "completed").length;
+  return (
+    <section className="panel stack" id="referees">
+      <div className="row between">
+        <h3>{t("Судьи тура")}</h3>
+        {comp.referee_only ? <span className="badge gold plain">{t("счёт вносит судья")}</span> : <span className="badge dim plain">{t("игроки тоже могут отправлять счёт")}</span>}
+      </div>
+      <form className="row" method="get" action={`/admin/c/${comp.id}`}>
+        <input type="hidden" name="tab" value="matches" />
+        <select className="input" name="rt" defaultValue={key} style={{ maxWidth: 280 }}>
+          {roundKeys.map(([k, label]) => (
+            <option key={k} value={k}>{label}</option>
+          ))}
+        </select>
+        <button className="btn btn-ghost">{t("Открыть тур")}</button>
+      </form>
+      {list.length ? (
+        <form action={saveRefereesAction} className="stack">
+          <input type="hidden" name="id" value={comp.id} />
+          <input type="hidden" name="round_key" value={key} />
+          <div className="list">
+            {list.map((m) => {
+              const options = candidates.filter((c) => c.entry_id !== m.home_entry_id && c.entry_id !== m.away_entry_id);
+              return (
+                <div key={m.id} className="list-row" style={{ gap: 12, flexWrap: "wrap" }}>
+                  <span style={{ flex: "1 1 220px", minWidth: 0 }}>
+                    <b>#{m.number}</b> {m.home_name} — {m.away_name}
+                    {m.status === "completed" && <span className="badge ok plain" style={{ marginLeft: 8 }}>{t("сыгран")}</span>}
+                  </span>
+                  <select className="input" name={`ref_${m.id}`} defaultValue={m.referee_user_id ?? ""} style={{ maxWidth: 260 }} aria-label={t("Судья матча #{n}", { n: m.number })}>
+                    <option value="">{t("— без судьи —")}</option>
+                    {options.map((c) => (
+                      <option key={c.user_id} value={c.user_id}>
+                        {c.nickname} · {t("судил: {n}", { n: c.refereed })}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+          <div className="row">
+            <SubmitButton className="btn">{t("Сохранить судей")}</SubmitButton>
+          </div>
+        </form>
+      ) : (
+        <div className="empty">{t("В этом туре нет матчей")}</div>
+      )}
+      {missing > 0 && (
+        <form action={autoRefereesAction} className="row">
+          <input type="hidden" name="id" value={comp.id} />
+          <input type="hidden" name="round_key" value={key} />
+          <SubmitButton className="btn btn-ghost">{t("Назначить автоматически ({n})", { n: missing })}</SubmitButton>
+          <span className="small faint">{t("Сначала те, кто отдыхает в этом туре, потом те, кто судил меньше всех.")}</span>
+        </form>
+      )}
+      <small className="faint">{t("Судья получает уведомление на сайте и в Discord, игроки матча — тоже. Игрок не может судить свой матч.")}</small>
+    </section>
   );
 }
