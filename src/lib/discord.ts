@@ -54,6 +54,7 @@ export async function getDiscordSettings(c?: Queryable): Promise<DiscordSettings
 
 export class DiscordError extends Error {
   status: number;
+  retryAfter = 0;
   constructor(status: number, message: string) {
     super(message);
     this.status = status;
@@ -71,7 +72,17 @@ export async function discordApi<T = unknown>(path: string, init: { method?: str
   const res = await fetch(`${API}${path}`, { method: init.method ?? "GET", headers, body: init.body === undefined ? undefined : JSON.stringify(init.body) });
   if (res.status === 204) return undefined as T;
   const text = await res.text();
-  if (!res.ok) throw new DiscordError(res.status, `${res.status} ${text.slice(0, 300)}`);
+  if (!res.ok) {
+    const err = new DiscordError(res.status, `${res.status} ${text.slice(0, 300)}`);
+    if (res.status === 429) {
+      try {
+        err.retryAfter = Number(JSON.parse(text).retry_after) || 1;
+      } catch {
+        err.retryAfter = 1;
+      }
+    }
+    throw err;
+  }
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
@@ -84,6 +95,7 @@ export type Embed = {
   color?: number;
   fields?: { name: string; value: string; inline?: boolean }[];
   footer?: { text: string };
+  thumbnail?: { url: string };
   timestamp?: string;
 };
 
@@ -119,6 +131,26 @@ export async function enqueueChannel(c: Queryable | undefined, which: "announce"
   await q("insert into discord_outbox (kind, target, payload) values ('channel', $1, $2)", [channel, JSON.stringify({ spec, locale: s.locale })], c);
 }
 
+export async function enqueueTo(c: Queryable | undefined, channelId: string, spec: MessageSpec) {
+  if (!channelId) return;
+  const s = await getDiscordSettings(c);
+  await q("insert into discord_outbox (kind, target, payload) values ('channel', $1, $2)", [channelId, JSON.stringify({ spec, locale: s.locale })], c);
+}
+
+export type BoardKey = "rating" | "hall" | "guide";
+
+/** A self-updating message (leaderboard, hall of fame). Rendered fresh at send time, so one pending row is enough. */
+export async function enqueueBoard(c: Queryable | undefined, channelId: string, key: BoardKey) {
+  if (!channelId) return;
+  await q(
+    `insert into discord_outbox (kind, target, payload)
+     select 'board', $1, $2::jsonb where not exists (
+       select 1 from discord_outbox where kind = 'board' and sent_at is null and attempts < 5 and target = $1 and payload->>'key' = $3)`,
+    [channelId, JSON.stringify({ key }), key],
+    c,
+  );
+}
+
 /** DMs for site users who linked Discord and kept DMs on. Rendered in each user's language. */
 export async function enqueueDms(c: Queryable | undefined, userIds: string[], spec: MessageSpec) {
   if (!userIds.length) return;
@@ -150,7 +182,12 @@ export async function enqueueParticipantRole(c: Queryable | undefined, entryId: 
 
 const dmChannels = new Map<string, string>();
 
-async function deliver(row: { kind: string; target: string; payload: { spec?: MessageSpec; locale?: Locale; guild?: string; role?: string } }) {
+async function deliver(row: { kind: string; target: string; payload: { spec?: MessageSpec; locale?: Locale; guild?: string; role?: string; op?: "add" | "remove"; key?: BoardKey } }) {
+  if (row.kind === "board") {
+    const { deliverBoard } = await import("./discord-server");
+    await deliverBoard(row.target, row.payload.key!);
+    return;
+  }
   if (row.kind === "channel") {
     await discordApi(`/channels/${row.target}/messages`, { method: "POST", body: renderMessage(row.payload.spec!, row.payload.locale ?? "ru") });
   } else if (row.kind === "dm") {
@@ -162,7 +199,13 @@ async function deliver(row: { kind: string; target: string; payload: { spec?: Me
     }
     await discordApi(`/channels/${channel}/messages`, { method: "POST", body: renderMessage(row.payload.spec!, row.payload.locale ?? "ru") });
   } else if (row.kind === "role") {
-    await discordApi(`/guilds/${row.payload.guild}/members/${row.target}/roles/${row.payload.role}`, { method: "PUT" });
+    try {
+      await discordApi(`/guilds/${row.payload.guild}/members/${row.target}/roles/${row.payload.role}`, { method: row.payload.op === "remove" ? "DELETE" : "PUT" });
+    } catch (err) {
+      // The player left the server or the role was deleted: nothing to do.
+      if (err instanceof DiscordError && err.status === 404) return;
+      throw err;
+    }
   }
 }
 
@@ -180,7 +223,15 @@ export async function flushOutbox(limit = 40): Promise<{ sent: number; failed: n
   let failed = 0;
   for (const row of rows) {
     try {
-      await deliver(row);
+      try {
+        await deliver(row);
+      } catch (err) {
+        // Short rate limit (role bursts): wait it out once and retry.
+        if (err instanceof DiscordError && err.status === 429 && err.retryAfter <= 3) {
+          await new Promise((r) => setTimeout(r, err.retryAfter * 1000 + 100));
+          await deliver(row);
+        } else throw err;
+      }
       await q("update discord_outbox set sent_at = now(), attempts = attempts + 1, last_error = null where id = $1", [row.id]);
       sent++;
     } catch (err) {
@@ -251,21 +302,16 @@ export function verifyInteraction(rawBody: string, signature: string | null, tim
   }
 }
 
+const userOption = (name: string, en: string, ru: string, required = false) => ({
+  type: 6, name, description: en, description_localizations: { ru }, required,
+});
+
 export const SLASH_COMMANDS = [
   {
-    name: "matches",
-    description: "My upcoming matches",
-    description_localizations: { ru: "Мои ближайшие матчи" },
-  },
-  {
-    name: "table",
-    description: "Standings of the featured competition",
-    description_localizations: { ru: "Таблица главного соревнования" },
-  },
-  {
-    name: "profile",
-    description: "Your site profile and record",
-    description_localizations: { ru: "Ваш профиль и статистика" },
+    name: "rank",
+    description: "Rating, rank and titles — yours or another player's",
+    description_localizations: { ru: "Рейтинг, ранг и титулы — ваши или другого игрока" },
+    options: [userOption("player", "Player (empty = you)", "Игрок (пусто — вы)")],
   },
   {
     name: "top",
@@ -285,6 +331,17 @@ export const SLASH_COMMANDS = [
       },
     ],
   },
+  {
+    name: "h2h",
+    description: "Head-to-head record against another player",
+    description_localizations: { ru: "Личные встречи с другим игроком" },
+    options: [userOption("opponent", "Opponent", "Соперник", true)],
+  },
+  { name: "matches", description: "My upcoming matches", description_localizations: { ru: "Мои ближайшие матчи" } },
+  { name: "table", description: "Standings of the featured competition", description_localizations: { ru: "Таблица главного соревнования" } },
+  { name: "link", description: "Link your Discord to the site", description_localizations: { ru: "Привязать Discord к сайту" } },
+  // Right-click a member → Apps → "RL rating"
+  { type: 2, name: "RL rating", name_localizations: { ru: "RL рейтинг" } },
 ];
 
 export async function registerCommands() {

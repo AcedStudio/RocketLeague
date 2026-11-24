@@ -256,3 +256,14 @@ create table if not exists rating_changes (
   unique (match_id, user_id)
 );
 create index if not exists rating_changes_user on rating_changes (user_id, mode, created_at);
+
+-- Champions and titles (Discord roles, hall of fame).
+alter table competitions add column if not exists champion_entry_id uuid references entries(id) on delete set null;
+alter table competitions add column if not exists finished_at timestamptz;
+update competitions c set finished_at = c.updated_at where c.status = 'finished' and c.finished_at is null;
+update competitions c set champion_entry_id = p.recipient_entry_id
+  from prizes p where p.competition_id = c.id and p.place = 1 and c.status = 'finished' and c.champion_entry_id is null and p.recipient_entry_id is not null;
+-- Role keys the bot has given each linked user, so syncs only send differences.
+alter table users add column if not exists discord_roles text[] not null default '{}';
+alter table discord_outbox drop constraint if exists discord_outbox_kind_check;
+alter table discord_outbox add constraint discord_outbox_kind_check check (kind in ('channel', 'dm', 'role', 'board'));

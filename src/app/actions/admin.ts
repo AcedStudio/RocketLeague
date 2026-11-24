@@ -12,6 +12,7 @@ import { BEST_OF_OPTIONS } from "@/lib/engine/results.ts";
 import type { Tiebreaker } from "@/lib/engine/standings.ts";
 import { enqueueChannel, flushOutbox, discordApi, registerCommands, botConfigured, getDiscordSettings, DiscordError } from "@/lib/discord";
 import { isLocale } from "@/lib/i18n/core";
+import { setupServer, syncRoles, refreshBoards } from "@/lib/discord-server";
 import { getT } from "@/lib/i18n/server";
 import { entryRatings, recomputeAll } from "@/lib/rating";
 
@@ -554,7 +555,17 @@ export async function discordAction(fd: FormData) {
         message = (await getT())("Бот видит сервер «{name}»", { name: g.name });
       } else if (action === "commands") {
         await registerCommands();
-        message = "Команды /matches, /table, /profile, /top зарегистрированы";
+        message = "Команды бота зарегистрированы: /rank, /top, /h2h, /matches, /table, /link";
+      } else if (action === "setup") {
+        if (!s.guildId) throw new FormError("Укажите ID сервера");
+        const r = await setupServer();
+        await flushOutbox(60);
+        message = (await getT())("Сервер оформлен: новых ролей {roles}, каналов {channels}", { roles: r.createdRoles, channels: r.createdChannels });
+      } else if (action === "sync") {
+        const n = await syncRoles();
+        await refreshBoards();
+        const r = await flushOutbox(120);
+        message = (await getT())("Роли обновлены: изменений {n}. Отправлено: {sent}, ошибок: {failed}", { n, sent: r.sent, failed: r.failed });
       } else if (action === "test") {
         if (!s.announceChannel) throw new FormError("Укажите канал для объявлений");
         await enqueueChannel(undefined, "announce", { title: "Тестовое сообщение", description: "Бот подключён к сайту и может публиковать объявления.", link: "/" });
@@ -567,7 +578,7 @@ export async function discordAction(fd: FormData) {
       }
     } catch (err) {
       if (err instanceof DiscordError) {
-        const hint = err.status === 401 ? "неверный токен бота" : err.status === 403 ? "у бота нет прав (проверьте роль бота и доступ к каналу)" : err.status === 404 ? "сервер или канал не найден, либо бот не добавлен на сервер" : err.message;
+        const hint = err.status === 401 ? "неверный токен бота" : err.status === 403 ? "у бота нет прав: заново пригласите бота по ссылке выше и проверьте, что его роль выше остальных" : err.status === 404 ? "сервер или канал не найден, либо бот не добавлен на сервер" : err.message;
         throw new FormError("Ошибка Discord: {hint}", { hint });
       }
       throw err;

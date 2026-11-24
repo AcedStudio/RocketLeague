@@ -1,0 +1,56 @@
+RL рейтинг	RL reyting	RL rating
+{emoji} {player} поднялся до ранга {tier}	{emoji} {player} {tier} darajasiga koʻtarildi	{emoji} {player} reached {tier}
+{emoji} {player} получил первый ранг: {tier}	{emoji} {player} ilk darajani oldi: {tier}	{emoji} {player} earned a first rank: {tier}
+{n} матчей	{n} ta uchrashuv	{n} matches
+Больше всего титулов	Eng koʻp unvonlar	Most titles
+Бот выдаёт роли сам, после каждого матча:	Bot rollarni har bir uchrashuvdan soʻng oʻzi beradi:	The bot hands out roles itself after every match:
+Бот создаст категорию RL ARENA с каналами результатов, рейтинга, зала славы и команд, а также роли рангов (Бронза → Суперсоник-легенда) и титулов. Существующие каналы и роли не меняются. Можно запускать повторно — создаётся только недостающее.	Bot natijalar, reyting, shon-sharaf zali va buyruqlar kanallari bilan RL ARENA kategoriyasini hamda daraja (Bronza → Supersonik afsona) va unvon rollarini yaratadi. Mavjud kanallar va rollar oʻzgarmaydi. Qayta ishga tushirish mumkin — faqat yetishmayotganlari yaratiladi.	The bot will create an RL ARENA category with results, rankings, hall of fame and command channels, plus rank roles (Bronze → Supersonic Legend) and title roles. Existing channels and roles are left untouched. Safe to re-run — only what’s missing is created.
+Боту нужны права «Управлять каналами» и «Управлять ролями». Если бот был добавлен раньше, откройте ссылку приглашения выше ещё раз — права обновятся.	Botga «Kanallarni boshqarish» va «Rollarni boshqarish» huquqlari kerak. Agar bot avval qoʻshilgan boʻlsa, yuqoridagi taklif havolasini yana oching — huquqlar yangilanadi.	The bot needs the “Manage Channels” and “Manage Roles” permissions. If it was added earlier, open the invite link above again to update them.
+Все чемпионы турниров	Turnirlarning barcha chempionlari	All tournament champions
+Встреч: {n}	Uchrashuvlar: {n}	Meetings: {n}
+Выберите другого игрока	Boshqa oʻyinchini tanlang	Pick another player
+Действующий чемпион {mode}	Amaldagi chempion {mode}	Reigning {mode} champion
+Зал славы	Shon-sharaf zali	Hall of fame
+Здесь появятся чемпионы первых турниров	Bu yerda birinchi turnirlar chempionlari paydo boʻladi	Champions of the first tournaments will appear here
+Игрок (пусто — вы)	Oʻyinchi (boʻsh — siz)	Player (empty = you)
+Игрок не привязал Discord к сайту	Oʻyinchi Discord ni saytga bogʻlamagan	This player hasn’t linked Discord to the site
+Команды бота	Bot buyruqlari	Bot commands
+Команды бота: /rank, /top, /h2h, /matches, /table	Bot buyruqlari: /rank, /top, /h2h, /matches, /table	Bot commands: /rank, /top, /h2h, /matches, /table
+Личные встречи с другим игроком	Boshqa oʻyinchi bilan shaxsiy uchrashuvlar	Head-to-head with another player
+Они ещё не встречались	Ular hali uchrashmagan	They haven’t played each other yet
+Оформить сервер	Serverni bezash	Set up the server
+Оформление сервера	Serverni bezash	Server setup
+Победитель турнира	Turnir gʻolibi	Tournament winner
+Правый клик по игроку → Приложения → «RL рейтинг».	Oʻyinchiga oʻng tugma → Ilovalar → «RL reyting».	Right-click a player → Apps → “RL rating”.
+Привязать Discord к сайту	Discord ni saytga bogʻlash	Link Discord to the site
+Результаты матчей и изменения рейтинга — публикуются автоматически	Uchrashuv natijalari va reyting oʻzgarishlari — avtomatik chop etiladi	Match results and rating changes — posted automatically
+Рейтинг, ранг и титулы — ваши или другого игрока	Reyting, daraja va unvonlar — sizniki yoki boshqa oʻyinchiniki	Rating, rank and titles — yours or another player’s
+Роли и титулы	Rollar va unvonlar	Roles and titles
+Роли обновлены: изменений {n}. Отправлено: {sent}, ошибок: {failed}	Rollar yangilandi: {n} ta oʻzgarish. Yuborildi: {sent}, xatolar: {failed}	Roles updated: {n} changes. Sent: {sent}, errors: {failed}
+Сервер оформлен: новых ролей {roles}, каналов {channels}	Server bezatildi: yangi rollar {roles}, kanallar {channels}	Server set up: {roles} new roles, {channels} new channels
+Синхронизировать роли и таблицы	Rollar va jadvallarni yangilash	Sync roles and boards
+Создано ботом: ролей {roles}, каналов {channels}	Bot yaratgan: rollar {roles}, kanallar {channels}	Created by the bot: {roles} roles, {channels} channels
+Соперник	Raqib	Opponent
+Состав: {players}	Tarkib: {players}	Roster: {players}
+Таблица ELO обновляется после каждого матча. Здесь же — новые ранги игроков	ELO jadvali har bir uchrashuvdan soʻng yangilanadi. Bu yerda oʻyinchilarning yangi darajalari ham	The ELO table updates after every match. New player ranks are announced here too
+Титулы	Unvonlar	Titles
+Топ-10	Top-10	Top 10
+Участник турнира	Turnir ishtirokchisi	Tournament player
+Чтобы получать роли, привяжите Discord на сайте: {url}	Rollarni olish uchun Discord ni saytda bogʻlang: {url}	To get roles, link Discord on the site: {url}
+ваш рейтинг, ранг и титулы (или другого игрока)	reytingingiz, darajangiz va unvonlaringiz (yoki boshqa oʻyinchiniki)	your rating, rank and titles (or another player’s)
+ваши ближайшие матчи	yaqin uchrashuvlaringiz	your upcoming matches
+выиграл хотя бы один турнир	kamida bitta turnirda gʻolib boʻlgan	won at least one tournament
+десятка лучших в 1v1 или 2v2	1v1 yoki 2v2 dagi eng yaxshi oʻntalik	top ten in 1v1 or 2v2
+как привязать Discord к сайту	Discord ni saytga qanday bogʻlash	how to link Discord to the site
+калибровка	kalibrovka	calibrating
+личные встречи с другим игроком	boshqa oʻyinchi bilan shaxsiy uchrashuvlar	head-to-head with another player
+пик	choʻqqi	peak
+победитель последнего турнира, переходит к следующему чемпиону	oxirgi turnir gʻolibi, keyingi chempionga oʻtadi	winner of the latest tournament; passes to the next champion
+ранг по лучшему рейтингу (после {n} матчей)	eng yaxshi reyting boʻyicha daraja ({n} ta uchrashuvdan soʻng)	rank by your best rating (after {n} matches)
+таблица главного соревнования	asosiy musobaqa jadvali	standings of the featured competition
+топ рейтинга 1v1 или 2v2	1v1 yoki 2v2 reytingi topi	1v1 or 2v2 leaderboard
+🏅・рейтинг	🏅・reyting	🏅・rankings
+🏆 {team} — чемпион {comp}	🏆 {team} — {comp} chempioni	🏆 {team} — {comp} champion
+🏛・зал-славы	🏛・shon-sharaf	🏛・hall-of-fame
+📊・результаты	📊・natijalar	📊・results
+🤖・бот	🤖・bot	🤖・bot

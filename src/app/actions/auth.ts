@@ -5,6 +5,7 @@ import { q, one, isUniqueViolation } from "@/lib/db";
 import { createSession, destroySession, hashPassword, verifyPassword, requireUser, getDiscordPending, DISCORD_PENDING_COOKIE } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { joinGuild } from "@/lib/discord";
+import { revokeRoles } from "@/lib/discord-server";
 import { getLocale } from "@/lib/i18n/server";
 import { str, email as emailField, oneOf, guard, safeNext, FormError, ok } from "@/lib/forms";
 import { notify } from "@/lib/notify";
@@ -124,6 +125,7 @@ export async function discordPrefs(fd: FormData) {
     if (action === "unlink") {
       const u = await one<{ password_hash: string | null }>("select password_hash from users where id = $1", [user.id]);
       if (!u?.password_hash) throw new FormError("Сначала задайте пароль, иначе вы не сможете войти");
+      await revokeRoles(undefined, user.id);
       await q("update users set discord_id = null, discord_username = null where id = $1", [user.id]);
     }
   });
