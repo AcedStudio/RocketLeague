@@ -506,6 +506,8 @@ const dict: Dict = {
   "Объявления": "Announcements",
   "Обязательный чек-ин перед жеребьёвкой": "Mandatory check-in before the draw",
   "Один аккаунт на игрока. После этого можно записаться в любую лигу или кубок в пару кликов.": "One account per player. Then you can join any league or cup in a couple of clicks.",
+  "одна игра": "one game",
+  "Одна игра — впишите итоговый счёт (с овертаймом)": "One game — enter the final score (including overtime)",
   "Одобрить": "Approve",
   "Одобрить можно только заявку на проверке": "Only entries under review can be approved",
   "ожидает выплаты": "payout pending",

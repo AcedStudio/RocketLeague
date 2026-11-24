@@ -78,7 +78,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       <section className="panel stack" style={{ padding: "clamp(20px, 4vw, 40px)" }}>
         <div className="row between small muted">
           <span>
-            {t("Матч #{n}", { n: m.number })} · {stageLabel(t, m, rounds)} · Bo{m.best_of}
+            {t("Матч #{n}", { n: m.number })} · {stageLabel(t, m, rounds)} · {m.best_of === 1 ? t("одна игра") : `Bo${m.best_of}`}
           </span>
           <MatchStatusBadge status={m.status} />
         </div>

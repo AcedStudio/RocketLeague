@@ -506,6 +506,8 @@ const dict: Dict = {
   "Объявления": "Eʼlonlar",
   "Обязательный чек-ин перед жеребьёвкой": "Qurʼadan oldin majburiy chek-in",
   "Один аккаунт на игрока. После этого можно записаться в любую лигу или кубок в пару кликов.": "Har bir oʻyinchiga bitta akkaunt. Shundan soʻng istalgan liga yoki kubokka bir necha bosishda yozilish mumkin.",
+  "одна игра": "bitta oʻyin",
+  "Одна игра — впишите итоговый счёт (с овертаймом)": "Bitta oʻyin — yakuniy hisobni yozing (overtime bilan)",
   "Одобрить": "Tasdiqlash",
   "Одобрить можно только заявку на проверке": "Faqat tekshiruvdagi arizani tasdiqlash mumkin",
   "ожидает выплаты": "toʻlov kutilmoqda",

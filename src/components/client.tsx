@@ -164,7 +164,7 @@ export function GamesInput({ bestOf, homeName, awayName, initial }: { bestOf: nu
       </div>
       {games.map((g, i) => (
         <div className="game-row" key={i}>
-          <span className="small muted">{t("Игра {n}", { n: i + 1 })}</span>
+          <span className="small muted">{bestOf === 1 ? t("Счёт") : t("Игра {n}", { n: i + 1 })}</span>
           <input className="input" inputMode="numeric" pattern="[0-9]*" maxLength={2} aria-label={t("Игра {n}, голы: {team}", { n: i + 1, team: homeName })} value={g.home}
             onChange={(e) => setGames(games.map((x, j) => (j === i ? { ...x, home: e.target.value.replace(/\D/g, "") } : x)))} />
           <span className="faint" style={{ textAlign: "center" }}>:</span>
@@ -174,7 +174,9 @@ export function GamesInput({ bestOf, homeName, awayName, initial }: { bestOf: nu
       ))}
       <div className="row between">
         <span className="small muted">
-          {t("Серия Bo{bo}: {h} – {a}", { bo: bestOf, h: wins.h, a: wins.a })} · {decided ? t("серия завершена") : t("нужно побед: {n}", { n: need })}
+          {bestOf === 1
+            ? t("Одна игра — впишите итоговый счёт (с овертаймом)")
+            : `${t("Серия Bo{bo}: {h} – {a}", { bo: bestOf, h: wins.h, a: wins.a })} · ${decided ? t("серия завершена") : t("нужно побед: {n}", { n: need })}`}
         </span>
         <div className="row">
           {games.length > 1 && (
