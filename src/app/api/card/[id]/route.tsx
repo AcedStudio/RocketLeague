@@ -79,8 +79,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             ))}
           </div>
           <div style={{ display: "flex", justifyContent: "center", fontSize: 18, fontWeight: 800, paddingTop: 10, opacity: 0.9 }}>
-            {tierName}
-            {titles ? `  ${titles}` : ""}
+            {`${tierName}${titles ? `  ${titles}` : ""}`}
           </div>
         </div>
       </div>
