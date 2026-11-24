@@ -6,19 +6,26 @@ import { saveDiscordSettings, discordAction } from "@/app/actions/admin";
 import { Flash, type SP } from "@/components/ui";
 import { SubmitButton, CopyField } from "@/components/client";
 import { getT } from "@/lib/i18n/server";
+import { getLayout } from "@/lib/discord-server";
+
+// View, send, embed, attach, history, reactions, manage messages (pins), manage channels, manage roles, invites.
+const BOT_PERMISSIONS = "268561489";
 
 export default async function AdminDiscord({ searchParams }: { searchParams: SP }) {
   const t = await getT();
   const sp = await searchParams;
   await requireAdmin();
-  const [s, stats] = await Promise.all([
+  const [s, stats, layout] = await Promise.all([
     getDiscordSettings(),
     one<{ linked: number; pending: number; failed: number }>(
       `select (select count(*)::int from users where discord_id is not null) as linked,
               (select count(*)::int from discord_outbox where sent_at is null and attempts < 5) as pending,
               (select count(*)::int from discord_outbox where sent_at is null and attempts >= 5) as failed`,
     ),
+    getLayout(),
   ]);
+  const madeRoles = Object.keys(layout.roles).length;
+  const madeChannels = Object.keys(layout.channels).length;
   const env = discordEnv();
   const base = siteUrl();
   const checks: [string, boolean][] = [
@@ -79,7 +86,7 @@ export default async function AdminDiscord({ searchParams }: { searchParams: SP 
         {env.clientId && (
           <div className="stack" style={{ gap: 6 }}>
             <span className="small muted">{t("Ссылка, чтобы добавить бота на сервер")}</span>
-            <CopyField value={`https://discord.com/oauth2/authorize?client_id=${env.clientId}&scope=bot%20applications.commands&permissions=268454913`} />
+            <CopyField value={`https://discord.com/oauth2/authorize?client_id=${env.clientId}&scope=bot%20applications.commands&permissions=${BOT_PERMISSIONS}`} />
           </div>
         )}
       </section>
@@ -118,6 +125,21 @@ export default async function AdminDiscord({ searchParams }: { searchParams: SP 
           <SubmitButton className="btn">{t("Сохранить")}</SubmitButton>
         </div>
       </form>
+
+      <section className="panel stack">
+        <h3>{t("Оформление сервера")}</h3>
+        <p className="small muted">
+          {t("Бот создаст категорию RL ARENA с каналами результатов, рейтинга, зала славы и команд, а также роли рангов (Бронза → Суперсоник-легенда) и титулов. Существующие каналы и роли не меняются. Можно запускать повторно — создаётся только недостающее.")}
+        </p>
+        {madeRoles + madeChannels > 0 && (
+          <p className="small">{t("Создано ботом: ролей {roles}, каналов {channels}", { roles: madeRoles, channels: madeChannels })}</p>
+        )}
+        <div className="row">
+          {act("setup", t("Оформить сервер"), "btn btn-gold")}
+          {act("sync", t("Синхронизировать роли и таблицы"))}
+        </div>
+        <p className="small faint">{t("Боту нужны права «Управлять каналами» и «Управлять ролями». Если бот был добавлен раньше, откройте ссылку приглашения выше ещё раз — права обновятся.")}</p>
+      </section>
 
       <section className="panel stack">
         <h3>{t("Проверка")}</h3>

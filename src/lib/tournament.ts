@@ -13,6 +13,7 @@ import { validateSeries, type GameScore } from "./engine/results.ts";
 import type { User } from "./auth";
 import type { Params } from "./i18n/core";
 import { enqueueChannel, enqueueParticipantRole, GOLD_COLOR } from "./discord";
+import { discordAfterResult, discordAfterFinish, eloLines } from "./discord-server";
 
 // ---------------------------------------------------------------- helpers
 
@@ -455,12 +456,15 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
   await notifyEntries(c, [m.home_entry_id, m.away_entry_id], "{comp}: результат матча #{n} утверждён", "", `/match/${m.id}`, { comp: comp.name, n: m.number });
   const names = await q<{ id: string; name: string }>("select id, name from entries where id = any($1::uuid[])", [[m.home_entry_id, m.away_entry_id]], c);
   const nameOf = (id: string) => names.find((x) => x.id === id)?.name ?? "?";
+  const elo = await eloLines(c, m.id);
   await enqueueChannel(c, "results", {
     title: "{home} {score} {away}",
     description: "{comp} · матч #{n}",
     params: { home: nameOf(m.home_entry_id), away: nameOf(m.away_entry_id), score: result.forfeitWinner ? (winnerSide === "home" ? "W:FF" : "FF:W") : `${hw}:${aw}`, comp: comp.name, n: m.number },
+    fields: elo ? [{ name: "ELO", value: elo }] : undefined,
     link: `/match/${m.id}`,
   });
+  await discordAfterResult(c, m.id);
   await maybeFinish(c, comp);
 }
 
@@ -496,7 +500,7 @@ async function maybeFinish(c: PoolClient, comp: Competition) {
     places.set(2, final.winner_entry_id === final.home_entry_id ? final.away_entry_id! : final.home_entry_id!);
     if (third?.winner_entry_id) places.set(3, third.winner_entry_id);
   }
-  await q("update competitions set status = 'finished', updated_at = now() where id = $1", [comp.id], c);
+  await q("update competitions set status = 'finished', champion_entry_id = $2, finished_at = now(), updated_at = now() where id = $1", [comp.id, places.get(1) ?? null], c);
   for (const [place, entryId] of places) {
     await q("update prizes set recipient_entry_id = $3 where competition_id = $1 and place = $2", [comp.id, place, entryId], c);
   }
@@ -507,6 +511,7 @@ async function maybeFinish(c: PoolClient, comp: Competition) {
     await notify(c, all.map((r) => r.user_id), "{comp} завершён", "Чемпион: {champion}", `/c/${comp.slug}`, { comp: comp.name, champion: name?.name ?? "" });
     await enqueueChannel(c, "announce", { title: "{comp} завершён", description: "Чемпион: {champion}", params: { comp: comp.name, champion: name?.name ?? "" }, link: `/c/${comp.slug}`, color: GOLD_COLOR });
   }
+  await discordAfterFinish(c, comp.id);
 }
 
 /** Entry ids of the match sides the user belongs to. */

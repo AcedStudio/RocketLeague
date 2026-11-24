@@ -9,16 +9,25 @@ function DiscordLogo() {
   );
 }
 
-export async function DiscordButton({ mode, next, label }: { mode: "login" | "link"; next?: string; label?: string }) {
+export async function DiscordButton({ mode, next, label, divider }: { mode: "login" | "link"; next?: string; label?: string; divider?: boolean }) {
   if (!oauthConfigured()) return null;
   const t = await getT();
   const href = `/api/auth/discord?mode=${mode}${next ? `&next=${encodeURIComponent(next)}` : ""}`;
-  return (
+  const button = (
     // A plain link: the OAuth flow is a full-page redirect.
     // eslint-disable-next-line @next/next/no-html-link-for-pages
     <a href={href} className="btn btn-lg btn-discord">
       <DiscordLogo />
       {label ?? t("Войти через Discord")}
     </a>
+  );
+  if (!divider) return button;
+  return (
+    <>
+      <div className="or-divider">
+        <span>{t("или")}</span>
+      </div>
+      {button}
+    </>
   );
 }

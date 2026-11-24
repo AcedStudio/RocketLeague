@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { q, one, isUniqueViolation } from "@/lib/db";
 import { createSession, getUser, signShort, verifyShort, DISCORD_PENDING_COOKIE } from "@/lib/auth";
 import { exchangeCode, joinGuild, enqueueParticipantRole, flushOutbox } from "@/lib/discord";
+import { syncRoles } from "@/lib/discord-server";
 
 function back(req: Request, path: string, key: "ok" | "err", msg: string) {
   const u = new URL(path, req.url);
@@ -17,6 +18,9 @@ async function grantRoles(userId: string) {
     [userId],
   );
   for (const e of entries) await enqueueParticipantRole(undefined, e.entry_id);
+  // Fresh link: forget what the bot gave earlier and hand out rank and title roles.
+  await q("update users set discord_roles = '{}' where id = $1", [userId]);
+  await syncRoles();
 }
 
 export async function GET(req: Request) {

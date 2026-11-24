@@ -22,7 +22,6 @@ export default async function LoginPage({ searchParams }: { searchParams: SP }) 
       <div className="stack">
         <h1 style={{ fontSize: "2rem" }}>{t("Вход")}</h1>
         <Flash sp={sp} />
-        <DiscordButton mode="login" next={next} />
         <form action={login} className="panel stack">
           <input type="hidden" name="next" value={next} />
           <label className="field">
@@ -36,6 +35,7 @@ export default async function LoginPage({ searchParams }: { searchParams: SP }) 
           <SubmitButton className="btn btn-lg" pendingText={t("Входим…")}>
             {t("Войти")}
           </SubmitButton>
+          <DiscordButton mode="login" next={next} divider />
         </form>
         <p className="muted">
           {t("Нет аккаунта?")} <Link href={`/signup?next=${encodeURIComponent(next)}`}>{t("Создать")}</Link>

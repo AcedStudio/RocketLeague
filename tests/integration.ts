@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { q, one, tx } from "../src/lib/db";
 import { leaderboard, recomputeAll } from "../src/lib/rating";
+import { syncRoles } from "../src/lib/discord-server";
 import {
   registerSolo, createTeam, joinTeam, withdraw, runDraw, resetDraw, publishDraw, submitReport, respondToReport, refereeResult, checkIn,
 } from "../src/lib/tournament";
@@ -291,6 +292,42 @@ async function main() {
     assert.ok(total >= lm.length);
     const again = await q<{ n: number }>("select count(*)::int as n from rating_changes where match_id = any($1::uuid[])", [lm.map((m) => m.id)]);
     assert.equal(again[0].n, lm.length * 2);
+  });
+
+  await step("Discord: champion recorded, role sync queues only differences", async () => {
+    const comp = (await getCompetition(league))!;
+    const champ = await one<{ champion_entry_id: string | null; finished_at: Date | null }>("select champion_entry_id, finished_at from competitions where id = $1", [league]);
+    assert.ok(champ?.champion_entry_id && champ.finished_at, "finished league stores its champion");
+    const [table] = await getStandings(comp);
+    assert.equal(champ!.champion_entry_id, table.rows[0].id);
+
+    const champUser = (await membersOf(champ!.champion_entry_id!))[0];
+    const discordId = `9${Date.now()}`;
+    await q("update users set discord_id = $2, discord_roles = '{}' where id = $1", [champUser, discordId]);
+    const saved = await q<{ key: string; value: string }>("select key, value from settings where key in ('discord_guild_id', 'discord_layout')");
+    try {
+      await q("insert into settings (key, value) values ('discord_guild_id', '1') on conflict (key) do update set value = excluded.value");
+      const roles: Record<string, string> = { champion: "r_champ", reigning_1v1: "r_reign1", top10: "r_top" };
+      for (const tier of ["bronze", "silver", "gold", "plat", "diamond", "champ", "gc", "ssl"]) roles[`tier_${tier}`] = `r_${tier}`;
+      await q("insert into settings (key, value) values ('discord_layout', $1) on conflict (key) do update set value = excluded.value", [JSON.stringify({ roles, channels: {}, messages: {} })]);
+      const before = await q<{ id: number }>("select id from discord_outbox order by id desc limit 1");
+      const lastId = before[0]?.id ?? 0;
+      await syncRoles();
+      const ops = await q<{ target: string; payload: { role: string; op: string } }>("select target, payload from discord_outbox where id > $1 and kind = 'role' and target = $2", [lastId, discordId]);
+      const added = ops.filter((o) => o.payload.op === "add").map((o) => o.payload.role);
+      assert.ok(added.includes("r_champ"), "tournament winner role");
+      assert.ok(added.includes("r_reign1"), "latest 1v1 champion holds the reigning title");
+      assert.ok(added.some((r) => /^r_(bronze|silver|gold|plat|diamond|champ|gc|ssl)$/.test(r) && r !== "r_champ"), "one tier role");
+      // Second sync: nothing changed → nothing queued.
+      const mid = (await q<{ id: number }>("select max(id)::int as id from discord_outbox"))[0].id;
+      await syncRoles();
+      assert.equal((await q("select 1 from discord_outbox where id > $1 and target = $2", [mid, discordId])).length, 0);
+    } finally {
+      await q("update users set discord_id = null, discord_roles = '{}' where id = $1", [champUser]);
+      await q("delete from discord_outbox where target = $1", [discordId]);
+      await q("delete from settings where key in ('discord_guild_id', 'discord_layout')");
+      for (const r of saved) await q("insert into settings (key, value) values ($1, $2)", [r.key, r.value]);
+    }
   });
 
   console.log(`\n${passed} integration checks passed`);
