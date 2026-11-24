@@ -293,7 +293,7 @@ export function AutoSubmitForm({ action, className, children, anchor = "view" }:
       onChange={(e) => {
         const form = e.currentTarget;
         // Changing the player clears the opponent, so the two never point at the same entry.
-        if ((e.target as HTMLSelectElement).name === "p") {
+        if ((e.target as unknown as HTMLSelectElement).name === "p") {
           const vs = form.elements.namedItem("vs") as HTMLSelectElement | null;
           if (vs) vs.value = "";
         }
