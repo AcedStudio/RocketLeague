@@ -74,7 +74,7 @@ export async function MatchCard({ m, tz, rounds, mine }: { m: Match; tz: string;
       <span className={`side ${as}`}>{m.away_name ?? (m.is_bye ? "—" : t("Определится позже"))}</span>
       <span className={`sc ${as === "win" ? "win" : ""}`}>{done && !m.is_bye ? (m.forfeit ? (as === "win" ? "W" : "L") : m.away_wins) : ""}</span>
       <span className="small faint" style={{ gridColumn: "1 / -1", marginTop: 6 }}>
-        {m.is_bye ? t("Участник проходит дальше без игры") : `${fmtDateTime(m.scheduled_at, tz, t)} · Bo${m.best_of}`}
+        {m.is_bye ? t("Участник проходит дальше без игры") : `${fmtDateTime(m.scheduled_at, tz, t)} · ${m.best_of === 1 ? t("одна игра") : `Bo${m.best_of}`}`}
       </span>
     </>
   );
