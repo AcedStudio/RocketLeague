@@ -7,7 +7,7 @@ import { getSettings } from "@/lib/data";
 import { one, dbConfigured } from "@/lib/db";
 import { LogoMark, BellIcon } from "@/components/Art";
 import { Suspense } from "react";
-import { MobileMenu, I18nProvider, LangSwitch } from "@/components/client";
+import { MobileMenu, I18nProvider, LangSwitch, Dropdown } from "@/components/client";
 import { getT } from "@/lib/i18n/server";
 import { DICTS } from "@/lib/i18n/dicts";
 import { logout } from "./actions/auth";
@@ -70,23 +70,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
               {user ? (
                 <>
-                  {isReferee(user.role) && (
-                    <Link href="/admin" className="btn btn-ghost btn-sm hide-m">
-                      {isAdmin(user.role) ? t("Админка") : t("Судейская")}
-                    </Link>
-                  )}
                   <Link href="/me/notifications" className="bell" aria-label={unread ? t("Уведомления: {n} новых", { n: unread }) : t("Уведомления")}>
                     <BellIcon />
                     {unread > 0 && <span className="dot">{unread > 99 ? "99+" : unread}</span>}
                   </Link>
-                  <Link href="/me" className="btn btn-ghost btn-sm hide-m">
-                    {user.rl_nickname}
-                  </Link>
-                  <form action={logout} className="hide-m">
-                    <button className="btn btn-ghost btn-sm" type="submit">
-                      {t("Выйти")}
-                    </button>
-                  </form>
+                  <Dropdown
+                    className="user-menu hide-m"
+                    summary={
+                      <summary className="btn btn-ghost btn-sm">
+                        <span className="user-dot" aria-hidden>{user.rl_nickname.slice(0, 1).toUpperCase()}</span>
+                        {user.rl_nickname}
+                      </summary>
+                    }
+                  >
+                    <div className="user-menu-list">
+                      <Link href="/me">{t("Профиль")}</Link>
+                      <Link href={`/players/${user.id}`}>{t("Моя карточка")}</Link>
+                      {isReferee(user.role) && <Link href="/admin">{isAdmin(user.role) ? t("Админка") : t("Судейская")}</Link>}
+                      <form action={logout}>
+                        <button type="submit">{t("Выйти")}</button>
+                      </form>
+                    </div>
+                  </Dropdown>
                 </>
               ) : (
                 <>

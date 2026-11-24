@@ -88,13 +88,24 @@ p { margin: 0; text-wrap: pretty; }
 
 /* ---------- header ---------- */
 .topbar { position: sticky; top: 0; z-index: 40; background: rgba(8, 26, 50, 0.86); backdrop-filter: saturate(140%) blur(12px); border-bottom: 1px solid var(--line); }
-.topbar .wrap { display: flex; align-items: center; gap: var(--s5); height: 64px; }
+.topbar .wrap { display: flex; align-items: center; gap: var(--s4); height: 64px; max-width: 1440px; }
 .brand { display: flex; align-items: center; gap: var(--s3); text-decoration: none; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
 .brand img { width: 30px; height: 30px; border-radius: 6px; object-fit: cover; }
-.nav { display: flex; gap: var(--s1); margin-left: var(--s4); }
-.nav a { padding: 8px 12px; border-radius: var(--r-sm); text-decoration: none; color: var(--ink-soft); font-weight: 500; font-size: 0.95rem; transition: color 150ms var(--ease-out), background-color 150ms var(--ease-out); }
+.nav { display: flex; align-items: center; gap: 2px; margin-left: var(--s3); min-width: 0; }
+.nav a { white-space: nowrap; padding: 8px 10px; border-radius: var(--r-sm); text-decoration: none; color: var(--ink-soft); font-weight: 500; font-size: 0.95rem; transition: color 150ms var(--ease-out), background-color 150ms var(--ease-out); }
 .nav a:hover, .nav a[aria-current="page"] { color: var(--ink); background: rgba(136, 237, 255, 0.07); }
-.top-actions { margin-left: auto; display: flex; align-items: center; gap: var(--s2); }
+.top-actions { margin-left: auto; display: flex; align-items: center; gap: var(--s2); flex-shrink: 0; }
+.top-actions .btn { white-space: nowrap; }
+.user-menu { position: relative; }
+.user-menu > summary { list-style: none; cursor: pointer; gap: 8px; padding-left: 6px; }
+.user-menu > summary::-webkit-details-marker { display: none; }
+.user-menu > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); opacity: .6; transition: transform 150ms var(--ease-out); }
+.user-menu[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.user-dot { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--brand-gradient); color: var(--accent-ink); font: 800 0.75rem/1 var(--font-display); }
+.user-menu-list { position: absolute; right: 0; top: calc(100% + 8px); min-width: 200px; display: flex; flex-direction: column; padding: 6px; background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: var(--r-md); box-shadow: 0 18px 40px rgba(0,0,0,.4); z-index: 50; }
+.user-menu-list a, .user-menu-list button { display: block; width: 100%; padding: 10px 12px; border-radius: var(--r-sm); text-decoration: none; text-align: left; color: var(--ink); font: 500 0.95rem/1.2 var(--font-text); background: none; border: 0; cursor: pointer; }
+.user-menu-list a:hover, .user-menu-list button:hover { background: rgba(136, 237, 255, 0.08); }
+.user-menu-list form { margin: 0; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 4px; }
 .bell { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-sm); color: var(--ink-soft); text-decoration: none; }
 .bell:hover { color: var(--ink); background: rgba(136, 237, 255, 0.07); }
 .bell .dot { position: absolute; top: 6px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
@@ -104,7 +115,8 @@ p { margin: 0; text-wrap: pretty; }
 .lang button:hover { color: var(--ink); }
 .lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .mobile-nav { display: none; }
-@media (max-width: 860px) {
+/* The full header needs ~1180px with Uzbek labels; below that the menu folds into ☰. */
+@media (max-width: 1180px) {
   .nav, .top-actions .hide-m { display: none; }
   .menu-btn { display: grid; }
   .mobile-nav[data-open="true"] { display: flex; flex-direction: column; gap: var(--s1); padding: var(--s3) var(--gutter) var(--s5); border-top: 1px solid var(--line); }

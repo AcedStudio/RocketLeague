@@ -290,3 +290,9 @@ create table if not exists match_proposals (
   created_at timestamptz not null default now()
 );
 create index if not exists match_proposals_match on match_proposals (match_id, status);
+
+-- Rules in three languages: title/body are Russian (the default), *_uz / *_en are optional translations.
+alter table rules add column if not exists title_uz text not null default '';
+alter table rules add column if not exists body_uz text not null default '';
+alter table rules add column if not exists title_en text not null default '';
+alter table rules add column if not exists body_en text not null default '';

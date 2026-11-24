@@ -409,11 +409,23 @@ export async function saveRule(fd: FormData) {
     const title = str(fd, "title", "Заголовок", { max: 140 });
     const body = str(fd, "body", "Текст", { max: 8000 });
     const published = bool(fd, "published");
+    const tr = {
+      title_uz: str(fd, "title_uz", "Заголовок (UZ)", { max: 140, optional: true }),
+      body_uz: str(fd, "body_uz", "Текст (UZ)", { max: 8000, optional: true }),
+      title_en: str(fd, "title_en", "Заголовок (EN)", { max: 140, optional: true }),
+      body_en: str(fd, "body_en", "Текст (EN)", { max: 8000, optional: true }),
+    };
     if (id) {
-      await q("update rules set category=$2, title=$3, body=$4, published=$5, updated_at=now() where id=$1", [id, category, title, body, published]);
+      await q(
+        "update rules set category=$2, title=$3, body=$4, published=$5, title_uz=$6, body_uz=$7, title_en=$8, body_en=$9, updated_at=now() where id=$1",
+        [id, category, title, body, published, tr.title_uz, tr.body_uz, tr.title_en, tr.body_en],
+      );
     } else {
       const pos = await one<{ n: number }>("select coalesce(max(position), 0)::int + 1 as n from rules where category = $1", [category]);
-      await q("insert into rules (category, title, body, position, published) values ($1, $2, $3, $4, $5)", [category, title, body, pos!.n, published]);
+      await q(
+        "insert into rules (category, title, body, position, published, title_uz, body_uz, title_en, body_en) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+        [category, title, body, pos!.n, published, tr.title_uz, tr.body_uz, tr.title_en, tr.body_en],
+      );
     }
     await logAction(undefined, user.id, id ? "rules.edit" : "rules.add", title);
   });
