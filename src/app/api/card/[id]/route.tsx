@@ -58,11 +58,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ fontSize: 84, fontWeight: 800, lineHeight: 0.95 }}>{card.stats.ovr}</div>
-              <div style={{ fontSize: 24, fontWeight: 800, opacity: 0.9 }}>{card.mode}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, opacity: 0.8 }}>{PLATFORM_SHORT[card.platform] ?? card.platform}</div>
+              <div style={{ display: "flex", fontSize: 84, fontWeight: 800, lineHeight: 0.95 }}>{card.stats.ovr}</div>
+              <div style={{ display: "flex", fontSize: 24, fontWeight: 800, opacity: 0.9 }}>{card.mode}</div>
+              <div style={{ display: "flex", fontSize: 22, fontWeight: 800, opacity: 0.8 }}>{PLATFORM_SHORT[card.platform] ?? card.platform}</div>
             </div>
-            <div style={{ width: 58, height: 58, marginTop: 8, borderRadius: 14, transform: "rotate(45deg)", backgroundImage: `linear-gradient(135deg, #ffffff, ${theme.c1} 40%, ${theme.c2})`, border: "3px solid rgba(0,0,0,0.2)" }} />
+            <div style={{ display: "flex", width: 58, height: 58, marginTop: 8, borderRadius: 14, transform: "rotate(45deg)", backgroundImage: `linear-gradient(135deg, #ffffff, ${theme.c1} 40%, ${theme.c2})`, border: "3px solid rgba(0,0,0,0.2)" }} />
           </div>
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 150, fontWeight: 800, opacity: 0.18 }}>
             {card.nickname.slice(0, 1).toUpperCase()}
@@ -73,14 +73,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           <div style={{ display: "flex", flexWrap: "wrap", paddingTop: 14 }}>
             {STAT_KEYS.map((k) => (
               <div key={k} style={{ width: "50%", display: "flex", alignItems: "baseline", fontSize: 24, marginBottom: 4 }}>
-                <span style={{ fontWeight: 800, width: 44 }}>{card.stats[k]}</span>
+                <span style={{ display: "flex", fontWeight: 800, width: 52, marginRight: 8 }}>{card.stats[k]}</span>
                 <span style={{ fontWeight: 800, opacity: 0.8 }}>{k.toUpperCase()}</span>
               </div>
             ))}
           </div>
           <div style={{ display: "flex", justifyContent: "center", fontSize: 18, fontWeight: 800, paddingTop: 10, opacity: 0.9 }}>
-            {tierName}
-            {titles ? `  ${titles}` : ""}
+            {`${tierName}${titles ? `  ${titles}` : ""}`}
           </div>
         </div>
       </div>
