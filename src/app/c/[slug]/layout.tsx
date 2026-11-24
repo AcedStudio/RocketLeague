@@ -26,6 +26,7 @@ export default async function CompLayout({ children, params }: { children: React
     ...(comp.format === "groups_knockout" ? [{ href: `${base}/draw`, label: t("Жеребьёвка") }] : []),
     ...(comp.format !== "knockout" ? [{ href: `${base}/standings`, label: t("Таблица") }] : []),
     ...(comp.format !== "round_robin" ? [{ href: `${base}/bracket`, label: t("Сетка") }] : []),
+    ...(comp.format !== "knockout" ? [{ href: `${base}/calendar`, label: t("Календарь") }] : []),
     { href: `${base}/matches`, label: t("Матчи") },
     { href: `${base}/prizes`, label: t("Призы") },
   ];

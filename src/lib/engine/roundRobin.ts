@@ -34,3 +34,13 @@ export function roundRobin(ids: readonly string[], opts: { double?: boolean } = 
   }
   return fixtures;
 }
+
+/**
+ * Spreads `rounds` tours over `days` season days: returns, for each tour, the
+ * season day (1-based) by which it must be played. 10 tours in 30 days → 3, 6, …, 30.
+ * If there are more tours than days, several tours share a day.
+ */
+export function seasonDeadlineDays(rounds: number, days: number): number[] {
+  if (rounds <= 0 || days <= 0) return [];
+  return Array.from({ length: rounds }, (_, i) => Math.max(1, Math.ceil((days * (i + 1)) / rounds)));
+}

@@ -296,3 +296,7 @@ alter table rules add column if not exists title_uz text not null default '';
 alter table rules add column if not exists body_uz text not null default '';
 alter table rules add column if not exists title_en text not null default '';
 alter table rules add column if not exists body_en text not null default '';
+
+-- Season length: when > 0, publishing the draw spreads the tours evenly over this many days
+-- (each tour gets a deadline, like a football fixture calendar).
+alter table competitions add column if not exists season_days int not null default 0;

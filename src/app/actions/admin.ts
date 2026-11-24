@@ -6,7 +6,7 @@ import { q, one, tx, lockCompetition, isUniqueViolation } from "@/lib/db";
 import { str, int, bool, oneOf, optionalNumber, url, guard, ok, FormError } from "@/lib/forms";
 import { notify, logAction, matchEvent } from "@/lib/notify";
 import { fromLocalInput, slugify } from "@/lib/format";
-import { runDraw, resetDraw, publishDraw, generatePlayoffs, adminSetEntryStatus, promoteWaitlist } from "@/lib/tournament";
+import { runDraw, resetDraw, publishDraw, generatePlayoffs, adminSetEntryStatus, promoteWaitlist, applySeasonCalendar } from "@/lib/tournament";
 import { getCompetition, entryCounts } from "@/lib/data";
 import { BEST_OF_OPTIONS } from "@/lib/engine/results.ts";
 import type { Tiebreaker } from "@/lib/engine/standings.ts";
@@ -66,6 +66,7 @@ export async function saveCompetition(fd: FormData) {
     if (startRaw && !start) throw new FormError("Неверная дата старта");
 
     const noshow = int(fd, "noshow_minutes", "Ожидание соперника, минут", 0, 120);
+    const seasonDays = int(fd, "season_days", "Длительность сезона, дней", 0, 365);
     const v = {
       name,
       kind,
@@ -134,7 +135,7 @@ export async function saveCompetition(fd: FormData) {
         if (v.featured) await q("update competitions set featured = false where id <> $1", [id], c);
         await logAction(c, user.id, "competition.create", name);
       }
-      await q("update competitions set noshow_minutes = $2, deadline_forfeit = $3 where id = $1", [id, noshow, bool(fd, "deadline_forfeit")], c);
+      await q("update competitions set noshow_minutes = $2, deadline_forfeit = $3, season_days = $4 where id = $1", [id, noshow, bool(fd, "deadline_forfeit"), seasonDays], c);
     });
   });
   revalidatePath("/", "layout");
@@ -276,6 +277,26 @@ export async function recomputeRatings() {
   });
   revalidatePath("/players");
   ok("/admin/settings", (await getT())("Рейтинг пересчитан: матчей {n}", { n }));
+}
+
+export async function seasonCalendarAction(fd: FormData) {
+  const user = await requireAdmin();
+  const compId = uuid(fd.get("competition_id"));
+  const days = int(fd, "season_days", "Длительность сезона, дней", 1, 365);
+  let rounds = 0;
+  await guard(compPath(compId, "matches"), async () => {
+    await tx(async (c) => {
+      await lockCompetition(c, compId);
+      const comp = await getCompetition(compId, c);
+      if (!comp) throw new FormError("Соревнование не найдено");
+      if (comp.draw_state !== "published") throw new FormError("Сначала опубликуйте жеребьёвку");
+      await q("update competitions set season_days = $2 where id = $1", [compId, days], c);
+      rounds = await applySeasonCalendar(c, comp, days);
+      if (!rounds) throw new FormError("Календарь строится только для лиги и группового этапа");
+      await logAction(c, user.id, "calendar.apply", `${comp.name}: ${rounds} / ${days}`);
+    });
+  });
+  ok(compPath(compId, "matches"), (await getT())("Календарь построен: {rounds} туров за {days} дней", { rounds, days }));
 }
 
 // ---------------------------------------------------------------- draw & playoffs

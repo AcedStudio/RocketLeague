@@ -148,3 +148,14 @@ test("series validation", () => {
   assert.deepEqual(parseGames("3-1, 0:2"), [{ home: 3, away: 1 }, { home: 0, away: 2 }]);
   assert.equal(parseGames("3-x"), null);
 });
+
+test("season calendar: tours spread evenly, last tour on the last day", async () => {
+  const { seasonDeadlineDays } = await import("../src/lib/engine/roundRobin.ts");
+  assert.deepEqual(seasonDeadlineDays(10, 30), [3, 6, 9, 12, 15, 18, 21, 24, 27, 30]);
+  const d22 = seasonDeadlineDays(22, 30);
+  assert.equal(d22.length, 22);
+  assert.equal(d22[21], 30);
+  for (let i = 1; i < d22.length; i++) assert.ok(d22[i] >= d22[i - 1]);
+  assert.deepEqual(seasonDeadlineDays(40, 30).slice(0, 3), [1, 2, 3]);
+  assert.deepEqual(seasonDeadlineDays(0, 30), []);
+});

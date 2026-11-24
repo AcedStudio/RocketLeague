@@ -117,6 +117,11 @@ export async function CompetitionForm({ c }: { c?: Competition }) {
           <span>{t("Обязательный чек-ин перед жеребьёвкой")}</span>
         </label>
         <label className="field">
+          <span>{t("Длительность сезона, дней")}</span>
+          <input className="input" type="number" name="season_days" min={0} max={365} defaultValue={c?.season_days ?? 30} />
+          <small>{t("Для лиги и групп: после публикации жеребьёвки туры равномерно распределяются на этот срок, у каждого тура — свой крайний день. 0 — без календаря.")}</small>
+        </label>
+        <label className="field">
           <span>{t("Ожидание соперника, минут")}</span>
           <input className="input" type="number" name="noshow_minutes" min={0} max={120} defaultValue={c?.noshow_minutes ?? 15} />
           <small>{t("Если один игрок отметился «Я на месте», а соперник нет — через столько минут после начала засчитывается техническое поражение. 0 — выключено.")}</small>
