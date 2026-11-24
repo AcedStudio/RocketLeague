@@ -7,7 +7,8 @@ import { userSide } from "@/lib/tournament";
 import { fmtDateTime, toLocalInput, MATCH_STATUS_LABELS, renderStored } from "@/lib/format";
 import { Flash, MatchStatusBadge, stageLabel, type SP } from "@/components/ui";
 import { GamesInput, SubmitButton, LocalTime } from "@/components/client";
-import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction } from "@/app/actions/match";
+import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction, matchRefereeAction } from "@/app/actions/match";
+import { refereeCandidates } from "@/lib/referees";
 import { getT } from "@/lib/i18n/server";
 import { matchRatingChanges } from "@/lib/rating";
 import { Delta } from "@/components/rating";
@@ -30,7 +31,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const user = await getUser();
   if (comp.draw_state !== "published" && !isAdmin(user?.role)) notFound();
 
-  const [home, away, reports, events, side, roundsRow, elo] = await Promise.all([
+  const [home, away, reports, events, side, roundsRow, elo, refCandidates] = await Promise.all([
     m.home_entry_id ? getEntry(m.home_entry_id) : null,
     m.away_entry_id ? getEntry(m.away_entry_id) : null,
     q<Report>(
@@ -44,6 +45,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     user ? userSide(m, user.id) : null,
     q<{ r: number }>("select max(round)::int as r from matches where competition_id = $1 and stage = 'knockout'", [comp.id]),
     matchRatingChanges(m.id),
+    isAdmin(user?.role) ? refereeCandidates(comp.id) : Promise.resolve([]),
   ]);
   const rounds = roundsRow[0]?.r ?? undefined;
   // Opportunistic: apply due reminders and forfeits (throttled, also run by the 5-minute tick).
@@ -51,8 +53,11 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const myEntry = side === "home" ? m.home_entry_id : side === "away" ? m.away_entry_id : null;
   const pendingFromOpponent = reports.find((r) => r.status === "pending" && myEntry && r.entry_id !== myEntry);
   const myPending = reports.find((r) => r.status === "pending" && r.entry_id === myEntry);
-  const canReport = !!side && m.home_entry_id && m.away_entry_id && !["completed", "under_review"].includes(m.status) && !m.is_bye;
-  const ref = isReferee(user?.role);
+  const open = !!m.home_entry_id && !!m.away_entry_id && !["completed", "under_review"].includes(m.status) && !m.is_bye;
+  const canReport = !!side && open && !comp.referee_only;
+  const staff = isReferee(user?.role);
+  const assignedRef = !!user && m.referee_user_id === user.id;
+  const ref = staff || assignedRef;
   const done = m.status === "completed";
   const homeWin = done && m.winner_entry_id === m.home_entry_id;
   const awayWin = done && m.winner_entry_id === m.away_entry_id;
@@ -89,6 +94,13 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
           </div>
           {team(away, m.away_name, awayWin)}
         </div>
+        <p className="row" style={{ justifyContent: "center", margin: 0 }}>
+          {m.referee_name ? (
+            <span className="badge gold plain">⚖ {t("Судья: {name}", { name: m.referee_name })}</span>
+          ) : (
+            !m.is_bye && <span className="badge dim plain">⚖ {t("Судья ещё не назначен")}</span>
+          )}
+        </p>
         <p className="muted" style={{ textAlign: "center" }}>
           {fmtDateTime(m.scheduled_at, comp.timezone, t)} ({comp.timezone})
           {m.scheduled_at && <LocalTime iso={new Date(m.scheduled_at).toISOString()} />}
@@ -145,6 +157,17 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             </section>
           )}
 
+          {!!side && open && comp.referee_only && !assignedRef && (
+            <section className="panel stack">
+              <h3>{t("Результат")}</h3>
+              <p className="small muted" style={{ margin: 0 }}>
+                {m.referee_name
+                  ? t("Счёт вносит судья матча — {name}. Пригласите его в лобби зрителем или отправьте ему скриншот итогового счёта.", { name: m.referee_name })
+                  : t("Счёт вносит судья матча. Судью назначит администратор — вы получите уведомление.")}
+              </p>
+            </section>
+          )}
+
           {canReport && (
             <section className="panel stack">
               <h3>{myPending ? t("Вы уже отправили результат") : t("Отправить результат")}</h3>
@@ -173,6 +196,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
           {ref && m.home_entry_id && m.away_entry_id && !m.is_bye && (
             <section className="panel stack" style={{ borderColor: "rgba(217,173,80,.4)" }}>
               <h3>{t("Судейская панель")}</h3>
+              {assignedRef && !staff && <p className="small muted" style={{ margin: 0 }}>{t("Вы назначены судьёй этого матча. Впишите итоговый счёт после игры — он сразу станет официальным.")}</p>}
               {m.status === "under_review" && <div className="notice small">{t("Спор: сравните отчёты ниже и установите официальный результат.")}</div>}
               <form action={refereeResultAction} className="stack">
                 <input type="hidden" name="match_id" value={m.id} />
@@ -193,7 +217,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
                   {t("Утвердить результат")}
                 </SubmitButton>
               </form>
-              {!done && (
+              {staff && !done && (
                 <form action={matchStatusAction} className="row">
                   <input type="hidden" name="match_id" value={m.id} />
                   <select className="input" name="status" defaultValue={m.status} style={{ maxWidth: 240 }}>
@@ -204,11 +228,27 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
                   <SubmitButton className="btn btn-ghost">{t("Сменить статус")}</SubmitButton>
                 </form>
               )}
-              <form action={scheduleAction} className="row">
-                <input type="hidden" name="match_id" value={m.id} />
-                <input className="input" type="datetime-local" name="scheduled_at" defaultValue={toLocalInput(m.scheduled_at, comp.timezone)} style={{ maxWidth: 260 }} />
-                <SubmitButton className="btn btn-ghost">{t("Сохранить время")}</SubmitButton>
-              </form>
+              {staff && (
+                <form action={scheduleAction} className="row">
+                  <input type="hidden" name="match_id" value={m.id} />
+                  <input className="input" type="datetime-local" name="scheduled_at" defaultValue={toLocalInput(m.scheduled_at, comp.timezone)} style={{ maxWidth: 260 }} />
+                  <SubmitButton className="btn btn-ghost">{t("Сохранить время")}</SubmitButton>
+                </form>
+              )}
+              {isAdmin(user?.role) && !done && (
+                <form action={matchRefereeAction} className="row">
+                  <input type="hidden" name="match_id" value={m.id} />
+                  <select className="input" name="referee" defaultValue={m.referee_user_id ?? ""} style={{ maxWidth: 260 }} aria-label={t("Судья матча")}>
+                    <option value="">{t("— без судьи —")}</option>
+                    {refCandidates
+                      .filter((c) => c.entry_id !== m.home_entry_id && c.entry_id !== m.away_entry_id)
+                      .map((c) => (
+                        <option key={c.user_id} value={c.user_id}>{c.nickname} · {t("судил: {n}", { n: c.refereed })}</option>
+                      ))}
+                  </select>
+                  <SubmitButton className="btn btn-ghost">{t("Назначить судью")}</SubmitButton>
+                </form>
+              )}
             </section>
           )}
         </div>

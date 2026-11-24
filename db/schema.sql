@@ -300,3 +300,9 @@ alter table rules add column if not exists body_en text not null default '';
 -- Season length: when > 0, publishing the draw spreads the tours evenly over this many days
 -- (each tour gets a deadline, like a football fixture calendar).
 alter table competitions add column if not exists season_days int not null default 0;
+
+-- Match referee: one of the competition's players (not playing in this match), assigned by an admin.
+alter table matches add column if not exists referee_user_id uuid references users(id) on delete set null;
+create index if not exists matches_referee on matches (referee_user_id) where referee_user_id is not null;
+-- When on, players don't report scores themselves: the assigned referee (or staff) enters the result.
+alter table competitions add column if not exists referee_only boolean not null default false;

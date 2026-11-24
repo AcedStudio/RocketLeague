@@ -6,6 +6,7 @@ import { q, one, tx } from "../src/lib/db";
 import { leaderboard, recomputeAll } from "../src/lib/rating";
 import { syncRoles } from "../src/lib/discord-server";
 import { getPlayerCard } from "../src/lib/cards";
+import { refereeCandidates, assignReferees, autoAssignReferees, canReferee } from "../src/lib/referees";
 import { proposeTime, respondProposal, checkIn as checkInMatch, sweep } from "../src/lib/scheduling";
 import {
   registerSolo, createTeam, joinTeam, withdraw, runDraw, resetDraw, publishDraw, submitReport, respondToReport, refereeResult, checkIn,
@@ -418,6 +419,47 @@ async function main() {
       pairs.set(k, (pairs.get(k) ?? 0) + 1);
     }
     assert.ok([...pairs.values()].every((n) => n === 2));
+  });
+
+  await step("referees: a non-playing participant is assigned and enters the score; players can't", async () => {
+    const rc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1, referee_only: true });
+    for (const p of players.slice(0, 4)) await registerSolo(rc, p);
+    await close(rc);
+    await runDraw(rc, admin);
+    await publishDraw(rc, admin);
+    const ms = (await getMatches(rc)).filter((m) => !m.is_bye);
+    const m1 = ms[0];
+    const playerOf = async (eid: string) => users.get((await membersOf(eid))[0])!;
+    const a = await playerOf(m1.home_entry_id!);
+    const cands = await refereeCandidates(rc);
+    const outsider = users.get(cands.find((x) => x.entry_id !== m1.home_entry_id && x.entry_id !== m1.away_entry_id)!.user_id)!;
+
+    await rejects(assignReferees(rc, { [m1.id]: a.id }, admin), /свой матч/);
+    await rejects(assignReferees(rc, { [m1.id]: players[11].id }, admin), /участник соревнования/);
+    assert.equal(await assignReferees(rc, { [m1.id]: outsider.id }, admin), 1);
+    const fresh = (await getMatches(rc)).find((m) => m.id === m1.id)!;
+    assert.equal(fresh.referee_user_id, outsider.id);
+    assert.equal(fresh.referee_name, outsider.rl_nickname);
+    assert.ok(await one("select 1 from notifications where user_id = $1 and title = 'Вы судья матча #{n}'", [outsider.id]));
+
+    await rejects(submitReport(m1.id, a, [{ home: 3, away: 1 }], "", ""), /судья матча/);
+    assert.equal(canReferee(outsider, fresh), true);
+    assert.equal(canReferee(a, fresh), false);
+    await refereeResult(m1.id, outsider, { games: [{ home: 3, away: 1 }] }, "");
+    const done = (await getMatches(rc)).find((m) => m.id === m1.id)!;
+    assert.equal(done.status, "completed");
+    assert.equal(done.winner_entry_id, m1.home_entry_id);
+
+    // Auto-assign tour 2: every match gets a referee who doesn't play in it, nobody twice if avoidable.
+    const n = await autoAssignReferees(rc, "league", 2, admin);
+    const t2 = (await getMatches(rc)).filter((m) => m.stage === "league" && m.round === 2 && !m.is_bye);
+    assert.equal(n, t2.length);
+    for (const m of t2) {
+      assert.ok(m.referee_user_id);
+      const plays = (await membersOf(m.home_entry_id!)).concat(await membersOf(m.away_entry_id!));
+      assert.ok(!plays.includes(m.referee_user_id!), "referee doesn't play in the match");
+    }
+    assert.equal(new Set(t2.map((m) => m.referee_user_id)).size, t2.length, "different referee per match");
   });
 
   console.log(`\n${passed} integration checks passed`);

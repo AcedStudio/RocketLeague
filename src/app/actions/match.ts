@@ -1,12 +1,13 @@
 "use server";
 
-import { requireUser, requireReferee } from "@/lib/auth";
+import { requireUser, requireReferee, requireAdmin } from "@/lib/auth";
 import { str, url, guard, ok, oneOf, FormError } from "@/lib/forms";
 import { submitReport, respondToReport, refereeResult } from "@/lib/tournament";
 import { parseGames } from "@/lib/engine/results.ts";
 import { one, q, tx } from "@/lib/db";
 import { notifyEntries, logAction, matchEvent } from "@/lib/notify";
 import { fromLocalInput, MATCH_STATUS_LABELS } from "@/lib/format";
+import { canReferee, assignReferees } from "@/lib/referees";
 
 function matchId(fd: FormData) {
   const id = String(fd.get("match_id") ?? "");
@@ -46,8 +47,11 @@ export async function respondAction(fd: FormData) {
 export async function refereeResultAction(fd: FormData) {
   const id = matchId(fd);
   const path = `/match/${id}`;
-  const user = await requireReferee();
+  const user = await requireUser(path);
   await guard(path, async () => {
+    // Staff, or the player assigned as this match's referee.
+    const m = await one<{ referee_user_id: string | null }>("select referee_user_id from matches where id = $1", [id]);
+    if (!m || !canReferee(user, m)) throw new FormError("Счёт вносит только судья этого матча");
     const forfeit = String(fd.get("forfeit") ?? "");
     const note = str(fd, "note", "Решение", { optional: true, max: 500 });
     if (forfeit === "home" || forfeit === "away") {
@@ -114,4 +118,19 @@ export async function scheduleAction(fd: FormData) {
     });
   });
   ok(path, "Расписание обновлено");
+}
+
+export async function matchRefereeAction(fd: FormData) {
+  const id = matchId(fd);
+  const path = `/match/${id}`;
+  const user = await requireAdmin();
+  let changed = 0;
+  await guard(path, async () => {
+    const m = await one<{ competition_id: string }>("select competition_id from matches where id = $1", [id]);
+    if (!m) throw new FormError("Матч не найден");
+    const ref = String(fd.get("referee") ?? "");
+    if (ref && !/^[0-9a-f-]{36}$/i.test(ref)) throw new FormError("Неверный идентификатор");
+    changed = await assignReferees(m.competition_id, { [id]: ref }, user);
+  });
+  ok(path, changed ? "Судья назначен" : "Без изменений");
 }

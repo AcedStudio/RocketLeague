@@ -24,7 +24,7 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
     "select discord_username, discord_dm, password_hash is not null as has_password from users where id = $1",
     [user.id],
   );
-  const [entries, matches] = await Promise.all([
+  const [entries, matches, judging] = await Promise.all([
     q<{ id: string; name: string; status: string; number: number; slug: string; comp: string; mode: string }>(
       `select e.id, e.name, e.status, e.number, c.slug, c.name as comp, c.mode
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
@@ -39,6 +39,14 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
           and (m.home_entry_id in (select entry_id from entry_members where user_id = $1 and active)
             or m.away_entry_id in (select entry_id from entry_members where user_id = $1 and active))
         order by m.scheduled_at nulls last, m.number limit 10`,
+      [user.id],
+    ),
+    q<{ id: string; number: number; round: number; status: "ready"; scheduled_at: Date | null; play_by: Date | null; home_name: string | null; away_name: string | null; comp: string; timezone: string }>(
+      `select m.id, m.number, m.round, m.status, m.scheduled_at, m.play_by, he.name as home_name, ae.name as away_name, c.name as comp, c.timezone
+         from matches m join competitions c on c.id = m.competition_id
+         left join entries he on he.id = m.home_entry_id left join entries ae on ae.id = m.away_entry_id
+        where m.referee_user_id = $1 and m.status <> 'completed' and not m.is_bye
+        order by m.scheduled_at nulls last, m.round, m.number limit 20`,
       [user.id],
     ),
   ]);
@@ -63,6 +71,31 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
 
       <div className="split">
         <div className="stack-lg">
+          {judging.length > 0 && (
+            <section className="stack">
+              <h2 style={{ fontSize: "1.3rem" }}>⚖ {t("Матчи, которые я сужу")}</h2>
+              <div className="list">
+                {judging.map((m) => (
+                  <Link key={m.id} href={`/match/${m.id}`} className="list-row">
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <b>
+                        {m.home_name ?? "?"} vs {m.away_name ?? "?"}
+                      </b>
+                      <span className="small muted" style={{ display: "block" }}>
+                        {m.comp} · {t("Тур {n}", { n: m.round })} · #{m.number} ·{" "}
+                        {m.scheduled_at
+                          ? fmtDateTime(m.scheduled_at, m.timezone, t)
+                          : m.play_by
+                            ? t("до {date}", { date: fmtDateTime(m.play_by, m.timezone, t) })
+                            : t("время не согласовано")}
+                      </span>
+                    </span>
+                    <span className="badge gold plain">{t("Внести счёт")}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
           <section className="stack">
             <h2 style={{ fontSize: "1.3rem" }}>{t("Мои ближайшие матчи")}</h2>
             {matches.length ? (

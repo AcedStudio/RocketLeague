@@ -15,6 +15,7 @@ import { isLocale } from "@/lib/i18n/core";
 import { setupServer, syncRoles, refreshBoards } from "@/lib/discord-server";
 import { getT } from "@/lib/i18n/server";
 import { entryRatings, recomputeAll } from "@/lib/rating";
+import { assignReferees, autoAssignReferees } from "@/lib/referees";
 
 const uuid = (v: unknown) => {
   const s = String(v ?? "");
@@ -135,7 +136,11 @@ export async function saveCompetition(fd: FormData) {
         if (v.featured) await q("update competitions set featured = false where id <> $1", [id], c);
         await logAction(c, user.id, "competition.create", name);
       }
-      await q("update competitions set noshow_minutes = $2, deadline_forfeit = $3, season_days = $4 where id = $1", [id, noshow, bool(fd, "deadline_forfeit"), seasonDays], c);
+      await q(
+        "update competitions set noshow_minutes = $2, deadline_forfeit = $3, season_days = $4, referee_only = $5 where id = $1",
+        [id, noshow, bool(fd, "deadline_forfeit"), seasonDays, bool(fd, "referee_only")],
+        c,
+      );
     });
   });
   revalidatePath("/", "layout");
@@ -277,6 +282,40 @@ export async function recomputeRatings() {
   });
   revalidatePath("/players");
   ok("/admin/settings", (await getT())("Рейтинг пересчитан: матчей {n}", { n }));
+}
+
+/** Referees for one tour: fields ref_<matchId> = userId | "". */
+export async function saveRefereesAction(fd: FormData) {
+  const user = await requireAdmin();
+  const id = uuid(fd.get("id"));
+  const back = `${compPath(id, "matches")}&rt=${encodeURIComponent(String(fd.get("round_key") ?? ""))}`;
+  let n = 0;
+  await guard(back, async () => {
+    const choices: Record<string, string> = {};
+    for (const [k, v] of fd.entries()) {
+      if (!k.startsWith("ref_")) continue;
+      const matchId = k.slice(4);
+      const userId = String(v);
+      if (!/^[0-9a-f-]{36}$/i.test(matchId) || (userId && !/^[0-9a-f-]{36}$/i.test(userId))) throw new FormError("Неверный идентификатор");
+      choices[matchId] = userId;
+    }
+    n = await assignReferees(id, choices, user);
+  });
+  ok(back, (await getT())("Судьи сохранены: изменений {n}", { n }));
+}
+
+export async function autoRefereesAction(fd: FormData) {
+  const user = await requireAdmin();
+  const id = uuid(fd.get("id"));
+  const key = String(fd.get("round_key") ?? "");
+  const back = `${compPath(id, "matches")}&rt=${encodeURIComponent(key)}`;
+  let n = 0;
+  await guard(back, async () => {
+    const [stage, roundStr] = key.split(":");
+    if (!["group", "league", "knockout", "third_place"].includes(stage) || !Number.isInteger(Number(roundStr))) throw new FormError("Выберите тур");
+    n = await autoAssignReferees(id, stage, Number(roundStr), user);
+  });
+  ok(back, (await getT())("Назначено судей: {n}", { n }));
 }
 
 /** Change the series length (Bo1/3/5/7) for every unplayed match, or for one tour. */
