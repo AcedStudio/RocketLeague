@@ -1,4 +1,4 @@
-import { getRules, RULE_CATEGORIES } from "@/lib/data";
+import { getRules, ruleText, RULE_CATEGORIES } from "@/lib/data";
 import { dbConfigured } from "@/lib/db";
 import { fmtDate } from "@/lib/format";
 import { SetupNotice } from "@/components/ui";
@@ -53,14 +53,17 @@ export default async function Rules() {
                 <h2 style={{ fontSize: "1.35rem" }}>
                   {i + 1}. {t(c)}
                 </h2>
-                {byCat.get(c)!.map((r, j) => (
-                  <article key={r.id} className="panel stack" style={{ gap: 8 }}>
-                    <h3>
-                      {i + 1}.{j + 1} {r.title}
-                    </h3>
-                    <p className="muted prose" style={{ whiteSpace: "pre-line" }}>{r.body}</p>
-                  </article>
-                ))}
+                {byCat.get(c)!.map((r, j) => {
+                  const tx = ruleText(r, t.locale);
+                  return (
+                    <article key={r.id} className="panel stack" style={{ gap: 8 }}>
+                      <h3>
+                        {i + 1}.{j + 1} {tx.title}
+                      </h3>
+                      <p className="muted prose" style={{ whiteSpace: "pre-line" }}>{tx.body}</p>
+                    </article>
+                  );
+                })}
               </section>
             ))}
           </div>

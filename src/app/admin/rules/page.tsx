@@ -23,6 +23,27 @@ async function RuleForm({ r }: { r?: Rule }) {
           <span>{t("Текст")}</span>
           <textarea className="input" name="body" required maxLength={8000} defaultValue={r?.body} style={{ minHeight: 160 }} />
         </label>
+        <details className="full">
+          <summary className="small muted" style={{ cursor: "pointer" }}>{t("Перевод на узбекский и английский (необязательно)")}</summary>
+          <div className="form-grid" style={{ marginTop: 12 }}>
+            <label className="field">
+              <span>{t("Заголовок")} (UZ)</span>
+              <input className="input" name="title_uz" maxLength={140} defaultValue={r?.title_uz} />
+            </label>
+            <label className="field">
+              <span>{t("Заголовок")} (EN)</span>
+              <input className="input" name="title_en" maxLength={140} defaultValue={r?.title_en} />
+            </label>
+            <label className="field">
+              <span>{t("Текст")} (UZ)</span>
+              <textarea className="input" name="body_uz" maxLength={8000} defaultValue={r?.body_uz} style={{ minHeight: 120 }} />
+            </label>
+            <label className="field">
+              <span>{t("Текст")} (EN)</span>
+              <textarea className="input" name="body_en" maxLength={8000} defaultValue={r?.body_en} style={{ minHeight: 120 }} />
+            </label>
+          </div>
+        </details>
         <label className="check">
           <input type="checkbox" name="published" defaultChecked={r?.published} />
           <span>{t("Опубликовано")}</span>

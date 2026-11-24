@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -243,5 +243,33 @@ export function Tabs({ items, className = "tabs" }: { items: { href: string; lab
         );
       })}
     </nav>
+  );
+}
+
+/** <details> dropdown that closes on navigation, outside click and Escape. */
+export function Dropdown({ className, summary, children }: { className?: string; summary: React.ReactNode; children: React.ReactNode }) {
+  const ref = useRef<HTMLDetailsElement>(null);
+  const path = usePathname();
+  useEffect(() => {
+    if (ref.current) ref.current.open = false;
+  }, [path]);
+  useEffect(() => {
+    const close = (e: Event) => {
+      const el = ref.current;
+      if (!el?.open) return;
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !el.contains(e.target as Node)) el.open = false;
+    };
+    document.addEventListener("click", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("click", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, []);
+  return (
+    <details ref={ref} className={className}>
+      {summary}
+      {children}
+    </details>
   );
 }

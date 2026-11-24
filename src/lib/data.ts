@@ -296,7 +296,17 @@ export async function getAnnouncements(competitionId?: string, limit = 5) {
   );
 }
 
-export type Rule = { id: string; category: string; title: string; body: string; position: number; published: boolean; updated_at: Date };
+export type Rule = {
+  id: string; category: string; title: string; body: string; position: number; published: boolean; updated_at: Date;
+  title_uz: string; body_uz: string; title_en: string; body_en: string;
+};
+
+/** The rule text in the reader's language, falling back to Russian. */
+export function ruleText(r: Rule, locale: string) {
+  if (locale === "uz" && r.title_uz) return { title: r.title_uz, body: r.body_uz || r.body };
+  if (locale === "en" && r.title_en) return { title: r.title_en, body: r.body_en || r.body };
+  return { title: r.title, body: r.body };
+}
 
 export async function getRules(publishedOnly: boolean) {
   return q<Rule>(`select * from rules where $1 = false or published order by category, position, title`, [publishedOnly]);
