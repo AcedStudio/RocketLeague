@@ -96,6 +96,7 @@ export type Embed = {
   fields?: { name: string; value: string; inline?: boolean }[];
   footer?: { text: string };
   thumbnail?: { url: string };
+  image?: { url: string };
   timestamp?: string;
 };
 

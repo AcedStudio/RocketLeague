@@ -32,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/competitions", label: t("Соревнования") },
     { href: "/players", label: t("Игроки") },
     { href: "/stats", label: t("Статистика") },
+    { href: "/hall", label: t("Зал славы") },
     { href: "/rules", label: t("Правила") },
     { href: "/faq", label: "FAQ" },
   ];

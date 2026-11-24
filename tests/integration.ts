@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { q, one, tx } from "../src/lib/db";
 import { leaderboard, recomputeAll } from "../src/lib/rating";
 import { syncRoles } from "../src/lib/discord-server";
+import { getPlayerCard } from "../src/lib/cards";
 import { proposeTime, respondProposal, checkIn as checkInMatch, sweep } from "../src/lib/scheduling";
 import {
   registerSolo, createTeam, joinTeam, withdraw, runDraw, resetDraw, publishDraw, submitReport, respondToReport, refereeResult, checkIn,
@@ -382,6 +383,17 @@ async function main() {
     const again = await sweep(true);
     assert.equal((await reload(m3.id)).status, m.status);
     assert.equal(again.forfeits, 0);
+  });
+
+  await step("FUT card: built from real results, champion titles counted", async () => {
+    const champEntry = (await one<{ champion_entry_id: string }>("select champion_entry_id from competitions where id = $1", [league]))!.champion_entry_id;
+    const champUser = (await membersOf(champEntry))[0];
+    const card = (await getPlayerCard(champUser))!;
+    assert.ok(card.stats.played >= 8, "league matches are on the card");
+    assert.ok(card.titles >= 1, "league title counted");
+    assert.ok(card.stats.ovr >= 40 && card.stats.ovr <= 99);
+    assert.ok(card.stats.goalsFor > 0);
+    for (const k of ["atk", "def", "win", "clu", "frm", "exp"] as const) assert.ok(card.stats[k] >= 30 && card.stats[k] <= 99, k);
   });
 
   console.log(`\n${passed} integration checks passed`);

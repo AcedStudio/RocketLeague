@@ -105,6 +105,8 @@ async function rank(t: T, discordUser: DUser, self: boolean): Promise<Answer> {
         url: `${siteUrl()}/players/${u.id}`,
         color: best !== null ? tierColorInt(tierOf(best).color) : BRAND_COLOR,
         thumbnail: avatarUrl(discordUser) ? { url: avatarUrl(discordUser)! } : undefined,
+        // FUT card picture; the version part makes Discord refetch it after every match.
+        image: { url: `${siteUrl()}/api/card/${u.id}?lang=${t.locale}&v=${ratings.map((r) => `${r.rating}.${r.games}`).join("-")}` },
         fields,
       },
     ],

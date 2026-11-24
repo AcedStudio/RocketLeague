@@ -415,3 +415,40 @@ details.qa > div { padding: 0 0 var(--s5); color: var(--ink-soft); white-space: 
 .spark path.area { fill: color-mix(in srgb, var(--tier) 16%, transparent); stroke: none; }
 .or-divider { display: flex; align-items: center; gap: var(--s3); color: var(--ink-faint); font-size: 0.85rem; }
 .or-divider::before, .or-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+/* FUT player card */
+.fut { --w: 260px; position: relative; width: var(--w); aspect-ratio: 0.7; color: var(--ink); isolation: isolate; display: grid; grid-template-rows: auto 1fr auto auto auto; padding: calc(var(--w) * 0.08) calc(var(--w) * 0.09) calc(var(--w) * 0.13);
+  background:
+    radial-gradient(120% 70% at 30% 0%, rgba(255,255,255,.55), transparent 55%),
+    linear-gradient(160deg, var(--c1) 0%, color-mix(in srgb, var(--c1) 55%, var(--c2)) 45%, var(--c2) 100%);
+  clip-path: polygon(50% 0, 88% 3.5%, 100% 11%, 100% 86%, 50% 100%, 0 86%, 0 11%, 12% 3.5%); font-family: var(--font-display); }
+/* clip-path would cut a shadow on the card itself, so the wrapper carries it. */
+.fut-wrap { display: inline-block; filter: drop-shadow(0 18px 28px rgba(0,0,0,.45)); }
+.fut::after { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .16; background-image: repeating-linear-gradient(115deg, rgba(255,255,255,.7) 0 1px, transparent 1px 9px); }
+.fut-sm { --w: 176px; }
+.fut-top { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; column-gap: 8px; align-items: start; }
+.fut-ovr { font-size: calc(var(--w) * 0.2); line-height: .9; font-weight: 800; grid-row: 1; }
+.fut-pos, .fut-plat { grid-column: 1; font-size: calc(var(--w) * 0.06); font-weight: 700; opacity: .9; letter-spacing: .04em; text-align: center; }
+.fut-gem { grid-column: 2; grid-row: 1 / span 3; justify-self: end; width: calc(var(--w) * 0.14); aspect-ratio: 1; transform: rotate(45deg); border-radius: 22%;
+  background: linear-gradient(135deg, rgba(255,255,255,.9), var(--c1) 40%, var(--c2)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 35%, transparent), 0 4px 10px rgba(0,0,0,.3); margin-top: 4px; }
+.fut-art { display: grid; place-items: center; min-height: 0; }
+.fut-art span { font-size: calc(var(--w) * 0.36); font-weight: 800; line-height: 1; opacity: .2; letter-spacing: -.05em; text-shadow: 0 2px 0 rgba(255,255,255,.25); }
+.fut-name { text-align: center; font-weight: 800; font-size: calc(var(--w) * 0.085); text-transform: uppercase; letter-spacing: .02em; padding-bottom: calc(var(--w) * 0.025);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fut-stats { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--w) * 0.08); row-gap: calc(var(--w) * 0.012); padding-top: calc(var(--w) * 0.035); }
+.fut-stats > div { display: flex; align-items: baseline; gap: 6px; font-size: calc(var(--w) * 0.058); }
+.fut-stats b { font-weight: 800; min-width: 2ch; }
+.fut-stats span { font-weight: 600; opacity: .85; }
+.fut-foot { display: flex; justify-content: center; gap: 8px; font-family: var(--font-text); font-size: calc(var(--w) * 0.045); font-weight: 700; padding-top: calc(var(--w) * 0.03); opacity: .9; text-align: center; }
+.fut-holo::after { opacity: .5; mix-blend-mode: overlay;
+  background: linear-gradient(115deg, transparent 20%, rgba(255,120,200,.7) 35%, rgba(120,220,255,.7) 50%, rgba(255,240,140,.7) 65%, transparent 80%); background-size: 250% 250%; animation: holo 6s linear infinite; }
+@keyframes holo { from { background-position: 0% 0%; } to { background-position: 250% 250%; } }
+@media (prefers-reduced-motion: reduce) { .fut-holo::after { animation: none; } }
+.fut-link { display: inline-block; text-decoration: none; transition: transform 200ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .fut-link:hover { transform: translateY(-4px) rotate(-1deg); } }
+.card-hero { display: grid; grid-template-columns: auto 1fr; gap: var(--s7); align-items: center; }
+@media (max-width: 720px) { .card-hero { grid-template-columns: 1fr; justify-items: center; } }
+.fut-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px var(--s5); margin: 0; padding: 0; list-style: none; }
+.fut-legend b { font-family: var(--font-display); margin-right: 8px; }
+.cards-row { display: flex; flex-wrap: wrap; gap: var(--s6); }
+.kpi > span { display: block; }
