@@ -1,0 +1,34 @@
+1v1 или 2v2	1v1 yoki 2v2	1v1 or 2v2
+ELO считается по каждому подтверждённому матчу: победа над сильным соперником даёт больше очков, разгромная серия — ещё больше. Первые 10 матчей рейтинг меняется быстрее.	ELO har bir tasdiqlangan uchrashuv boʻyicha hisoblanadi: kuchli raqib ustidan gʻalaba koʻproq ochko beradi, quruq hisobdagi seriya esa undan ham koʻp. Dastlabki 10 uchrashuvda reyting tezroq oʻzgaradi.	ELO is updated after every confirmed match: beating a stronger opponent earns more points, and a sweep earns even more. Ratings move faster during your first 10 matches.
+Алмаз	Olmos	Diamond
+Включите «Жеребьёвка с посевом (корзины)» в настройках, чтобы посев учитывался.	Posev hisobga olinishi uchun sozlamalarda «Posevli qurʼa (savatlar)» ni yoqing.	Turn on “Seeded draw (pots)” in the settings so the seeding is used.
+Гранд-чемпион	Grand chempion	Grand Champion
+Ещё без рейтинга в {mode}	{mode} da hali reytingsiz	Not yet rated in {mode}
+Ещё нет матчей	Hali uchrashuvlar yoʻq	No matches yet
+Золото	Oltin	Gold
+Изменение рейтинга	Reyting oʻzgarishi	Rating change
+Калибровка {n}/{total}	Kalibrovka {n}/{total}	Calibrating {n}/{total}
+Ник игрока	Oʻyinchi nik	Player nickname
+Перезаписать текущий посев?	Joriy posev qayta yozilsinmi?	Overwrite the current seeding?
+Пересчитать рейтинг	Reytingni qayta hisoblash	Recalculate ratings
+Пересчитать рейтинг всех игроков с нуля?	Barcha oʻyinchilar reytingi noldan qayta hisoblansinmi?	Recalculate every player’s rating from scratch?
+Пик	Choʻqqi	Peak
+Платина	Platina	Platinum
+Посев меняется только до жеребьёвки	Posevni faqat qurʼagacha oʻzgartirish mumkin	Seeding can only be changed before the draw
+Посев по ELO	ELO boʻyicha posev	Seed by ELO
+Посев по ELO: подтверждённые участники получат номера посева по среднему рейтингу игроков. Сильнейшие не встретятся рано.	ELO boʻyicha posev: tasdiqlangan ishtirokchilar oʻyinchilarning oʻrtacha reytingi boʻyicha posev raqamlarini oladi. Eng kuchlilar erta uchrashmaydi.	Seed by ELO: confirmed entries get seeds by their players’ average rating, so the strongest don’t meet early.
+Посев расставлен по рейтингу	Posev reyting boʻyicha belgilandi	Seeds set by rating
+Последний	Oxirgi	Last
+Ранг	Daraja	Rank
+Ранг откроется после {n} матчей	Daraja {n} ta uchrashuvdan soʻng ochiladi	The rank unlocks after {n} matches
+Рейтинг ELO	ELO reytingi	ELO rating
+Рейтинг {mode}	{mode} reytingi	{mode} rating
+Рейтинг игроков	Oʻyinchilar reytingi	Player rankings
+Рейтинг обновляется сам после каждого результата. Пересчёт с нуля переигрывает все матчи по порядку — нужен после крупных исправлений задним числом.	Reyting har bir natijadan soʻng oʻzi yangilanadi. Noldan qayta hisoblash barcha uchrashuvlarni tartib bilan qayta oʻtkazadi — katta orqaga qaytgan tuzatishlardan soʻng kerak.	Ratings update automatically after every result. A full recalculation replays every match in order — use it after large retroactive corrections.
+Рейтинг пересчитан: матчей {n}	Reyting qayta hisoblandi: {n} ta uchrashuv	Ratings recalculated: {n} matches
+Рейтинг появится после первых сыгранных матчей	Reyting dastlabki oʻynalgan uchrashuvlardan soʻng paydo boʻladi	Rankings appear after the first matches are played
+Серебро	Kumush	Silver
+Суперсоник-легенда	Supersonik afsona	Supersonic Legend
+Топ рейтинга ELO	ELO reytingi topi	ELO leaderboard
+Топ рейтинга {mode}	{mode} reytingi topi	{mode} leaderboard
+быстрый рост	tez oʻsish	fast gains

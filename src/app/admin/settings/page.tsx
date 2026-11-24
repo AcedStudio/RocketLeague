@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { getSettings } from "@/lib/data";
-import { saveSettings } from "@/app/actions/admin";
+import { saveSettings, recomputeRatings } from "@/app/actions/admin";
 import { Flash, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { getT } from "@/lib/i18n/server";
@@ -38,6 +38,15 @@ export default async function AdminSettings({ searchParams }: { searchParams: SP
           <input className="input" name="contact_email" type="email" defaultValue={s.contact_email} />
         </label>
         <div className="full"><SubmitButton className="btn">{t("Сохранить")}</SubmitButton></div>
+      </form>
+      <form action={recomputeRatings} className="panel row" style={{ justifyContent: "space-between", marginTop: 24 }}>
+        <span className="stack-sm" style={{ maxWidth: 620 }}>
+          <b>{t("Рейтинг ELO")}</b>
+          <span className="small muted">
+            {t("Рейтинг обновляется сам после каждого результата. Пересчёт с нуля переигрывает все матчи по порядку — нужен после крупных исправлений задним числом.")}
+          </span>
+        </span>
+        <SubmitButton className="btn btn-ghost" confirm={t("Пересчитать рейтинг всех игроков с нуля?")}>{t("Пересчитать рейтинг")}</SubmitButton>
       </form>
     </>
   );

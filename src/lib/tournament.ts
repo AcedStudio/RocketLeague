@@ -1,4 +1,5 @@
 import "server-only";
+import { rateMatch } from "./rating";
 import type { PoolClient } from "@neondatabase/serverless";
 import { q, one, tx, lockCompetition, isUniqueViolation, type Queryable } from "./db";
 import { FormError } from "./errors";
@@ -440,12 +441,13 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
 
   await q(
     `update matches set games = $2, home_wins = $3, away_wins = $4, home_goals = $5, away_goals = $6, winner_entry_id = $7,
-            forfeit = $8, status = 'completed', updated_at = now() where id = $1`,
+            forfeit = $8, status = 'completed', completed_at = coalesce(completed_at, now()), updated_at = now() where id = $1`,
     [m.id, JSON.stringify(games), hw, aw, hg, ag, winner, !!result.forfeitWinner],
     c,
   );
   await q("update match_reports set status = 'superseded' where match_id = $1 and status = 'pending'", [m.id], c);
   await matchEvent(c, m.id, actorId, note, noteParams);
+  await rateMatch(c, m.id);
 
   if (m.next_match_id && m.next_side) await placeIntoSlot(c, m.next_match_id, m.next_side, winner);
   if (m.loser_next_match_id && m.loser_next_side) await placeIntoSlot(c, m.loser_next_match_id, m.loser_next_side, loser);

@@ -2,7 +2,8 @@
 // Run: DATABASE_URL=... npx tsx --conditions=react-server tests/integration.ts
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { q, one } from "../src/lib/db";
+import { q, one, tx } from "../src/lib/db";
+import { leaderboard, recomputeAll } from "../src/lib/rating";
 import {
   registerSolo, createTeam, joinTeam, withdraw, runDraw, resetDraw, publishDraw, submitReport, respondToReport, refereeResult, checkIn,
 } from "../src/lib/tournament";
@@ -256,6 +257,40 @@ async function main() {
     assert.equal(t.rows.reduce((s, r) => s + r.wins, 0), 20);
     assert.ok(t.rows.every((r) => r.played === 8));
     assert.equal(t.rows.reduce((s, r) => s + r.goalsFor - r.goalsAgainst, 0), 0);
+  });
+
+  await step("ELO: every rated match moves both sides, forfeits are not rated, corrections replace deltas", async () => {
+    const lm = (await getMatches(league)).filter((m) => m.status === "completed");
+    const rows = await q<{ match_id: string; user_id: string; delta: number; entry_id: string }>(
+      "select match_id, user_id, delta, entry_id from rating_changes where match_id = any($1::uuid[])",
+      [lm.map((m) => m.id)],
+    );
+    assert.equal(rows.length, lm.length * 2);
+    for (const m of lm) {
+      const w = rows.find((r) => r.match_id === m.id && r.entry_id === m.winner_entry_id)!;
+      const l = rows.find((r) => r.match_id === m.id && r.entry_id !== m.winner_entry_id)!;
+      assert.ok(w.delta > 0 && l.delta < 0, "winner gains, loser loses");
+    }
+    const ff = (await getMatches(cup)).filter((m) => m.forfeit);
+    assert.ok(ff.length >= 1);
+    assert.equal((await q("select 1 from rating_changes where match_id = any($1::uuid[])", [ff.map((m) => m.id)])).length, 0);
+
+    // Flip the last league result: its two deltas are replaced, not added.
+    const last = lm[lm.length - 1];
+    const winHome = last.winner_entry_id === last.home_entry_id;
+    await refereeResult(last.id, admin, { games: winHome ? [{ home: 0, away: 1 }, { home: 0, away: 1 }] : [{ home: 1, away: 0 }, { home: 1, away: 0 }] }, "исправление");
+    const after = await q<{ entry_id: string; delta: number }>("select entry_id, delta from rating_changes where match_id = $1", [last.id]);
+    assert.equal(after.length, 2);
+    const fixed = (await getMatches(league)).find((m) => m.id === last.id)!;
+    assert.ok(after.find((r) => r.entry_id === fixed.winner_entry_id)!.delta > 0);
+
+    const lb = await leaderboard("1v1", "", 500);
+    const mine = lb.filter((r) => players.some((p) => p.id === r.id));
+    assert.ok(mine.length >= 5);
+    const total = await tx((c) => recomputeAll(c));
+    assert.ok(total >= lm.length);
+    const again = await q<{ n: number }>("select count(*)::int as n from rating_changes where match_id = any($1::uuid[])", [lm.map((m) => m.id)]);
+    assert.equal(again[0].n, lm.length * 2);
   });
 
   console.log(`\n${passed} integration checks passed`);

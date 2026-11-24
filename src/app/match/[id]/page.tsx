@@ -9,6 +9,8 @@ import { Flash, MatchStatusBadge, stageLabel, type SP } from "@/components/ui";
 import { GamesInput, SubmitButton, LocalTime } from "@/components/client";
 import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction } from "@/app/actions/match";
 import { getT } from "@/lib/i18n/server";
+import { matchRatingChanges } from "@/lib/rating";
+import { Delta } from "@/components/rating";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const user = await getUser();
   if (comp.draw_state !== "published" && !isAdmin(user?.role)) notFound();
 
-  const [home, away, reports, events, side, roundsRow] = await Promise.all([
+  const [home, away, reports, events, side, roundsRow, elo] = await Promise.all([
     m.home_entry_id ? getEntry(m.home_entry_id) : null,
     m.away_entry_id ? getEntry(m.away_entry_id) : null,
     q<Report>(
@@ -38,6 +40,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     ),
     user ? userSide(m, user.id) : null,
     q<{ r: number }>("select max(round)::int as r from matches where competition_id = $1 and stage = 'knockout'", [comp.id]),
+    matchRatingChanges(m.id),
   ]);
   const rounds = roundsRow[0]?.r ?? undefined;
   const myEntry = side === "home" ? m.home_entry_id : side === "away" ? m.away_entry_id : null;
@@ -205,6 +208,24 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         </div>
 
         <aside className="stack-lg">
+          {elo.length > 0 && (
+            <section className="stack">
+              <h3>{t("Изменение рейтинга")}</h3>
+              <div className="list">
+                {elo.map((r) => (
+                  <Link key={r.user_id} href={`/players/${r.user_id}`} className="list-row">
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <b>{r.rl_nickname}</b>
+                      <span className="small faint" style={{ display: "block" }}>
+                        {r.before} → {r.before + r.delta}
+                      </span>
+                    </span>
+                    <Delta value={r.delta} />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
           {(side || ref) && reports.length > 0 && (
             <section className="stack">
               <h3>{t("Отчёты")}</h3>

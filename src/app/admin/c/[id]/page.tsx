@@ -7,10 +7,11 @@ import { CompetitionForm } from "@/components/CompetitionForm";
 import { CompStatusBadge, Flash, MatchStatusBadge, pick, stageLabel, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import {
-  setCompetitionStatus, deleteCompetition, entryAction, editEntry, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
+  setCompetitionStatus, deleteCompetition, entryAction, editEntry, seedByElo, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
 } from "@/app/actions/admin";
 import { scheduleAction } from "@/app/actions/match";
 import { getT } from "@/lib/i18n/server";
+import { entryRatings } from "@/lib/rating";
 
 const TABS = [
   ["settings", "Настройки"],
@@ -110,7 +111,11 @@ async function LifecycleBar({ comp }: { comp: Competition }) {
 
 async function ParticipantsTab({ comp, q, status }: { comp: Competition; q: string; status: string }) {
   const t = await getT();
-  const entries = await getEntries(comp.id, { search: q.slice(0, 60), status: status in ENTRY_STATUS_LABELS ? status : undefined });
+  const [entries, elo] = await Promise.all([
+    getEntries(comp.id, { search: q.slice(0, 60), status: status in ENTRY_STATUS_LABELS ? status : undefined }),
+    entryRatings(comp.id),
+  ]);
+  const eloOf = new Map(elo.map((r) => [r.entry_id, r.rating]));
   const act = (entryId: string, action: string, label: string, cls = "btn btn-ghost btn-sm", confirm?: string) => (
     <form action={entryAction}>
       <input type="hidden" name="competition_id" value={comp.id} />
@@ -133,6 +138,16 @@ async function ParticipantsTab({ comp, q, status }: { comp: Competition; q: stri
         <button className="btn btn-ghost">{t("Фильтр")}</button>
         <a className="btn btn-ghost" href={`/api/export/${comp.id}/participants`}>{t("Экспорт CSV")}</a>
       </form>
+      {comp.draw_state === "none" && elo.length > 1 && (
+        <form action={seedByElo} className="row panel panel-tight" style={{ justifyContent: "space-between" }}>
+          <input type="hidden" name="competition_id" value={comp.id} />
+          <span className="small muted" style={{ maxWidth: 560 }}>
+            {t("Посев по ELO: подтверждённые участники получат номера посева по среднему рейтингу игроков. Сильнейшие не встретятся рано.")}
+            {!comp.seeded_draw && <> {t("Включите «Жеребьёвка с посевом (корзины)» в настройках, чтобы посев учитывался.")}</>}
+          </span>
+          <SubmitButton className="btn btn-ghost btn-sm" confirm={t("Перезаписать текущий посев?")}>{t("Посев по ELO")}</SubmitButton>
+        </form>
+      )}
       {entries.length === 0 ? (
         <div className="empty">{t("Заявок нет")}</div>
       ) : (
@@ -159,6 +174,7 @@ async function ParticipantsTab({ comp, q, status }: { comp: Competition; q: stri
                       <input className="input" name="seed" defaultValue={e.seed ?? ""} placeholder={t("посев")} style={{ width: 72, minHeight: 36 }} aria-label={t("Посев")} />
                       <SubmitButton className="btn btn-ghost btn-sm">OK</SubmitButton>
                     </form>
+                    {eloOf.has(e.id) && <div className="small faint" style={{ marginTop: 4 }}>ELO {eloOf.get(e.id)}</div>}
                   </td>
                   <td className="small">
                     {e.members.map((m) => (

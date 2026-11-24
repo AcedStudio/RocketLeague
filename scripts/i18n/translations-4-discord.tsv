@@ -29,7 +29,7 @@ ID сервера	Server ID	Server ID
 Значения хранятся только в Vercel (Settings → Environment Variables). После изменения сделайте Redeploy.	Qiymatlar faqat Vercel da saqlanadi (Settings → Environment Variables). Oʻzgartirgandan soʻng Redeploy qiling.	Values live only in Vercel (Settings → Environment Variables). Redeploy after changing them.
 Канал для объявлений	Eʼlonlar kanali	Announcements channel
 Канал для результатов	Natijalar kanali	Results channel
-Команды /matches, /table, /profile зарегистрированы	/matches, /table, /profile buyruqlari roʻyxatdan oʻtkazildi	Commands /matches, /table and /profile are registered
+Команды /matches, /table, /profile, /top зарегистрированы	/matches, /table, /profile, /top buyruqlari roʻyxatdan oʻtkazildi	Commands /matches, /table, /profile and /top are registered
 Не удалось отправить сообщений: {n}. Проверьте права бота.	Yuborib boʻlmagan xabarlar: {n}. Bot huquqlarini tekshiring.	Messages that failed to send: {n}. Check the bot’s permissions.
 Необязательно: можно входить через Discord	Ixtiyoriy: Discord orqali kirish mumkin	Optional: you can sign in with Discord
 Опубликовать в Discord	Discord ga joylash	Post to Discord

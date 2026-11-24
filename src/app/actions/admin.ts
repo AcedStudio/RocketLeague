@@ -13,6 +13,7 @@ import type { Tiebreaker } from "@/lib/engine/standings.ts";
 import { enqueueChannel, flushOutbox, discordApi, registerCommands, botConfigured, getDiscordSettings, DiscordError } from "@/lib/discord";
 import { isLocale } from "@/lib/i18n/core";
 import { getT } from "@/lib/i18n/server";
+import { entryRatings, recomputeAll } from "@/lib/rating";
 
 const uuid = (v: unknown) => {
   const s = String(v ?? "");
@@ -234,6 +235,44 @@ export async function editEntry(fd: FormData) {
     await logAction(undefined, user.id, "entry.edit", `${name}, посев ${seed ?? "—"}`);
   });
   ok(compPath(compId, "participants"), "Сохранено");
+}
+
+export async function seedByElo(fd: FormData) {
+  const user = await requireAdmin();
+  const compId = uuid(fd.get("competition_id"));
+  await guard(compPath(compId, "participants"), async () => {
+    await tx(async (c) => {
+      await lockCompetition(c, compId);
+      const comp = await one<{ draw_state: string; name: string }>("select draw_state, name from competitions where id = $1", [compId], c);
+      if (!comp) throw new FormError("Соревнование не найдено");
+      if (comp.draw_state !== "none") throw new FormError("Посев меняется только до жеребьёвки");
+      const rows = await entryRatings(compId, c);
+      const order = await q<{ id: string }>(
+        "select id from entries where competition_id = $1 and status = 'confirmed' order by number",
+        [compId],
+        c,
+      );
+      const rating = new Map(rows.map((r) => [r.entry_id, r.rating]));
+      const ranked = [...order].sort((a, b) => (rating.get(b.id) ?? 1000) - (rating.get(a.id) ?? 1000));
+      await q("update entries set seed = null where competition_id = $1", [compId], c);
+      for (const [i, e] of ranked.entries()) await q("update entries set seed = $2 where id = $1", [e.id, i + 1], c);
+      await logAction(c, user.id, "entry.seed_elo", `${comp.name}: ${ranked.length}`);
+    });
+  });
+  ok(compPath(compId, "participants"), "Посев расставлен по рейтингу");
+}
+
+export async function recomputeRatings() {
+  const user = await requireAdmin();
+  let n = 0;
+  await guard("/admin/settings", async () => {
+    await tx(async (c) => {
+      n = await recomputeAll(c);
+      await logAction(c, user.id, "rating.recompute", String(n));
+    });
+  });
+  revalidatePath("/players");
+  ok("/admin/settings", (await getT())("Рейтинг пересчитан: матчей {n}", { n }));
 }
 
 // ---------------------------------------------------------------- draw & playoffs
@@ -515,7 +554,7 @@ export async function discordAction(fd: FormData) {
         message = (await getT())("Бот видит сервер «{name}»", { name: g.name });
       } else if (action === "commands") {
         await registerCommands();
-        message = "Команды /matches, /table, /profile зарегистрированы";
+        message = "Команды /matches, /table, /profile, /top зарегистрированы";
       } else if (action === "test") {
         if (!s.announceChannel) throw new FormError("Укажите канал для объявлений");
         await enqueueChannel(undefined, "announce", { title: "Тестовое сообщение", description: "Бот подключён к сайту и может публиковать объявления.", link: "/" });

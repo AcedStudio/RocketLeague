@@ -239,3 +239,20 @@ create table if not exists discord_outbox (
   created_at timestamptz not null default now()
 );
 create index if not exists discord_outbox_pending on discord_outbox (created_at) where sent_at is null;
+
+-- ELO rating. A player's rating in a mode = 1000 + sum of deltas, so deleting
+-- a competition (cascade through matches) cleanly takes its rating changes away.
+alter table matches add column if not exists completed_at timestamptz;
+update matches set completed_at = updated_at where status = 'completed' and completed_at is null;
+create table if not exists rating_changes (
+  id bigserial primary key,
+  match_id uuid not null references matches(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
+  mode text not null check (mode in ('1v1', '2v2')),
+  entry_id uuid not null references entries(id) on delete cascade,
+  before int not null,
+  delta int not null,
+  created_at timestamptz not null default now(),
+  unique (match_id, user_id)
+);
+create index if not exists rating_changes_user on rating_changes (user_id, mode, created_at);

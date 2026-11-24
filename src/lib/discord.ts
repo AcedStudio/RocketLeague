@@ -267,6 +267,24 @@ export const SLASH_COMMANDS = [
     description: "Your site profile and record",
     description_localizations: { ru: "Ваш профиль и статистика" },
   },
+  {
+    name: "top",
+    description: "ELO leaderboard",
+    description_localizations: { ru: "Топ рейтинга ELO" },
+    options: [
+      {
+        type: 3,
+        name: "mode",
+        description: "1v1 or 2v2",
+        description_localizations: { ru: "1v1 или 2v2" },
+        required: false,
+        choices: [
+          { name: "1v1", value: "1v1" },
+          { name: "2v2", value: "2v2" },
+        ],
+      },
+    ],
+  },
 ];
 
 export async function registerCommands() {
