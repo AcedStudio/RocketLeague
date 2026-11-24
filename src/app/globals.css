@@ -413,3 +413,5 @@ details.qa > div { padding: 0 0 var(--s5); color: var(--ink-soft); white-space: 
 .spark { width: 100%; height: 56px; display: block; }
 .spark path.line { fill: none; stroke: var(--tier); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .spark path.area { fill: color-mix(in srgb, var(--tier) 16%, transparent); stroke: none; }
+.or-divider { display: flex; align-items: center; gap: var(--s3); color: var(--ink-faint); font-size: 0.85rem; }
+.or-divider::before, .or-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }

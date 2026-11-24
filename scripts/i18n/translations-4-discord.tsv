@@ -65,3 +65,4 @@ ID сервера	Server ID	Server ID
 неверный токен бота	bot tokeni notoʻgʻri	invalid bot token
 сервер или канал не найден, либо бот не добавлен на сервер	server yoki kanal topilmadi yoki bot serverga qoʻshilmagan	the server or channel wasn’t found, or the bot isn’t on the server
 у бота нет прав (проверьте роль бота и доступ к каналу)	botda huquq yoʻq (bot roli va kanalga ruxsatni tekshiring)	the bot lacks permissions (check its role and channel access)
+или	yoki	or
