@@ -33,9 +33,9 @@ const MANAGED_ROLE_KEYS = ROLE_DEFS.map((r) => r.key).filter((k) => k !== "parti
 
 type ChannelKey = "category" | "results" | "rating" | "hall" | "bot";
 const CHANNEL_NAMES: Record<Locale, Record<ChannelKey, string>> = {
-  uz: { category: "🏆 RL ARENA", results: "📊・natijalar", rating: "🏅・reyting", hall: "🏛・shon-sharaf", bot: "🤖・bot" },
-  ru: { category: "🏆 RL ARENA", results: "📊・результаты", rating: "🏅・рейтинг", hall: "🏛・зал-славы", bot: "🤖・бот" },
-  en: { category: "🏆 RL ARENA", results: "📊・results", rating: "🏅・rankings", hall: "🏛・hall-of-fame", bot: "🤖・bot" },
+  uz: { category: "🏆 RL CHAMPIONSHIP", results: "📊・natijalar", rating: "🏅・reyting", hall: "🏛・shon-sharaf", bot: "🤖・bot" },
+  ru: { category: "🏆 RL CHAMPIONSHIP", results: "📊・результаты", rating: "🏅・рейтинг", hall: "🏛・зал-славы", bot: "🤖・бот" },
+  en: { category: "🏆 RL CHAMPIONSHIP", results: "📊・results", rating: "🏅・rankings", hall: "🏛・hall-of-fame", bot: "🤖・bot" },
 };
 const CHANNEL_TOPICS: Record<Exclude<ChannelKey, "category">, string> = {
   results: "Результаты матчей и изменения рейтинга — публикуются автоматически",
@@ -71,7 +71,7 @@ async function saveLayout(layout: Layout, c?: Queryable) {
 const P = { VIEW: 1024, SEND: 2048, EMBED: 16384, ATTACH: 32768, HISTORY: 65536, MANAGE_MESSAGES: 8192, REACT: 64, THREADS_PUB: 34359738368, THREADS_PRIV: 68719476736, SEND_THREADS: 274877906944 };
 
 /**
- * Creates whatever is missing: roles, the RL ARENA category and its channels, and the
+ * Creates whatever is missing: roles, the RL CHAMPIONSHIP category and its channels, and the
  * live boards. Never renames or deletes anything that already exists. Safe to re-run.
  */
 export async function setupServer(): Promise<{ createdRoles: number; createdChannels: number }> {

@@ -67,7 +67,7 @@ const dict: Dict = {
   "Бот выдаёт роли сам, после каждого матча:": "The bot hands out roles itself after every match:",
   "Бот не настроен: добавьте DISCORD_BOT_TOKEN в Vercel": "The bot isn’t set up: add DISCORD_BOT_TOKEN in Vercel",
   "Бот подключён к сайту и может публиковать объявления.": "The bot is connected to the site and can post announcements.",
-  "Бот создаст категорию RL ARENA с каналами результатов, рейтинга, зала славы и команд, а также роли рангов (Бронза → Суперсоник-легенда) и титулов. Существующие каналы и роли не меняются. Можно запускать повторно — создаётся только недостающее.": "The bot will create an RL ARENA category with results, rankings, hall of fame and command channels, plus rank roles (Bronze → Supersonic Legend) and title roles. Existing channels and roles are left untouched. Safe to re-run — only what’s missing is created.",
+  "Бот создаст категорию RL CHAMPIONSHIP с каналами результатов, рейтинга, зала славы и команд, а также роли рангов (Бронза → Суперсоник-легенда) и титулов. Существующие каналы и роли не меняются. Можно запускать повторно — создаётся только недостающее.": "The bot will create an RL CHAMPIONSHIP category with results, rankings, hall of fame and command channels, plus rank roles (Bronze → Supersonic Legend) and title roles. Existing channels and roles are left untouched. Safe to re-run — only what’s missing is created.",
   "Боту нужны права «Управлять каналами» и «Управлять ролями». Если бот был добавлен раньше, откройте ссылку приглашения выше ещё раз — права обновятся.": "The bot needs the “Manage Channels” and “Manage Roles” permissions. If it was added earlier, open the invite link above again to update them.",
   "Бронза": "Bronze",
   "Будет объявлен": "To be announced",

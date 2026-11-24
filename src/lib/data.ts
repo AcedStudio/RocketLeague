@@ -107,7 +107,7 @@ export type Prize = {
 };
 
 export const DEFAULT_SETTINGS = {
-  site_name: "RL Arena",
+  site_name: "RL Championship",
   tagline: "Лиги и кубки по Rocket League",
   contact_email: "",
   discord_url: "",

@@ -64,7 +64,7 @@ export class DiscordError extends Error {
 export async function discordApi<T = unknown>(path: string, init: { method?: string; body?: unknown; auth?: "bot" | { bearer: string } } = {}): Promise<T> {
   const { botToken } = discordEnv();
   const auth = init.auth ?? "bot";
-  const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "RLArena (https://github.com/AcedStudio/RocketLeague, 1.0)" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "RLChampionship (https://github.com/AcedStudio/RocketLeague, 1.0)" };
   if (auth === "bot") {
     if (!botToken) throw new DiscordError(0, "DISCORD_BOT_TOKEN is not set");
     headers.Authorization = `Bot ${botToken}`;

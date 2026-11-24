@@ -1,4 +1,4 @@
--- RL Arena schema. Idempotent: safe to run on every deploy.
+-- RL Championship schema. Idempotent: safe to run on every deploy.
 
 create extension if not exists pgcrypto;
 
