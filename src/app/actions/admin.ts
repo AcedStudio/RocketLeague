@@ -279,6 +279,48 @@ export async function recomputeRatings() {
   ok("/admin/settings", (await getT())("Рейтинг пересчитан: матчей {n}", { n }));
 }
 
+/** Change the series length (Bo1/3/5/7) for every unplayed match, or for one tour. */
+export async function seriesLengthAction(fd: FormData) {
+  const user = await requireAdmin();
+  const id = uuid(fd.get("id"));
+  const bo = Number(fd.get("best_of"));
+  const scope = String(fd.get("round_key") ?? "all");
+  let n = 0;
+  await guard(compPath(id, "matches"), async () => {
+    if (![1, 3, 5, 7].includes(bo)) throw new FormError("Выберите количество игр");
+    await tx(async (c) => {
+      await lockCompetition(c, id);
+      const comp = await getCompetition(id, c);
+      if (!comp) throw new FormError("Соревнование не найдено");
+      const params: unknown[] = [id, bo];
+      let where = "";
+      if (scope !== "all") {
+        const [stage, roundStr] = scope.split(":");
+        if (!["group", "league", "knockout", "third_place"].includes(stage) || !Number.isInteger(Number(roundStr))) throw new FormError("Выберите тур");
+        params.push(stage, Number(roundStr));
+        where = " and m.stage = $3 and m.round = $4";
+      }
+      // Matches with a result waiting for confirmation keep their length, so the report stays valid.
+      const rows = await q<{ id: string }>(
+        `update matches m set best_of = $2, updated_at = now()
+          where m.competition_id = $1 and m.status not in ('completed', 'under_review')
+            and not exists (select 1 from match_reports r where r.match_id = m.id and r.status = 'pending')${where}
+          returning m.id`,
+        params,
+        c,
+      );
+      n = rows.length;
+      // "All" also becomes the default for the stage, so future matches (playoffs) follow it.
+      if (scope === "all") {
+        if (comp.format === "knockout") await q("update competitions set playoff_best_of = $2 where id = $1", [id, bo], c);
+        else await q("update competitions set group_best_of = $2 where id = $1", [id, bo], c);
+      }
+      await logAction(c, user.id, "matches.best_of", `${comp.name}: Bo${bo} × ${n} (${scope})`);
+    });
+  });
+  ok(compPath(id, "matches"), (await getT())("Формат серии изменён: Bo{bo}, матчей: {n}", { bo, n }));
+}
+
 export async function seasonCalendarAction(fd: FormData) {
   const user = await requireAdmin();
   const compId = uuid(fd.get("competition_id"));

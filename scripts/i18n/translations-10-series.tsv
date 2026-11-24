@@ -1,0 +1,15 @@
+Bo1 — одна игра	Bo1 — bitta oʻyin	Bo1 — one game
+Bo{n} — до {w} побед	Bo{n} — seriya uchun gʻalabalar: {w}	Bo{n} — first to {w} wins
+В серии Bo{bo} не может быть больше {bo} игр	Bo{bo} seriyasida {bo} tadan koʻp oʻyin boʻlishi mumkin emas	A Bo{bo} series can’t have more than {bo} games
+Все несыгранные матчи	Barcha oʻynalmagan uchrashuvlar	All unplayed matches
+Выберите количество игр	Oʻyinlar sonini tanlang	Choose the number of games
+Добавьте счёт хотя бы одной игры	Kamida bitta oʻyin hisobini qoʻshing	Add the score of at least one game
+Игр в серии	Seriyadagi oʻyinlar	Games per series
+Игра {n}: ничьих в Rocket League не бывает (овертайм)	{n}-oʻyin: Rocket League da durang boʻlmaydi (overtime)	Game {n}: there are no draws in Rocket League (overtime)
+Игра {n}: счёт должен быть целым числом от 0 до 99	{n}-oʻyin: hisob 0 dan 99 gacha butun son boʻlishi kerak	Game {n}: the score must be a whole number from 0 to 99
+Неверный формат серии	Seriya formati notoʻgʻri	Invalid series format
+Применить	Qoʻllash	Apply
+Серия не закончена: нужно побед — {need} (Bo{bo})	Seriya tugamagan: kerakli gʻalabalar — {need} (Bo{bo})	The series isn’t finished: {need} wins needed (Bo{bo})
+Серия уже решена до игры {n}	Seriya {n}-oʻyingacha hal boʻlgan	The series was already decided before game {n}
+Сыгранные матчи и матчи с результатом на подтверждении не меняются.	Oʻynalgan va natijasi tasdiqlanishi kutilayotgan uchrashuvlar oʻzgarmaydi.	Played matches and matches with a result awaiting confirmation are not changed.
+Формат серии изменён: Bo{bo}, матчей: {n}	Seriya formati oʻzgartirildi: Bo{bo}, uchrashuvlar: {n}	Series length changed: Bo{bo}, matches: {n}

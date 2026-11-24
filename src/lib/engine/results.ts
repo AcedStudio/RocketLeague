@@ -4,7 +4,7 @@ export type GameScore = { home: number; away: number };
 
 export type SeriesResult =
   | { ok: true; homeWins: number; awayWins: number; homeGoals: number; awayGoals: number; winner: "home" | "away" }
-  | { ok: false; error: string };
+  | { ok: false; error: string; params?: Record<string, number> };
 
 export const BEST_OF_OPTIONS = [1, 3, 5, 7] as const;
 
@@ -15,7 +15,7 @@ export function winsNeeded(bestOf: number): number {
 export function validateSeries(games: readonly GameScore[], bestOf: number): SeriesResult {
   if (!Number.isInteger(bestOf) || bestOf < 1 || bestOf % 2 === 0) return { ok: false, error: "Неверный формат серии" };
   if (games.length === 0) return { ok: false, error: "Добавьте счёт хотя бы одной игры" };
-  if (games.length > bestOf) return { ok: false, error: `В серии Bo${bestOf} не может быть больше ${bestOf} игр` };
+  if (games.length > bestOf) return { ok: false, error: "В серии Bo{bo} не может быть больше {bo} игр", params: { bo: bestOf } };
 
   const need = winsNeeded(bestOf);
   let homeWins = 0;
@@ -25,11 +25,11 @@ export function validateSeries(games: readonly GameScore[], bestOf: number): Ser
   for (let i = 0; i < games.length; i++) {
     const g = games[i];
     if (!Number.isInteger(g.home) || !Number.isInteger(g.away) || g.home < 0 || g.away < 0 || g.home > 99 || g.away > 99) {
-      return { ok: false, error: `Игра ${i + 1}: счёт должен быть целым числом от 0 до 99` };
+      return { ok: false, error: "Игра {n}: счёт должен быть целым числом от 0 до 99", params: { n: i + 1 } };
     }
-    if (g.home === g.away) return { ok: false, error: `Игра ${i + 1}: ничьих в Rocket League не бывает (овертайм)` };
+    if (g.home === g.away) return { ok: false, error: "Игра {n}: ничьих в Rocket League не бывает (овертайм)", params: { n: i + 1 } };
     if (homeWins === need || awayWins === need) {
-      return { ok: false, error: `Серия уже решена до игры ${i + 1}` };
+      return { ok: false, error: "Серия уже решена до игры {n}", params: { n: i + 1 } };
     }
     if (g.home > g.away) homeWins++;
     else awayWins++;
@@ -37,7 +37,7 @@ export function validateSeries(games: readonly GameScore[], bestOf: number): Ser
     awayGoals += g.away;
   }
   if (homeWins !== need && awayWins !== need) {
-    return { ok: false, error: `Серия не закончена: нужно ${need} побед` };
+    return { ok: false, error: "Серия не закончена: нужно побед — {need} (Bo{bo})", params: { need, bo: bestOf } };
   }
   return { ok: true, homeWins, awayWins, homeGoals, awayGoals, winner: homeWins === need ? "home" : "away" };
 }

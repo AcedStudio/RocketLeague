@@ -7,7 +7,7 @@ import { CompetitionForm } from "@/components/CompetitionForm";
 import { CompStatusBadge, Flash, MatchStatusBadge, pick, stageLabel, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import {
-  setCompetitionStatus, deleteCompetition, entryAction, editEntry, seedByElo, seasonCalendarAction, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
+  setCompetitionStatus, deleteCompetition, entryAction, editEntry, seedByElo, seasonCalendarAction, seriesLengthAction, drawAction, scheduleRound, savePrizeSettings, addPrize, prizeAction,
 } from "@/app/actions/admin";
 import { scheduleAction } from "@/app/actions/match";
 import { getT } from "@/lib/i18n/server";
@@ -306,6 +306,27 @@ async function MatchesTab({ comp, status }: { comp: Competition; status: string 
           </span>
         </form>
       )}
+      <form action={seriesLengthAction} className="panel stack">
+        <input type="hidden" name="id" value={comp.id} />
+        <h3>{t("Игр в серии")}</h3>
+        <div className="row">
+          <select className="input" name="round_key" defaultValue="all" style={{ maxWidth: 280 }}>
+            <option value="all">{t("Все несыгранные матчи")}</option>
+            {roundKeys.map(([k, label]) => (
+              <option key={k} value={k}>{label}</option>
+            ))}
+          </select>
+          <select className="input" name="best_of" defaultValue={String(comp.format === "knockout" ? comp.playoff_best_of : comp.group_best_of)} style={{ maxWidth: 220 }}>
+            {[1, 3, 5, 7].map((b) => (
+              <option key={b} value={b}>
+                {b === 1 ? t("Bo1 — одна игра") : t("Bo{n} — до {w} побед", { n: b, w: Math.ceil(b / 2) })}
+              </option>
+            ))}
+          </select>
+          <SubmitButton className="btn">{t("Применить")}</SubmitButton>
+        </div>
+        <small className="faint">{t("Сыгранные матчи и матчи с результатом на подтверждении не меняются.")}</small>
+      </form>
       <form action={scheduleRound} className="panel stack">
         <input type="hidden" name="id" value={comp.id} />
         <h3>{t("Расписание тура")}</h3>

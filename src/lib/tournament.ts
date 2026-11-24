@@ -454,7 +454,7 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
     winnerSide = result.forfeitWinner;
   } else {
     const s = validateSeries(result.games, m.best_of);
-    if (!s.ok) throw new FormError(s.error);
+    if (!s.ok) throw new FormError(s.error, s.params);
     winnerSide = s.winner;
     games = result.games;
     hw = s.homeWins; aw = s.awayWins; hg = s.homeGoals; ag = s.awayGoals;
@@ -567,7 +567,7 @@ export async function submitReport(matchId: string, user: User, games: GameScore
     const side = await userSide(m, user.id);
     if (!side) throw new FormError("Отправить результат могут только участники этого матча");
     const check = validateSeries(games, m.best_of);
-    if (!check.ok) throw new FormError(check.error);
+    if (!check.ok) throw new FormError(check.error, check.params);
     const myEntry = side === "home" ? m.home_entry_id : m.away_entry_id;
     const oppEntry = side === "home" ? m.away_entry_id : m.home_entry_id;
 
