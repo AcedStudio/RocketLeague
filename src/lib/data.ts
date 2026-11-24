@@ -4,6 +4,8 @@ import { q, one, dbConfigured, type Queryable } from "./db";
 import { computeStandings, type StandingRow, type Tiebreaker } from "./engine/standings.ts";
 
 export type Competition = {
+  noshow_minutes: number;
+  deadline_forfeit: boolean;
   id: string;
   slug: string;
   name: string;
@@ -90,6 +92,10 @@ export type Match = {
   next_side: "home" | "away" | null;
   loser_next_match_id: string | null;
   loser_next_side: "home" | "away" | null;
+  play_by: Date | null;
+  time_confirmed: boolean;
+  home_checkin_at: Date | null;
+  away_checkin_at: Date | null;
 };
 
 export type Group = { id: string; name: string; position: number; entry_ids: string[] };

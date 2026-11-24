@@ -1,4 +1,5 @@
 import "server-only";
+import { renderStored } from "./format";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { flushOutbox } from "./discord";
@@ -94,8 +95,8 @@ export async function guard(path: string, fn: () => Promise<void>): Promise<void
     if (err instanceof FormError) {
       const t = await getT();
       // Params that are themselves Russian labels (field names) get translated too.
-      const params = Object.fromEntries(Object.entries(err.params ?? {}).map(([k, v]) => [k, typeof v === "string" ? t(v) : v]));
-      message = t(err.message, params);
+      // renderStored also turns an {at, tz} pair into {when}.
+      message = renderStored(t, err.message, err.params ?? {});
     }
     else if (isRedirect(err)) throw err;
     else {

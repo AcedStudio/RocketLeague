@@ -116,6 +116,15 @@ export async function CompetitionForm({ c }: { c?: Competition }) {
           <input type="checkbox" name="checkin_required" defaultChecked={c?.checkin_required} />
           <span>{t("Обязательный чек-ин перед жеребьёвкой")}</span>
         </label>
+        <label className="field">
+          <span>{t("Ожидание соперника, минут")}</span>
+          <input className="input" type="number" name="noshow_minutes" min={0} max={120} defaultValue={c?.noshow_minutes ?? 15} />
+          <small>{t("Если один игрок отметился «Я на месте», а соперник нет — через столько минут после начала засчитывается техническое поражение. 0 — выключено.")}</small>
+        </label>
+        <label className="check">
+          <input type="checkbox" name="deadline_forfeit" defaultChecked={c?.deadline_forfeit ?? true} />
+          <span>{t("Техническое поражение тому, кто не договорился о времени до срока тура")}</span>
+        </label>
       </fieldset>
 
       <fieldset className="form-grid">

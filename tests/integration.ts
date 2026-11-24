@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { q, one, tx } from "../src/lib/db";
 import { leaderboard, recomputeAll } from "../src/lib/rating";
 import { syncRoles } from "../src/lib/discord-server";
+import { proposeTime, respondProposal, checkIn as checkInMatch, sweep } from "../src/lib/scheduling";
 import {
   registerSolo, createTeam, joinTeam, withdraw, runDraw, resetDraw, publishDraw, submitReport, respondToReport, refereeResult, checkIn,
 } from "../src/lib/tournament";
@@ -328,6 +329,59 @@ async function main() {
       await q("delete from settings where key in ('discord_guild_id', 'discord_layout')");
       for (const r of saved) await q("insert into settings (key, value) values ($1, $2)", [r.key, r.value]);
     }
+  });
+
+  await step("schedule: propose → accept, check-in, no-show and deadline forfeits", async () => {
+    const sc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1, noshow_minutes: 15 });
+    for (const p of players.slice(0, 3)) await registerSolo(sc, p);
+    await close(sc);
+    await runDraw(sc, admin);
+    await publishDraw(sc, admin);
+    const [m1, m2, m3] = await getMatches(sc);
+    const who = async (m: Match, s: "home" | "away") => users.get((await membersOf((s === "home" ? m.home_entry_id : m.away_entry_id)!))[0])!;
+    const reload = async (id: string) => (await getMatches(sc)).find((x) => x.id === id)!;
+
+    const h1 = await who(m1, "home"), a1 = await who(m1, "away");
+    const at = new Date(Math.ceil((Date.now() + 3600_000) / 60_000) * 60_000);
+    await rejects(proposeTime(m1.id, players[11].id, at), /участники/);
+    await rejects(proposeTime(m1.id, h1.id, new Date(Date.now() + 60_000)), /вперёд/);
+    await proposeTime(m1.id, h1.id, at);
+    const p = await one<{ id: string }>("select id from match_proposals where match_id = $1 and status = 'pending'", [m1.id]);
+    await rejects(respondProposal(p!.id, h1.id, true), /соперник/);
+    await respondProposal(p!.id, a1.id, true);
+    let m = await reload(m1.id);
+    assert.equal(m.time_confirmed, true);
+    assert.equal(new Date(m.scheduled_at!).getTime(), at.getTime());
+    await rejects(respondProposal(p!.id, a1.id, true), /уже ответили/);
+
+    await rejects(checkInMatch(m1.id, h1.id), /Отметиться можно/);
+    await q("update matches set scheduled_at = now() + interval '10 minutes' where id = $1", [m1.id]);
+    await checkInMatch(m1.id, h1.id);
+    await q("update matches set scheduled_at = now() - interval '16 minutes' where id = $1", [m1.id]);
+    await sweep(true);
+    m = await reload(m1.id);
+    assert.equal(m.status, "completed", "no-show → forfeit");
+    assert.equal(m.forfeit, true);
+    assert.equal(m.winner_entry_id, m1.home_entry_id, "the side that checked in wins");
+
+    // Deadline: only the away side tried to agree → away wins.
+    const a2 = await who(m2, "away");
+    await proposeTime(m2.id, a2.id, new Date(Date.now() + 7200_000));
+    await q("update matches set play_by = now() - interval '1 minute' where id = $1", [m2.id]);
+    await sweep(true);
+    m = await reload(m2.id);
+    assert.equal(m.winner_entry_id, m2.away_entry_id);
+    assert.equal(m.forfeit, true);
+
+    // Nobody tried → no forfeit, referees are told, handled once.
+    await q("update matches set play_by = now() - interval '1 minute' where id = $1", [m3.id]);
+    const r = await sweep(true);
+    m = await reload(m3.id);
+    assert.notEqual(m.status, "completed");
+    assert.ok(r.flagged >= 1);
+    const again = await sweep(true);
+    assert.equal((await reload(m3.id)).status, m.status);
+    assert.equal(again.forfeits, 0);
   });
 
   console.log(`\n${passed} integration checks passed`);
