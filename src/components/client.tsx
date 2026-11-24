@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { makeT, LOCALES, LOCALE_SHORT, LOCALE_NAMES, type Dict, type Locale, type T } from "@/lib/i18n/core";
 import { setLocale } from "@/app/actions/locale";
 
@@ -273,5 +273,38 @@ export function Dropdown({ className, summary, children }: { className?: string;
       {summary}
       {children}
     </details>
+  );
+}
+
+/** GET form that navigates as soon as a select changes; keeps the #anchor so the view stays in place. */
+export function AutoSubmitForm({ action, className, children, anchor = "view" }: { action: string; className?: string; children: React.ReactNode; anchor?: string }) {
+  const router = useRouter();
+  const go = (form: HTMLFormElement) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) if (typeof v === "string" && v) params.set(k, v);
+    const qs = params.toString();
+    router.push(`${action}${qs ? `?${qs}` : ""}#${anchor}`, { scroll: false });
+  };
+  return (
+    <form
+      action={action}
+      method="get"
+      className={className}
+      onChange={(e) => {
+        const form = e.currentTarget;
+        // Changing the player clears the opponent, so the two never point at the same entry.
+        if ((e.target as HTMLSelectElement).name === "p") {
+          const vs = form.elements.namedItem("vs") as HTMLSelectElement | null;
+          if (vs) vs.value = "";
+        }
+        go(form);
+      }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        go(e.currentTarget);
+      }}
+    >
+      {children}
+    </form>
   );
 }

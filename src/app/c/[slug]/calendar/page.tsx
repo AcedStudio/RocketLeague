@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompetitionBySlug, getMatches, getEntries, type Match } from "@/lib/data";
+import { getCompetitionBySlug, getMatches, getEntries, getStandings, type Match } from "@/lib/data";
 import { getUser } from "@/lib/auth";
 import { fmtDate, fmtDateTime, groupLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
+import { pick, type SP } from "@/components/ui";
+import { AutoSubmitForm } from "@/components/client";
+import { entryRatings } from "@/lib/rating";
 
 export async function generateMetadata() {
   const t = await getT();
@@ -11,10 +14,11 @@ export async function generateMetadata() {
 }
 
 type Tour = { round: number; matches: Match[]; deadline: Date | null };
+const UUID = /^[0-9a-f-]{36}$/i;
 
-export default async function Calendar({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Calendar({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: SP }) {
   const t = await getT();
-  const { slug } = await params;
+  const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const comp = await getCompetitionBySlug(slug);
   if (!comp) notFound();
   const tz = comp.timezone;
@@ -29,7 +33,7 @@ export default async function Calendar({ params }: { params: Promise<{ slug: str
   }
 
   const stage = comp.format === "round_robin" ? "league" : "group";
-  const [all, entries, user] = await Promise.all([getMatches(comp.id), getEntries(comp.id), getUser()]);
+  const [all, entries, user, tables, ratings] = await Promise.all([getMatches(comp.id), getEntries(comp.id), getUser(), getStandings(comp), entryRatings(comp.id)]);
   const matches = all.filter((m) => m.stage === stage && !m.is_bye);
   const tourMap = new Map<number, Tour>();
   for (const m of matches) {
@@ -43,29 +47,71 @@ export default async function Calendar({ params }: { params: Promise<{ slug: str
 
   const now = Date.now();
   const current = tours.find((x) => x.matches.some((m) => m.status !== "completed"))?.round ?? null;
-  const confirmed = entries.filter((e) => e.status === "confirmed");
-  const myEntry = user ? confirmed.find((e) => e.members.some((m) => m.user_id === user.id)) : undefined;
+  const confirmed = entries.filter((e) => e.status === "confirmed").sort((a, b) => a.name.localeCompare(b.name));
   const nameOf = new Map(confirmed.map((e) => [e.id, e.name]));
-  const last = tours[tours.length - 1].deadline;
+  const myEntry = user ? confirmed.find((e) => e.members.some((m) => m.user_id === user.id)) : undefined;
+  const rows = new Map(tables.flatMap((tb) => tb.rows.map((r) => [r.id, r] as const)));
+  const elo = new Map(ratings.map((r) => [r.entry_id, r.rating]));
 
-  // My season: one row per tour, like a club's fixture list.
-  const mine = myEntry
-    ? tours.map((tour) => {
-        const m = tour.matches.find((x) => x.home_entry_id === myEntry.id || x.away_entry_id === myEntry.id);
-        return { tour, m };
-      })
+  // Quick view: ?p=<entry> (default: me) and optionally ?vs=<entry>.
+  const pParam = pick(sp, "p");
+  const vsParam = pick(sp, "vs");
+  const p = UUID.test(pParam) && nameOf.has(pParam) ? pParam : myEntry?.id ?? "";
+  const vs = p && UUID.test(vsParam) && nameOf.has(vsParam) && vsParam !== p ? vsParam : "";
+  const href = (np: string, nvs = "") => `/c/${slug}/calendar?${new URLSearchParams({ ...(np ? { p: np } : {}), ...(nvs ? { vs: nvs } : {}) })}#view`;
+
+  const involves = (m: Match, id: string) => m.home_entry_id === id || m.away_entry_id === id;
+  const fixtures = p
+    ? tours.map((tour) => ({ tour, m: tour.matches.find((x) => involves(x, p)) }))
     : [];
+  const meetings = p && vs ? matches.filter((m) => involves(m, p) && involves(m, vs)).sort((a, b) => a.round - b.round) : [];
 
-  const resultCell = (m: Match, entryId: string) => {
-    if (m.status === "completed") {
-      const home = m.home_entry_id === entryId;
-      const won = m.winner_entry_id === entryId;
-      const score = m.forfeit ? t("ТП") : home ? `${m.home_wins}:${m.away_wins}` : `${m.away_wins}:${m.home_wins}`;
-      return <span className={`badge ${won ? "ok" : "danger"}`}>{won ? t("В") : t("П")} {score}</span>;
-    }
-    if (m.scheduled_at) return <span className="small">{fmtDateTime(m.scheduled_at, tz, t)}{m.time_confirmed ? " ✓" : ""}</span>;
-    return <span className="faint small">{t("время не согласовано")}</span>;
+  const resultBadge = (m: Match, id: string) => {
+    if (m.status !== "completed") return null;
+    const home = m.home_entry_id === id;
+    const won = m.winner_entry_id === id;
+    const score = m.forfeit ? t("ТП") : m.games?.length ? (home ? `${m.home_wins}:${m.away_wins}` : `${m.away_wins}:${m.home_wins}`) : "";
+    return <span className={`badge ${won ? "ok" : "danger"}`}>{won ? t("В") : t("П")}{score ? ` ${score}` : ""}</span>;
   };
+  const whenCell = (m: Match) =>
+    m.scheduled_at ? <span className="small">{fmtDateTime(m.scheduled_at, tz, t)}{m.time_confirmed ? " ✓" : ""}</span> : <span className="faint small">{t("время не согласовано")}</span>;
+
+  const Summary = ({ id }: { id: string }) => {
+    const r = rows.get(id);
+    const next = matches
+      .filter((m) => involves(m, id) && m.status !== "completed")
+      .sort((a, b) => a.round - b.round)[0];
+    const opp = next ? (next.home_entry_id === id ? next.away_entry_id : next.home_entry_id) : null;
+    return (
+      <div className="pv-card">
+        <div className="pv-head">
+          <b>{nameOf.get(id)}</b>
+          {r && <span className="badge accent">#{r.position}</span>}
+        </div>
+        <dl className="pv-stats">
+          <div><dt>{t("Очки")}</dt><dd>{r?.points ?? 0}</dd></div>
+          <div><dt>{t("В–П")}</dt><dd>{r ? `${r.wins}–${r.losses}` : "0–0"}</dd></div>
+          <div><dt>{t("Голы")}</dt><dd>{r ? `${r.goalsFor}:${r.goalsAgainst}` : "0:0"}</dd></div>
+          <div><dt>ELO</dt><dd>{elo.get(id) ?? 1000}</dd></div>
+        </dl>
+        <div className="pv-form" aria-label={t("Форма")}>
+          {(r?.form ?? []).map((f, i) => (
+            <i key={i} className={f === "W" ? "w" : "l"}>{f === "W" ? t("В") : t("П")}</i>
+          ))}
+          {!r?.form?.length && <span className="faint small">{t("Ещё нет сыгранных матчей")}</span>}
+        </div>
+        {next && opp && (
+          <p className="small muted" style={{ margin: 0 }}>
+            {t("Следующий: тур {n} — {name}", { n: next.round, name: nameOf.get(opp) ?? "?" })}
+            {next.play_by && ` · ${t("до {date}", { date: fmtDate(next.play_by, tz, t) })}`}
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  const last = tours[tours.length - 1].deadline;
+  const tourState = (tour: Tour) => (tour.matches.every((m) => m.status === "completed") ? "done" : tour.round === current ? "now" : "next");
 
   return (
     <div className="stack-lg">
@@ -78,54 +124,157 @@ export default async function Calendar({ params }: { params: Promise<{ slug: str
         </p>
       </div>
 
-      {myEntry && (
-        <section className="stack">
-          <h3>{t("Мои соперники по турам")}</h3>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th className="c" style={{ width: 64 }}>{t("Тур")}</th>
-                  <th>{t("Крайний день")}</th>
-                  <th>{t("Соперник")}</th>
-                  <th className="c hide-s">{t("Где")}</th>
-                  <th>{t("Итог")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mine.map(({ tour, m }) => {
-                  const isCurrent = tour.round === current;
-                  if (!m)
+      {/* Tour strip: jump to any tour, colour = played / now / upcoming */}
+      <nav className="tour-strip" aria-label={t("Туры")}>
+        {tours.map((tour) => (
+          <a key={tour.round} href={`#tour-${tour.round}`} className={`ts-${tourState(tour)}`} title={tour.deadline ? t("до {date}", { date: fmtDate(tour.deadline, tz, t) }) : undefined}>
+            {tour.round}
+          </a>
+        ))}
+      </nav>
+
+      {/* Quick view */}
+      <section id="view" className="panel stack" style={{ scrollMarginTop: 90 }}>
+        <h3>{t("Быстрый просмотр")}</h3>
+        <AutoSubmitForm action={`/c/${slug}/calendar`} className="pv-form-row">
+          <label className="field">
+            <span>{t("Игрок")}</span>
+            <select className="input" name="p" defaultValue={p}>
+              <option value="">{t("— выберите игрока —")}</option>
+              {confirmed.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
+                  {e.id === myEntry?.id ? ` (${t("вы")})` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>{t("Соперник")}</span>
+            <select className="input" name="vs" defaultValue={vs} disabled={!p}>
+              <option value="">{t("— все соперники —")}</option>
+              {confirmed
+                .filter((e) => e.id !== p)
+                .map((e) => (
+                  <option key={e.id} value={e.id}>{e.name}</option>
+                ))}
+            </select>
+          </label>
+          <noscript>
+            <button className="btn">{t("Показать")}</button>
+          </noscript>
+          {(p || vs) && (
+            <Link className="btn btn-ghost" href={`/c/${slug}/calendar#view`}>{t("Сбросить")}</Link>
+          )}
+        </AutoSubmitForm>
+
+        {!p && <p className="muted" style={{ margin: 0 }}>{t("Выберите игрока, чтобы увидеть его календарь, или добавьте соперника — покажем, в каких турах они встретятся.")}</p>}
+
+        {p && vs && (
+          <div className="stack">
+            <div className="pv-duel">
+              <Summary id={p} />
+              <div className="pv-vs">
+                <span>VS</span>
+                <small className="muted">
+                  {(() => {
+                    const done = meetings.filter((m) => m.status === "completed");
+                    const pw = done.filter((m) => m.winner_entry_id === p).length;
+                    return done.length ? `${pw} : ${done.length - pw}` : t("ещё не играли");
+                  })()}
+                </small>
+              </div>
+              <Summary id={vs} />
+            </div>
+            {meetings.length ? (
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th className="c" style={{ width: 64 }}>{t("Тур")}</th>
+                      <th>{t("Крайний день")}</th>
+                      <th>{t("Матч")}</th>
+                      <th>{t("Время")}</th>
+                      <th>{t("Итог")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {meetings.map((m) => {
+                      const tour = tourMap.get(m.round)!;
+                      return (
+                        <tr key={m.id} className={m.round === current ? "row-current" : undefined}>
+                          <td className="c num" style={{ fontWeight: 700 }}><a href={`#tour-${m.round}`}>{m.round}</a></td>
+                          <td className="muted">{tour.deadline ? fmtDate(tour.deadline, tz, t) : "—"}</td>
+                          <td style={{ fontWeight: 600 }}>
+                            <Link href={`/match/${m.id}`}>{m.home_name} — {m.away_name}</Link>
+                            <div className="small faint">{m.home_entry_id === p ? t("{name} дома", { name: nameOf.get(p) }) : t("{name} в гостях", { name: nameOf.get(p) })}</div>
+                          </td>
+                          <td>{m.status === "completed" ? <span className="faint small">—</span> : whenCell(m)}</td>
+                          <td>{resultBadge(m, p) ?? <span className="faint small">{t("не сыгран")}</span>}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty">{t("Эти игроки не встречаются в этом соревновании")}</div>
+            )}
+          </div>
+        )}
+
+        {p && !vs && (
+          <div className="stack">
+            <Summary id={p} />
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th className="c" style={{ width: 64 }}>{t("Тур")}</th>
+                    <th>{t("Крайний день")}</th>
+                    <th>{t("Соперник")}</th>
+                    <th className="c hide-s">{t("Где")}</th>
+                    <th>{t("Итог")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fixtures.map(({ tour, m }) => {
+                    const isCurrent = tour.round === current;
+                    if (!m)
+                      return (
+                        <tr key={tour.round}>
+                          <td className="c num">{tour.round}</td>
+                          <td className="muted">{tour.deadline ? fmtDate(tour.deadline, tz, t) : "—"}</td>
+                          <td colSpan={3} className="faint">{t("Выходной тур")}</td>
+                        </tr>
+                      );
+                    const home = m.home_entry_id === p;
+                    const opp = (home ? m.away_entry_id : m.home_entry_id) ?? "";
+                    const overdue = !!tour.deadline && tour.deadline.getTime() < now && m.status !== "completed";
                     return (
-                      <tr key={tour.round}>
-                        <td className="c num">{tour.round}</td>
-                        <td className="muted">{tour.deadline ? fmtDate(tour.deadline, tz, t) : "—"}</td>
-                        <td colSpan={3} className="faint">{t("Выходной тур")}</td>
+                      <tr key={tour.round} className={isCurrent ? "row-current" : undefined}>
+                        <td className="c num" style={{ fontWeight: 700 }}>{tour.round}</td>
+                        <td className={overdue ? "" : "muted"} style={overdue ? { color: "var(--danger)" } : undefined}>
+                          {tour.deadline ? fmtDate(tour.deadline, tz, t) : "—"}
+                          {isCurrent && <span className="badge accent" style={{ marginLeft: 8 }}>{t("сейчас")}</span>}
+                        </td>
+                        <td style={{ fontWeight: 600 }}>
+                          <Link href={href(p, opp)} title={t("Сравнить с этим соперником")}>{nameOf.get(opp) ?? "?"}</Link>
+                        </td>
+                        <td className="c hide-s">{home ? t("Дома") : t("В гостях")}</td>
+                        <td>
+                          <Link href={`/match/${m.id}`} className="plain-link">{resultBadge(m, p) ?? whenCell(m)}</Link>
+                        </td>
                       </tr>
                     );
-                  const home = m.home_entry_id === myEntry.id;
-                  const opp = home ? m.away_entry_id : m.home_entry_id;
-                  return (
-                    <tr key={tour.round} className={isCurrent ? "row-current" : undefined}>
-                      <td className="c num" style={{ fontWeight: 700 }}>{tour.round}</td>
-                      <td className={tour.deadline && new Date(tour.deadline).getTime() < now && m.status !== "completed" ? "" : "muted"}>
-                        {tour.deadline ? fmtDate(tour.deadline, tz, t) : "—"}
-                        {isCurrent && <span className="badge accent" style={{ marginLeft: 8 }}>{t("сейчас")}</span>}
-                      </td>
-                      <td style={{ fontWeight: 600 }}>
-                        <Link href={`/match/${m.id}`}>{nameOf.get(opp ?? "") ?? "?"}</Link>
-                      </td>
-                      <td className="c hide-s">{home ? t("Дома") : t("В гостях")}</td>
-                      <td>{resultCell(m, myEntry.id)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="small faint" style={{ margin: 0 }}>{t("Нажмите на соперника, чтобы сравнить игроков и увидеть все их встречи.")}</p>
           </div>
-          <p className="small faint" style={{ margin: 0 }}>{t("«Дома» — вы создаёте лобби. Время с соперником договаривайтесь на странице матча до крайнего дня тура.")}</p>
-        </section>
-      )}
+        )}
+      </section>
 
       <section className="stack">
         <h3>{t("Все туры")}</h3>
@@ -133,22 +282,22 @@ export default async function Calendar({ params }: { params: Promise<{ slug: str
           {tours.map((tour) => {
             const playing = new Set(tour.matches.flatMap((m) => [m.home_entry_id, m.away_entry_id]));
             const resting = confirmed.filter((e) => !playing.has(e.id));
-            const done = tour.matches.every((m) => m.status === "completed");
+            const state = tourState(tour);
             return (
-              <article key={tour.round} id={`tour-${tour.round}`} className={`tour-card${tour.round === current ? " is-current" : ""}${done ? " is-done" : ""}`}>
+              <article key={tour.round} id={`tour-${tour.round}`} className={`tour-card${state === "now" ? " is-current" : ""}${state === "done" ? " is-done" : ""}`}>
                 <header>
                   <b>{t("Тур {n}", { n: tour.round })}</b>
                   <span className="small muted">
-                    {tour.round === current ? `● ${t("идёт")} · ` : done ? `✓ ${t("сыгран")} · ` : ""}
+                    {state === "now" ? `● ${t("идёт")} · ` : state === "done" ? `✓ ${t("сыгран")} · ` : ""}
                     {tour.deadline ? t("до {date}", { date: fmtDate(tour.deadline, tz, t) }) : ""}
                   </span>
                 </header>
                 <ul>
                   {tour.matches.map((m) => {
-                    const isMine = !!myEntry && (m.home_entry_id === myEntry.id || m.away_entry_id === myEntry.id);
-                    const score = m.status === "completed" ? (m.forfeit ? t("ТП") : `${m.home_wins}:${m.away_wins}`) : t("vs");
+                    const hl = vs ? involves(m, p) && involves(m, vs) : p ? involves(m, p) : !!myEntry && involves(m, myEntry.id);
+                    const score = m.status === "completed" ? (m.forfeit ? t("ТП") : m.games?.length ? `${m.home_wins}:${m.away_wins}` : "✓") : "vs";
                     return (
-                      <li key={m.id} className={isMine ? "mine" : undefined}>
+                      <li key={m.id} className={hl ? "mine" : undefined}>
                         <Link href={`/match/${m.id}`}>
                           <span className={`t-home${m.status === "completed" && m.winner_entry_id === m.home_entry_id ? " win" : ""}`}>{m.home_name ?? "?"}</span>
                           <span className={`t-score${m.status === "completed" ? " done" : ""}`}>{score}</span>
