@@ -922,7 +922,7 @@ const dict: Dict = {
   "Счёт указан как {home} – {away}. Отправил: {who}.": "Score shown as {home} – {away}. Sent by {who}.",
   "Сыграйте и отправьте счёт, соперник подтверждает": "Play and send the score; your opponent confirms",
   "сыгран": "played",
-  "Сыгранные матчи и матчи с результатом на подтверждении не меняются.": "Played matches and matches with a result awaiting confirmation are not changed.",
+  "Сыгранные матчи и матчи с результатом на подтверждении не меняются.": "Matches played with a score and matches with a result awaiting confirmation are not changed.",
   "Сыгранных матчей пока нет": "No matches played yet",
   "Сыграно": "Played",
   "Сыграно матчей": "Matches played",
