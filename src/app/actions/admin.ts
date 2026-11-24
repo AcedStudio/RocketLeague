@@ -303,7 +303,8 @@ export async function seriesLengthAction(fd: FormData) {
       // Matches with a result waiting for confirmation keep their length, so the report stays valid.
       const rows = await q<{ id: string }>(
         `update matches m set best_of = $2, updated_at = now()
-          where m.competition_id = $1 and m.status not in ('completed', 'under_review')
+          where m.competition_id = $1 and m.status <> 'under_review'
+            and (m.status <> 'completed' or coalesce(jsonb_array_length(m.games), 0) = 0)
             and not exists (select 1 from match_reports r where r.match_id = m.id and r.status = 'pending')${where}
           returning m.id`,
         params,

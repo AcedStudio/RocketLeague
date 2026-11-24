@@ -922,7 +922,7 @@ const dict: Dict = {
   "Счёт указан как {home} – {away}. Отправил: {who}.": "Hisob {home} – {away} tartibida koʻrsatilgan. Yuborgan: {who}.",
   "Сыграйте и отправьте счёт, соперник подтверждает": "Oʻynang va hisobni yuboring, raqib tasdiqlaydi",
   "сыгран": "oʻynalgan",
-  "Сыгранные матчи и матчи с результатом на подтверждении не меняются.": "Oʻynalgan va natijasi tasdiqlanishi kutilayotgan uchrashuvlar oʻzgarmaydi.",
+  "Сыгранные матчи и матчи с результатом на подтверждении не меняются.": "Hisob bilan oʻynalgan va natijasi tasdiqlanishi kutilayotgan uchrashuvlar oʻzgarmaydi.",
   "Сыгранных матчей пока нет": "Hozircha oʻynalgan uchrashuvlar yoʻq",
   "Сыграно": "Oʻynalgan",
   "Сыграно матчей": "Oʻynalgan uchrashuvlar",
