@@ -7,7 +7,9 @@ import { leaderboard, playerRatings } from "@/lib/rating";
 import { tierOf } from "@/lib/engine/elo";
 import { DICTS } from "@/lib/i18n/dicts";
 import { isLocale, makeT, type Locale, type T } from "@/lib/i18n/core";
-import { fmtDateTime, groupLabel } from "@/lib/format";
+import { fmtDateTime, groupLabel, renderStored } from "@/lib/format";
+import { respondProposal, checkIn, sweep } from "@/lib/scheduling";
+import { FormError } from "@/lib/errors";
 
 // Discord slash commands over HTTP. Every request is signature-checked with the app's public key.
 // Commands are answered in two steps: an instant "thinking…" acknowledgement (Discord allows
@@ -22,6 +24,7 @@ type Interaction = {
   token: string;
   locale?: string;
   data?: {
+    custom_id?: string;
     name: string;
     type?: number;
     target_id?: string;
@@ -30,8 +33,9 @@ type Interaction = {
   };
   member?: { user: DUser };
   user?: DUser;
+  message?: { embeds?: Embed[] };
 };
-type Answer = { embeds: Embed[] };
+type Answer = { embeds: Embed[]; components?: unknown[] };
 
 const EPHEMERAL = 64;
 const RED = 0xff7b88;
@@ -244,6 +248,23 @@ async function editOriginal(token: string, payload: Answer) {
 
 const PRIVATE = new Set(["matches", "link"]);
 
+/** Buttons in DMs: accept/decline a proposed time, "I'm here". Replies by editing that DM. */
+async function component(body: Interaction, t: T): Promise<Answer> {
+  const invoker = (body.member?.user ?? body.user)!;
+  const u = await linkedUser(invoker.id);
+  if (!u) return notLinked(t, true);
+  const [kind, id] = String(body.data?.custom_id ?? "").split(":");
+  if (!/^[0-9a-f-]{36}$/i.test(id ?? "")) return one_(t, "?", undefined, RED);
+  try {
+    const msg =
+      kind === "acc" ? await respondProposal(id, u.id, true) : kind === "dec" ? await respondProposal(id, u.id, false) : kind === "in" ? await checkIn(id, u.id) : "?";
+    return one_(t, `✅ ${t(msg)}`, undefined, 0x43d9a0);
+  } catch (err) {
+    if (err instanceof FormError) return one_(t, renderStored(t, err.message, err.params ?? {}), undefined, RED);
+    throw err;
+  }
+}
+
 export async function POST(req: Request) {
   const raw = await req.text();
   if (!verifyInteraction(raw, req.headers.get("x-signature-ed25519"), req.headers.get("x-signature-timestamp"))) {
@@ -251,7 +272,8 @@ export async function POST(req: Request) {
   }
   const body = JSON.parse(raw) as Interaction;
   if (body.type === 1) return NextResponse.json({ type: 1 }); // PING
-  if (body.type !== 2 || !body.data) return NextResponse.json({ type: 4, data: { content: "Unknown interaction", flags: EPHEMERAL } });
+  if ((body.type !== 2 && body.type !== 3) || !body.data) return NextResponse.json({ type: 4, data: { content: "Unknown interaction", flags: EPHEMERAL } });
+  const isButton = body.type === 3;
 
   after(async () => {
     const invoker = body.member?.user ?? body.user;
@@ -263,12 +285,20 @@ export async function POST(req: Request) {
       t = makeT("ru", DICTS.ru);
     }
     try {
-      await editOriginal(body.token, await answer(body, t));
+      if (isButton) {
+        // Keep the original message, add the outcome below it, remove the buttons.
+        const res = await component(body, t);
+        await editOriginal(body.token, { embeds: [...(body.message?.embeds ?? []).slice(0, 1), ...res.embeds], components: [] } as Answer);
+      } else {
+        await editOriginal(body.token, await answer(body, t));
+      }
+      await sweep().catch(() => {});
     } catch (err) {
       console.error("[discord] interaction", err);
       await editOriginal(body.token, one_(t, t("Что-то пошло не так. Попробуйте ещё раз."), undefined, RED));
     }
   });
-  // Type 5: "Bot is thinking…" — the answer replaces it within a second or two.
+  // Type 6 (buttons): acknowledge and edit the message later. Type 5 (commands): "Bot is thinking…".
+  if (isButton) return NextResponse.json({ type: 6 });
   return NextResponse.json({ type: 5, data: { flags: PRIVATE.has(body.data.name) ? EPHEMERAL : 0 } });
 }

@@ -1,0 +1,66 @@
+{comp} · время не согласовано	{comp} · vaqt kelishilmagan	{comp} · no time agreed
+Ваши предложения ждут ответа:	Takliflaringiz javob kutmoqda:	Your proposals are awaiting a reply:
+Время в поясе {tz}. Соперник получит уведомление на сайте и в Discord и сможет принять его одной кнопкой.	Vaqt {tz} mintaqasida. Raqib saytda va Discord da xabar oladi va uni bir tugma bilan qabul qila oladi.	Time in {tz}. Your opponent is notified on the site and in Discord and can accept with one button.
+Время для отметки вышло	Belgilanish vaqti tugadi	The check-in window has closed
+Время матча ещё не назначено	Uchrashuv vaqti hali belgilanmagan	The match time isn’t set yet
+Время согласовано	Vaqt kelishildi	Time agreed
+Время согласовано: {when}	Vaqt kelishildi: {when}	Time agreed: {when}
+Вы уже отметились	Siz allaqachon belgilangansiz	You’ve already checked in
+Если вы отметились, а соперник нет — через {min} мин. после начала вам засчитается техническая победа.	Agar siz belgilansangiz, raqib esa yoʻq — boshlanishdan {min} daqiqa oʻtib sizga texnik gʻalaba beriladi.	If you check in and your opponent doesn’t, you win by forfeit {min} min after the start.
+Если один игрок отметился «Я на месте», а соперник нет — через столько минут после начала засчитывается техническое поражение. 0 — выключено.	Agar bir oʻyinchi «Men joyidaman» deb belgilansa, raqib esa yoʻq — boshlanishdan shuncha daqiqa oʻtib texnik magʻlubiyat beriladi. 0 — oʻchirilgan.	If one player checks in and the opponent doesn’t, a forfeit is given this many minutes after the start. 0 = off.
+Игрок на месте	Oʻyinchi joyida	Player checked in
+Кнопка «Я на месте» появится за {n} минут до начала.	«Men joyidaman» tugmasi boshlanishdan {n} daqiqa oldin paydo boʻladi.	The “I’m here” button appears {n} minutes before the start.
+Кто не ответит на предложения соперника до срока — получит техническое поражение.	Raqib takliflariga muddatgacha javob bermagan texnik magʻlubiyat oladi.	Whoever doesn’t answer the opponent’s proposals by the deadline loses by forfeit.
+Матч #{n} через 10 минут	#{n} uchrashuv 10 daqiqadan soʻng	Match #{n} in 10 minutes
+Матч #{n} через час	#{n} uchrashuv bir soatdan soʻng	Match #{n} in one hour
+Матч #{n}: время согласовано	#{n} uchrashuv: vaqt kelishildi	Match #{n}: time agreed
+Матч #{n}: никто не отметился	#{n} uchrashuv: hech kim belgilanmadi	Match #{n}: nobody checked in
+Матч #{n}: соперник на месте	#{n} uchrashuv: raqib joyida	Match #{n}: your opponent is here
+Матч #{n}: соперник отклонил время	#{n} uchrashuv: raqib vaqtni rad etdi	Match #{n}: your opponent declined the time
+Матч #{n}: соперник предлагает время	#{n} uchrashuv: raqib vaqt taklif qilmoqda	Match #{n}: your opponent proposes a time
+Матч #{n}: срок истёк	#{n} uchrashuv: muddat tugadi	Match #{n}: deadline passed
+Матч нужно сыграть до срока: {when}	Uchrashuvni muddatgacha oʻynash kerak: {when}	The match must be played by {when}
+Матч уже сыгран или на рассмотрении	Uchrashuv allaqachon oʻynalgan yoki koʻrib chiqilmoqda	The match is already played or under review
+На это предложение уже ответили	Bu taklifga allaqachon javob berilgan	This proposal has already been answered
+Не больше {n} предложений одновременно — отзовите старое	Bir vaqtda {n} tadan koʻp taklif boʻlmaydi — eskisini qaytarib oling	No more than {n} proposals at a time — withdraw an old one
+Никто не отметился к началу матча	Uchrashuv boshlanishiga hech kim belgilanmadi	Nobody checked in by the start
+Ожидание соперника, минут	Raqibni kutish, daqiqa	Wait for opponent, minutes
+Ответить может только соперник	Faqat raqib javob bera oladi	Only the opponent can reply
+Отметиться можно за {n} минут до начала	Boshlanishdan {n} daqiqa oldin belgilanish mumkin	Check-in opens {n} minutes before the start
+Отметьтесь на странице матча, иначе через {min} мин. после начала засчитается техническое поражение	Uchrashuv sahifasida belgilaning, aks holda boshlanishdan {min} daqiqa oʻtib texnik magʻlubiyat beriladi	Check in on the match page, or you lose by forfeit {min} min after the start
+Отмечено: вы на месте	Belgilandi: siz joyidasiz	Checked in: you’re here
+Отозвать	Qaytarib olish	Withdraw
+Отозвать можно только своё предложение	Faqat oʻz taklifingizni qaytarib olish mumkin	You can only withdraw your own proposal
+Предложение не найдено	Taklif topilmadi	Proposal not found
+Предложение отклонено	Taklif rad etildi	Proposal declined
+Предложение отозвано	Taklif qaytarib olindi	Proposal withdrawn
+Предложение отправлено сопернику	Taklif raqibga yuborildi	Proposal sent to your opponent
+Предложено время:	Taklif qilingan vaqt:	Proposed times:
+Предложено время: {when}	Vaqt taklif qilindi: {when}	Time proposed: {when}
+Предложите время хотя бы на {n} минут вперёд	Kamida {n} daqiqa oldinga vaqt taklif qiling	Propose a time at least {n} minutes ahead
+Предложить время	Vaqt taklif qilish	Propose a time
+Предложить другое время	Boshqa vaqt taklif qilish	Propose another time
+Принять	Qabul qilish	Accept
+Расписание тура	Tur jadvali	Round schedule
+Со сроком игроки сами предлагают и принимают время на странице матча; кто не ответил сопернику до срока — получает техническое поражение.	Muddat bilan oʻyinchilar vaqtni uchrashuv sahifasida oʻzlari taklif qiladi va qabul qiladi; muddatgacha raqibga javob bermagan texnik magʻlubiyat oladi.	With a deadline, players propose and accept times on the match page themselves; whoever doesn’t answer the opponent by the deadline loses by forfeit.
+Соперник отклонил время {when}	Raqib {when} vaqtini rad etdi	The opponent declined {when}
+Соперник предлагает:	Raqib taklif qilmoqda:	Your opponent proposes:
+Срок должен быть в будущем	Muddat kelajakda boʻlishi kerak	The deadline must be in the future
+Срок матча истёк, время не согласовано	Uchrashuv muddati tugadi, vaqt kelishilmagan	The match deadline passed with no agreed time
+Срок матча: {when}. Договоритесь о времени с соперником	Uchrashuv muddati: {when}. Raqib bilan vaqtni kelishing	Match deadline: {when}. Agree on a time with your opponent
+Срок: игроки договариваются сами	Muddat: oʻyinchilar oʻzlari kelishadi	Deadline: players agree themselves
+Сыграть до: {when}.	{when} gacha oʻynash kerak.	Play by: {when}.
+Техническое поражение тому, кто не договорился о времени до срока тура	Tur muddatigacha vaqtni kelishmaganga texnik magʻlubiyat	Forfeit for whoever didn’t agree on a time by the round deadline
+Техническое поражение: соперник не договорился о времени до срока	Texnik magʻlubiyat: raqib muddatgacha vaqtni kelishmadi	Forfeit: the opponent didn’t agree on a time by the deadline
+Техническое поражение: соперник не пришёл за {min} мин.	Texnik magʻlubiyat: raqib {min} daqiqa ichida kelmadi	Forfeit: the opponent didn’t show up within {min} min
+Точное время для всех матчей	Barcha uchrashuvlar uchun aniq vaqt	Exact time for every match
+Это время уже предложено	Bu vaqt allaqachon taklif qilingan	This time is already proposed
+Это время уже прошло — предложите новое	Bu vaqt oʻtib ketdi — yangisini taklif qiling	That time has passed — propose a new one
+Это могут сделать только участники матча	Buni faqat uchrashuv ishtirokchilari qila oladi	Only the match players can do this
+Я на месте	Men joyidaman	I’m here
+на месте	joyida	here
+не назначено	belgilanmagan	not set
+не отметился	belgilanmagan	not checked in
+предварительно	taxminiy	tentative
+согласовано	kelishilgan	agreed
+через	qoldi:	in

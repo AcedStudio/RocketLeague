@@ -1,4 +1,4 @@
--- RL Arena schema. Idempotent: safe to run on every deploy.
+-- RL Championship schema. Idempotent: safe to run on every deploy.
 
 create extension if not exists pgcrypto;
 
@@ -267,3 +267,26 @@ update competitions c set champion_entry_id = p.recipient_entry_id
 alter table users add column if not exists discord_roles text[] not null default '{}';
 alter table discord_outbox drop constraint if exists discord_outbox_kind_check;
 alter table discord_outbox add constraint discord_outbox_kind_check check (kind in ('channel', 'dm', 'role', 'board'));
+
+-- Match time negotiation, check-in and automatic forfeits.
+alter table competitions add column if not exists noshow_minutes int not null default 15;
+alter table competitions add column if not exists deadline_forfeit boolean not null default true;
+alter table matches add column if not exists play_by timestamptz;
+alter table matches add column if not exists time_confirmed boolean not null default false;
+alter table matches add column if not exists home_checkin_at timestamptz;
+alter table matches add column if not exists away_checkin_at timestamptz;
+alter table matches add column if not exists remind60_at timestamptz;
+alter table matches add column if not exists remind10_at timestamptz;
+alter table matches add column if not exists auto_handled_at timestamptz;
+create table if not exists match_proposals (
+  id uuid primary key default gen_random_uuid(),
+  match_id uuid not null references matches(id) on delete cascade,
+  entry_id uuid not null references entries(id) on delete cascade,
+  proposed_by uuid references users(id) on delete set null,
+  at timestamptz not null,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'declined', 'withdrawn', 'expired')),
+  responded_by uuid references users(id) on delete set null,
+  responded_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists match_proposals_match on match_proposals (match_id, status);

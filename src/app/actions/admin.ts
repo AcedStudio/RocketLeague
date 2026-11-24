@@ -65,6 +65,7 @@ export async function saveCompetition(fd: FormData) {
     if (deadlineRaw && !deadline) throw new FormError("Неверная дата окончания регистрации");
     if (startRaw && !start) throw new FormError("Неверная дата старта");
 
+    const noshow = int(fd, "noshow_minutes", "Ожидание соперника, минут", 0, 120);
     const v = {
       name,
       kind,
@@ -133,6 +134,7 @@ export async function saveCompetition(fd: FormData) {
         if (v.featured) await q("update competitions set featured = false where id <> $1", [id], c);
         await logAction(c, user.id, "competition.create", name);
       }
+      await q("update competitions set noshow_minutes = $2, deadline_forfeit = $3 where id = $1", [id, noshow, bool(fd, "deadline_forfeit")], c);
     });
   });
   revalidatePath("/", "layout");
@@ -314,20 +316,27 @@ export async function scheduleRound(fd: FormData) {
     if (!["group", "league", "knockout", "third_place"].includes(stage) || !Number.isInteger(round)) throw new FormError("Выберите тур");
     const at = fromLocalInput(String(fd.get("scheduled_at") ?? ""), comp.timezone);
     if (!at) throw new FormError("Укажите дату и время");
+    const deadline = String(fd.get("kind") ?? "time") === "deadline";
+    if (deadline && at.getTime() < Date.now()) throw new FormError("Срок должен быть в будущем");
     await tx(async (c) => {
       const rows = await q<{ id: string; home_entry_id: string | null; away_entry_id: string | null }>(
-        "update matches set scheduled_at = $4, reminded_at = null, updated_at = now() where competition_id = $1 and stage = $2 and round = $3 and status <> 'completed' and not is_bye returning id, home_entry_id, away_entry_id",
+        deadline
+          ? "update matches set play_by = $4, auto_handled_at = null, updated_at = now() where competition_id = $1 and stage = $2 and round = $3 and status <> 'completed' and not is_bye returning id, home_entry_id, away_entry_id"
+          : `update matches set scheduled_at = $4, time_confirmed = true, home_checkin_at = null, away_checkin_at = null, remind60_at = null, remind10_at = null,
+                    reminded_at = null, auto_handled_at = null, updated_at = now()
+              where competition_id = $1 and stage = $2 and round = $3 and status <> 'completed' and not is_bye returning id, home_entry_id, away_entry_id`,
         [id, stage, round, at],
         c,
       );
       const when = { at: at.toISOString(), tz: comp.timezone };
-      for (const r of rows) await matchEvent(c, r.id, user.id, "Новое время: {when}", when);
+      const text = deadline ? "Срок матча: {when}. Договоритесь о времени с соперником" : "Новое время: {when}";
+      for (const r of rows) await matchEvent(c, r.id, user.id, text, when);
       const members = await q<{ user_id: string }>(
         "select distinct user_id from entry_members where active and entry_id = any($1::uuid[])",
         [rows.flatMap((r) => [r.home_entry_id, r.away_entry_id]).filter(Boolean)],
         c,
       );
-      await notify(c, members.map((m) => m.user_id), "{comp}: расписание обновлено", "Новое время: {when}", `/c/${comp.slug}/matches`, { comp: comp.name, ...when });
+      await notify(c, members.map((m) => m.user_id), "{comp}: расписание обновлено", text, `/c/${comp.slug}/matches`, { comp: comp.name, ...when });
       await logAction(c, user.id, "schedule.round", `${comp.name} ${stage} ${round}: ${rows.length} матчей, ${at.toISOString()}`);
     });
   });

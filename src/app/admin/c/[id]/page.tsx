@@ -294,17 +294,24 @@ async function MatchesTab({ comp, status }: { comp: Competition; status: string 
     <div className="stack-lg">
       <form action={scheduleRound} className="panel stack">
         <input type="hidden" name="id" value={comp.id} />
-        <h3>{t("Назначить время целому туру")}</h3>
+        <h3>{t("Расписание тура")}</h3>
         <div className="row">
           <select className="input" name="round_key" style={{ maxWidth: 260 }}>
             {roundKeys.map(([k, label]) => (
               <option key={k} value={k}>{label}</option>
             ))}
           </select>
+          <select className="input" name="kind" defaultValue="deadline" style={{ maxWidth: 300 }}>
+            <option value="deadline">{t("Срок: игроки договариваются сами")}</option>
+            <option value="time">{t("Точное время для всех матчей")}</option>
+          </select>
           <input className="input" type="datetime-local" name="scheduled_at" required style={{ maxWidth: 240 }} />
           <SubmitButton className="btn">{t("Назначить")}</SubmitButton>
         </div>
-        <small className="faint">{t("Время в поясе {tz}. Участники получат уведомление.", { tz: comp.timezone })}</small>
+        <small className="faint">
+          {t("Время в поясе {tz}. Участники получат уведомление.", { tz: comp.timezone })}{" "}
+          {t("Со сроком игроки сами предлагают и принимают время на странице матча; кто не ответил сопернику до срока — получает техническое поражение.")}
+        </small>
       </form>
       <div className="subtabs">
         <Link href={`/admin/c/${comp.id}?tab=matches`} aria-current={!status ? "page" : undefined}>{t("Все")}</Link>

@@ -64,7 +64,7 @@ export class DiscordError extends Error {
 export async function discordApi<T = unknown>(path: string, init: { method?: string; body?: unknown; auth?: "bot" | { bearer: string } } = {}): Promise<T> {
   const { botToken } = discordEnv();
   const auth = init.auth ?? "bot";
-  const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "RLArena (https://github.com/AcedStudio/RocketLeague, 1.0)" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", "User-Agent": "RLChampionship (https://github.com/AcedStudio/RocketLeague, 1.0)" };
   if (auth === "bot") {
     if (!botToken) throw new DiscordError(0, "DISCORD_BOT_TOKEN is not set");
     headers.Authorization = `Bot ${botToken}`;
@@ -99,8 +99,12 @@ export type Embed = {
   timestamp?: string;
 };
 
+/** A Discord button; its label is a Russian template. custom_id is handled by the interactions route. */
+export type Button = { label: string; id: string; style?: 1 | 2 | 3 | 4 };
+
 /** A localisable message: Russian templates + params, rendered at send time. */
 export type MessageSpec = {
+  buttons?: Button[];
   title: string;
   description?: string;
   params?: Params;
@@ -119,7 +123,10 @@ export function renderMessage(spec: MessageSpec, locale: Locale) {
     color: spec.color ?? BRAND_COLOR,
     fields: spec.fields?.slice(0, 25).map((f) => ({ name: groupLabel(f.name, t).slice(0, 256), value: f.value.slice(0, 1024) || "—", inline: f.inline })),
   };
-  return { embeds: [embed], allowed_mentions: { parse: [] as string[] } };
+  const components = spec.buttons?.length
+    ? [{ type: 1, components: spec.buttons.slice(0, 5).map((b) => ({ type: 2, style: b.style ?? 2, label: renderStored(t, b.label, p).slice(0, 80), custom_id: b.id })) }]
+    : undefined;
+  return { embeds: [embed], components, allowed_mentions: { parse: [] as string[] } };
 }
 
 // ---------------------------------------------------------------- outbox

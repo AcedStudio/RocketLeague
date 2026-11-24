@@ -33,9 +33,9 @@ const MANAGED_ROLE_KEYS = ROLE_DEFS.map((r) => r.key).filter((k) => k !== "parti
 
 type ChannelKey = "category" | "results" | "rating" | "hall" | "bot";
 const CHANNEL_NAMES: Record<Locale, Record<ChannelKey, string>> = {
-  uz: { category: "🏆 RL ARENA", results: "📊・natijalar", rating: "🏅・reyting", hall: "🏛・shon-sharaf", bot: "🤖・bot" },
-  ru: { category: "🏆 RL ARENA", results: "📊・результаты", rating: "🏅・рейтинг", hall: "🏛・зал-славы", bot: "🤖・бот" },
-  en: { category: "🏆 RL ARENA", results: "📊・results", rating: "🏅・rankings", hall: "🏛・hall-of-fame", bot: "🤖・bot" },
+  uz: { category: "🏆 RL CHAMPIONSHIP", results: "📊・natijalar", rating: "🏅・reyting", hall: "🏛・shon-sharaf", bot: "🤖・bot" },
+  ru: { category: "🏆 RL CHAMPIONSHIP", results: "📊・результаты", rating: "🏅・рейтинг", hall: "🏛・зал-славы", bot: "🤖・бот" },
+  en: { category: "🏆 RL CHAMPIONSHIP", results: "📊・results", rating: "🏅・rankings", hall: "🏛・hall-of-fame", bot: "🤖・bot" },
 };
 const CHANNEL_TOPICS: Record<Exclude<ChannelKey, "category">, string> = {
   results: "Результаты матчей и изменения рейтинга — публикуются автоматически",
@@ -71,7 +71,7 @@ async function saveLayout(layout: Layout, c?: Queryable) {
 const P = { VIEW: 1024, SEND: 2048, EMBED: 16384, ATTACH: 32768, HISTORY: 65536, MANAGE_MESSAGES: 8192, REACT: 64, THREADS_PUB: 34359738368, THREADS_PRIV: 68719476736, SEND_THREADS: 274877906944 };
 
 /**
- * Creates whatever is missing: roles, the RL ARENA category and its channels, and the
+ * Creates whatever is missing: roles, the RL CHAMPIONSHIP category and its channels, and the
  * live boards. Never renames or deletes anything that already exists. Safe to re-run.
  */
 export async function setupServer(): Promise<{ createdRoles: number; createdChannels: number }> {
@@ -85,13 +85,20 @@ export async function setupServer(): Promise<{ createdRoles: number; createdChan
   const roles = await discordApi<{ id: string; name: string }[]>(`/guilds/${s.guildId}/roles`);
   let createdRoles = 0;
   for (const def of ROLE_DEFS) {
-    if (def.key === "participant" && s.participantRole && roles.some((r) => r.id === s.participantRole)) {
+    // An admin-picked participant role (not one the bot made) is used as is.
+    if (def.key === "participant" && s.participantRole && s.participantRole !== layout.roles.participant && roles.some((r) => r.id === s.participantRole)) {
       layout.roles.participant = s.participantRole;
       continue;
     }
-    const known = layout.roles[def.key];
-    if (known && roles.some((r) => r.id === known)) continue;
     const name = def.name(t);
+    const known = layout.roles[def.key];
+    const current = known ? roles.find((r) => r.id === known) : undefined;
+    if (current) {
+      // Bot-owned role: keep its name in the bot's language (participant only if it still has one of our names).
+      const ours = def.key !== "participant" || (["ru", "uz", "en"] as Locale[]).some((l) => def.name(makeT(l, DICTS[l])) === current.name);
+      if (ours && current.name !== name) await discordApi(`/guilds/${s.guildId}/roles/${current.id}`, { method: "PATCH", body: { name } });
+      continue;
+    }
     const existing = roles.find((r) => r.name === name);
     if (existing) {
       layout.roles[def.key] = existing.id;
@@ -110,7 +117,7 @@ export async function setupServer(): Promise<{ createdRoles: number; createdChan
   await saveLayout(layout);
 
   // Channels
-  const channels = await discordApi<{ id: string; name: string; type: number; parent_id: string | null }[]>(`/guilds/${s.guildId}/channels`);
+  const channels = await discordApi<{ id: string; name: string; type: number; parent_id: string | null; topic?: string | null }[]>(`/guilds/${s.guildId}/channels`);
   const names = CHANNEL_NAMES[s.locale];
   let createdChannels = 0;
   const readOnly = [
@@ -119,7 +126,15 @@ export async function setupServer(): Promise<{ createdRoles: number; createdChan
   ];
   const ensure = async (key: ChannelKey, type: number, extra: Record<string, unknown>) => {
     const known = layout.channels[key];
-    if (known && channels.some((ch) => ch.id === known)) return known;
+    const current = known ? channels.find((ch) => ch.id === known) : undefined;
+    if (current) {
+      // Our own channel: refresh its name and description in the bot's language.
+      const patch: Record<string, unknown> = {};
+      if (current.name !== names[key]) patch.name = names[key];
+      if (typeof extra.topic === "string" && current.topic !== extra.topic) patch.topic = extra.topic;
+      if (Object.keys(patch).length) await discordApi(`/channels/${current.id}`, { method: "PATCH", body: patch });
+      return current.id;
+    }
     const existing = channels.find((ch) => ch.name === names[key] && ch.type === type);
     if (existing) return (layout.channels[key] = existing.id);
     const ch = await discordApi<{ id: string }>(`/guilds/${s.guildId}/channels`, { method: "POST", body: { name: names[key], type, ...extra } });

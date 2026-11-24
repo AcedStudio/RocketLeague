@@ -11,6 +11,9 @@ import { reportAction, respondAction, refereeResultAction, matchStatusAction, sc
 import { getT } from "@/lib/i18n/server";
 import { matchRatingChanges } from "@/lib/rating";
 import { Delta } from "@/components/rating";
+import { ScheduleBox } from "@/components/ScheduleBox";
+import { sweep } from "@/lib/scheduling";
+import { after } from "next/server";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +46,8 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     matchRatingChanges(m.id),
   ]);
   const rounds = roundsRow[0]?.r ?? undefined;
+  // Opportunistic: apply due reminders and forfeits (throttled, also run by the 5-minute tick).
+  after(() => sweep().catch((e) => console.error("[sweep]", e)));
   const myEntry = side === "home" ? m.home_entry_id : side === "away" ? m.away_entry_id : null;
   const pendingFromOpponent = reports.find((r) => r.status === "pending" && myEntry && r.entry_id !== myEntry);
   const myPending = reports.find((r) => r.status === "pending" && r.entry_id === myEntry);
@@ -103,6 +108,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
 
       <div className="split">
         <div className="stack-lg">
+          <ScheduleBox m={m} comp={comp} side={side} />
           {pendingFromOpponent && (
             <section className="panel stack" style={{ borderColor: "rgba(255,193,99,.5)" }}>
               <h3>{t("Соперник отправил результат")}</h3>

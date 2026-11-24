@@ -100,7 +100,12 @@ export async function scheduleAction(fd: FormData) {
       const raw = String(fd.get("scheduled_at") ?? "");
       const at = raw ? fromLocalInput(raw, m.timezone) : null;
       if (raw && !at) throw new FormError("Неверная дата");
-      await q("update matches set scheduled_at = $2, reminded_at = null, updated_at = now() where id = $1", [id, at], c);
+      await q(
+        `update matches set scheduled_at = $2, time_confirmed = $2 is not null, home_checkin_at = null, away_checkin_at = null,
+                remind60_at = null, remind10_at = null, reminded_at = null, auto_handled_at = null, updated_at = now() where id = $1`,
+        [id, at],
+        c,
+      );
       const text = at ? "Новое время: {when}" : "Время матча снято";
       const params = at ? { at: at.toISOString(), tz: m.timezone } : {};
       await matchEvent(c, id, user.id, text, params);
