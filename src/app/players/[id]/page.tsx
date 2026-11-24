@@ -6,6 +6,9 @@ import { stageLabel } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
 import { playerRatings, ratingHistory } from "@/lib/rating";
 import { RatingCard, Delta } from "@/components/rating";
+import { FutCard, STAT_LABELS } from "@/components/FutCard";
+import { getPlayerCard } from "@/lib/cards";
+import { STAT_KEYS } from "@/lib/engine/card";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +22,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   );
   if (!u) notFound();
 
-  const [entries, matches, awards, ratings, h1, h2] = await Promise.all([
+  const [entries, matches, awards, ratings, h1, h2, card] = await Promise.all([
     q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
       `select e.id, e.name, c.name as comp, c.slug, c.mode, c.status
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
@@ -48,6 +51,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     playerRatings(id),
     ratingHistory(id, "1v1"),
     ratingHistory(id, "2v2"),
+    getPlayerCard(id),
   ]);
   const wins = matches.filter((m) => m.won).length;
   const losses = matches.length - wins;
@@ -61,10 +65,27 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           {PLATFORM_LABELS[u.platform]} · {t("на платформе с {date}", { date: fmtDate(u.created_at, "Asia/Tashkent", t) })}
         </p>
       </div>
-      <div className="rating-cards">
-        {ratings.map((r) => (
-          <RatingCard key={r.mode} r={r} history={(r.mode === "1v1" ? h1 : h2).map((x) => x.rating)} />
-        ))}
+      <div className="card-hero">
+        {card && <FutCard card={card} />}
+        <div className="stack">
+          <div className="rating-cards">
+            {ratings.map((r) => (
+              <RatingCard key={r.mode} r={r} history={(r.mode === "1v1" ? h1 : h2).map((x) => x.rating)} />
+            ))}
+          </div>
+          <ul className="fut-legend small muted">
+            {STAT_KEYS.map((k) => (
+              <li key={k}>
+                <b>{k.toUpperCase()}</b>
+                {t(STAT_LABELS[k])}
+              </li>
+            ))}
+            <li>
+              <b>OVR</b>
+              {t("Общий рейтинг: считается из ELO")}
+            </li>
+          </ul>
+        </div>
       </div>
       <div className="stat-strip">
         <div>
