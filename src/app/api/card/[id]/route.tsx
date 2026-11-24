@@ -73,7 +73,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           <div style={{ display: "flex", flexWrap: "wrap", paddingTop: 14 }}>
             {STAT_KEYS.map((k) => (
               <div key={k} style={{ width: "50%", display: "flex", alignItems: "baseline", fontSize: 24, marginBottom: 4 }}>
-                <span style={{ fontWeight: 800, width: 44 }}>{card.stats[k]}</span>
+                <span style={{ display: "flex", fontWeight: 800, width: 52, marginRight: 8 }}>{card.stats[k]}</span>
                 <span style={{ fontWeight: 800, opacity: 0.8 }}>{k.toUpperCase()}</span>
               </div>
             ))}
