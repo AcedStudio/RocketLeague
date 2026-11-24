@@ -1,4 +1,3 @@
-«Дома» — вы создаёте лобби. Время с соперником договаривайтесь на странице матча до крайнего дня тура.	«Uyda» — lobbini siz yaratasiz. Raqib bilan vaqtni tur oxirgi kunigacha uchrashuv sahifasida kelishing.	“Home” means you create the lobby. Agree on a time with your opponent on the match page before the tour’s last day.
 В гостях	Mehmonda	Away
 В этом формате нет туров — смотрите сетку плей-офф	Bu formatda turlar yoʻq — pley-off setkasiga qarang	This format has no tours — see the playoff bracket
 Все туры	Barcha turlar	All tours
@@ -14,7 +13,6 @@
 Календарь сезона	Mavsum kalendari	Season calendar
 Календарь строится только для лиги и группового этапа	Kalendar faqat liga va guruh bosqichi uchun tuziladi	A calendar is only built for leagues and group stages
 Крайний день	Oxirgi kun	Last day
-Мои соперники по турам	Turlar boʻyicha raqiblarim	My opponents by tour
 Отдыхает: {names}	Dam oladi: {names}	Resting: {names}
 Построить календарь	Kalendar tuzish	Build calendar
 Равномерно распределить туры на срок сезона: каждому туру — крайний день. Уже сыгранные матчи не меняются.	Turlarni mavsum muddatiga teng taqsimlash: har bir turga oxirgi kun. Oʻynalgan uchrashuvlar oʻzgarmaydi.	Spread the tours evenly over the season: each tour gets a last day. Played matches are not changed.
@@ -27,3 +25,20 @@
 последний тур до {date}	oxirgi tur {date} gacha	last tour by {date}
 сейчас	hozir	now
 сыгран	oʻynalgan	played
+{name} в гостях	{name} mehmonda	{name} away
+{name} дома	{name} uyda	{name} at home
+Быстрый просмотр	Tezkor koʻrish	Quick view
+Выберите игрока, чтобы увидеть его календарь, или добавьте соперника — покажем, в каких турах они встретятся.	Oʻyinchini tanlang — uning kalendarini koʻrasiz, raqibni ham qoʻshsangiz — qaysi turlarda uchrashishlarini koʻrsatamiz.	Pick a player to see their calendar, or add an opponent — we’ll show which tours they meet in.
+В–П	G–M	W–L
+Ещё нет сыгранных матчей	Hali oʻynalgan uchrashuvlar yoʻq	No matches played yet
+Нажмите на соперника, чтобы сравнить игроков и увидеть все их встречи.	Oʻyinchilarni solishtirish va barcha uchrashuvlarini koʻrish uchun raqibni bosing.	Tap an opponent to compare the players and see all their meetings.
+Показать	Koʻrsatish	Show
+Следующий: тур {n} — {name}	Keyingisi: {n}-tur — {name}	Next: tour {n} — {name}
+Сравнить с этим соперником	Bu raqib bilan solishtirish	Compare with this opponent
+Туры	Turlar	Tours
+Эти игроки не встречаются в этом соревновании	Bu oʻyinchilar ushbu musobaqada uchrashmaydi	These players don’t meet in this competition
+вы	siz	you
+ещё не играли	hali oʻynashmagan	not played yet
+не сыгран	oʻynalmagan	not played
+— все соперники —	— barcha raqiblar —	— all opponents —
+— выберите игрока —	— oʻyinchini tanlang —	— choose a player —
