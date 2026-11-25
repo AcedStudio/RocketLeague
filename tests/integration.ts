@@ -516,7 +516,7 @@ async function main() {
     await refereeResult(m2.id, admin, { games: [{ home: 2, away: 3 }] }, "");
     const table = await predictionTable(xc);
     const f = table.find((r) => r.user_id === fan.id)!;
-    assert.equal(f.points, 3 + 1, "exact on m1, right winner on m2");
+    assert.equal(f.points, 3 + 2, "exact on m1 (3:1); 1:2 on a 2:3 result = winner and margin");
     assert.equal(f.exact, 1);
     assert.equal(table.find((r) => r.user_id === player.id)!.points, 0, "4:2 on a 2:3 result: wrong winner");
   });
