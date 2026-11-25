@@ -352,3 +352,6 @@ create table if not exists user_achievements (
   unlocked_at timestamptz not null default now(),
   primary key (user_id, key)
 );
+
+-- "Two days left and no agreed time" nudge, sent once per match.
+alter table matches add column if not exists remind_deadline_at timestamptz;

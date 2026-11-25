@@ -9,6 +9,8 @@ import { Flash, MatchStatusBadge, stageLabel, type SP } from "@/components/ui";
 import { GamesInput, SubmitButton, LocalTime, ShotPicker } from "@/components/client";
 import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction, matchRefereeAction, uploadShotsAction, deleteShotAction } from "@/app/actions/match";
 import { listMatchFiles, MAX_FILES_PER_MATCH } from "@/lib/files";
+import { MatchJourney } from "@/components/MatchJourney";
+import { matchOfRound } from "@/lib/motw";
 import { refereeCandidates } from "@/lib/referees";
 import { getT } from "@/lib/i18n/server";
 import { matchRatingChanges } from "@/lib/rating";
@@ -32,7 +34,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const user = await getUser();
   if (comp.draw_state !== "published" && !isAdmin(user?.role)) notFound();
 
-  const [home, away, reports, events, side, roundsRow, elo, refCandidates, shots] = await Promise.all([
+  const [home, away, reports, events, side, roundsRow, elo, refCandidates, shots, motw] = await Promise.all([
     m.home_entry_id ? getEntry(m.home_entry_id) : null,
     m.away_entry_id ? getEntry(m.away_entry_id) : null,
     q<Report>(
@@ -48,6 +50,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     matchRatingChanges(m.id),
     isAdmin(user?.role) ? refereeCandidates(comp.id) : Promise.resolve([]),
     listMatchFiles(m.id),
+    m.stage === "league" ? matchOfRound(comp) : Promise.resolve(null),
   ]);
   const rounds = roundsRow[0]?.r ?? undefined;
   // Opportunistic: apply due reminders and forfeits (throttled, also run by the 5-minute tick).
@@ -89,7 +92,10 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
           <span>
             {t("Матч #{n}", { n: m.number })} · {stageLabel(t, m, rounds)} · {m.best_of === 1 ? t("одна игра") : `Bo${m.best_of}`}
           </span>
-          <MatchStatusBadge status={m.status} />
+          <span className="row" style={{ gap: 8 }}>
+            {motw?.match.id === m.id && <span className="badge gold plain">🔥 {t("Матч тура")}</span>}
+            <MatchStatusBadge status={m.status} />
+          </span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 16, alignItems: "center", marginTop: 12 }}>
           {team(home, m.home_name, homeWin)}
@@ -121,6 +127,8 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         {done && !m.forfeit && <p className="small faint" style={{ textAlign: "center" }}>{t("Голы в сумме:")} {m.home_goals}–{m.away_goals}</p>}
         {m.forfeit && <p className="small faint" style={{ textAlign: "center" }}>{t("Техническая победа")}</p>}
       </section>
+
+      <MatchJourney m={m} comp={comp} role={assignedRef || (staff && !side) ? "referee" : side ? "player" : "viewer"} t={t} />
 
       <div className="split">
         <div className="stack-lg">
