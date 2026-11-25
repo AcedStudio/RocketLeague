@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { q, one } from "@/lib/db";
-import { PLATFORM_LABELS, fmtDate } from "@/lib/format";
+import { PLATFORM_LABELS, fmtDate, scoreOf } from "@/lib/format";
 import { stageLabel } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
 import { playerRatings, ratingHistory } from "@/lib/rating";
@@ -30,8 +30,8 @@ export default async function Player({ params }: { params: Promise<{ id: string 
         where em.user_id = $1 and em.active and c.status <> 'draft' order by e.created_at desc`,
       [id],
     ),
-    q<{ id: string; stage: "group"; round: number; group_name: string | null; home_name: string; away_name: string; home_wins: number; away_wins: number; won: boolean; comp: string; forfeit: boolean; delta: number | null }>(
-      `select m.id, m.stage, m.round, g.name as group_name, he.name as home_name, ae.name as away_name, m.home_wins, m.away_wins, m.forfeit,
+    q<{ id: string; stage: "group"; round: number; group_name: string | null; home_name: string; away_name: string; home_wins: number; away_wins: number; best_of: number; games: { home: number; away: number }[] | null; won: boolean; comp: string; forfeit: boolean; delta: number | null }>(
+      `select m.id, m.stage, m.round, g.name as group_name, he.name as home_name, ae.name as away_name, m.home_wins, m.away_wins, m.best_of, m.games, m.forfeit,
               m.winner_entry_id in (select entry_id from entry_members where user_id = $1 and active) as won, c.name as comp,
               (select r.delta from rating_changes r where r.match_id = m.id and r.user_id = $1) as delta
          from matches m join competitions c on c.id = m.competition_id
@@ -159,7 +159,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <b>
-                      {m.home_name} {m.forfeit ? t("ТП") : `${m.home_wins}:${m.away_wins}`} {m.away_name}
+                      {m.home_name} {m.forfeit ? t("ТП") : scoreOf(m).join(":")} {m.away_name}
                     </b>
                     <span className="small muted" style={{ display: "block" }}>
                       {m.comp} · {stageLabel(t, m)}

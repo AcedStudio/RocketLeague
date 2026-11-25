@@ -138,3 +138,9 @@ export function renderStored(t: Fmt, text: string, params: Record<string, unknow
   if (typeof params?.at === "string") p.when = fmtDateTime(params.at, typeof params.tz === "string" ? params.tz : "Asia/Tashkent", t);
   return t(text, p);
 }
+
+/** The score to show: goals for a single-game match, otherwise the series score. */
+export function scoreOf(m: { best_of: number; games?: { home: number; away: number }[] | null; home_wins: number | null; away_wins: number | null }): [number, number] {
+  if (m.best_of === 1 && m.games?.length === 1) return [m.games[0].home, m.games[0].away];
+  return [m.home_wins ?? 0, m.away_wins ?? 0];
+}

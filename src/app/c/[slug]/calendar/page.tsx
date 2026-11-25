@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompetitionBySlug, getMatches, getEntries, getStandings, type Match } from "@/lib/data";
 import { getUser } from "@/lib/auth";
-import { fmtDate, fmtDateTime, groupLabel } from "@/lib/format";
+import { fmtDate, fmtDateTime, groupLabel, scoreOf } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { pick, type SP } from "@/components/ui";
 import { AutoSubmitForm } from "@/components/client";
@@ -83,7 +83,7 @@ export default async function Calendar({ params, searchParams }: { params: Promi
     if (m.status !== "completed") return null;
     const home = m.home_entry_id === id;
     const won = m.winner_entry_id === id;
-    const score = m.forfeit ? t("ТП") : m.games?.length ? (home ? `${m.home_wins}:${m.away_wins}` : `${m.away_wins}:${m.home_wins}`) : "";
+    const score = m.forfeit ? t("ТП") : m.games?.length ? (home ? scoreOf(m).join(":") : [...scoreOf(m)].reverse().join(":")) : "";
     return <span className={`badge ${won ? "ok" : "danger"}`}>{won ? t("В") : t("П")}{score ? ` ${score}` : ""}</span>;
   };
   const whenCell = (m: Match) =>
@@ -309,7 +309,7 @@ export default async function Calendar({ params, searchParams }: { params: Promi
                 <ul>
                   {tour.matches.map((m) => {
                     const hl = vs ? involves(m, p) && involves(m, vs) : p ? involves(m, p) : !!myEntry && involves(m, myEntry.id);
-                    const score = m.status === "completed" ? (m.forfeit ? t("ТП") : m.games?.length ? `${m.home_wins}:${m.away_wins}` : "✓") : "vs";
+                    const score = m.status === "completed" ? (m.forfeit ? t("ТП") : m.games?.length ? scoreOf(m).join(":") : "✓") : "vs";
                     return (
                       <li key={m.id} className={hl ? "mine" : undefined}>
                         <Link href={`/match/${m.id}`}>

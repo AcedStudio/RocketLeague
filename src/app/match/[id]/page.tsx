@@ -4,7 +4,7 @@ import { getMatch, getCompetition, getEntry } from "@/lib/data";
 import { getUser, isReferee, isAdmin } from "@/lib/auth";
 import { q } from "@/lib/db";
 import { userSide } from "@/lib/tournament";
-import { fmtDateTime, toLocalInput, MATCH_STATUS_LABELS, renderStored } from "@/lib/format";
+import { fmtDateTime, toLocalInput, MATCH_STATUS_LABELS, renderStored, scoreOf } from "@/lib/format";
 import { Flash, MatchStatusBadge, stageLabel, type SP } from "@/components/ui";
 import { GamesInput, SubmitButton, LocalTime, ShotPicker } from "@/components/client";
 import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction, matchRefereeAction, uploadShotsAction, deleteShotAction } from "@/app/actions/match";
@@ -94,7 +94,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 16, alignItems: "center", marginTop: 12 }}>
           {team(home, m.home_name, homeWin)}
           <div className="num" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 7vw, 3.6rem)", fontWeight: 700, whiteSpace: "nowrap" }}>
-            {done ? (m.forfeit ? t("ТП") : `${m.home_wins} : ${m.away_wins}`) : "vs"}
+            {done ? (m.forfeit ? t("ТП") : scoreOf(m).join(" : ")) : "vs"}
           </div>
           {team(away, m.away_name, awayWin)}
         </div>

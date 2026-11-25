@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Match, Competition, GroupTable } from "@/lib/data";
-import { MATCH_STATUS_LABELS, COMP_STATUS_LABELS, KIND_LABELS, FORMAT_LABELS, fmtDateTime, fmtDate, fmtMoney, groupLabel } from "@/lib/format";
+import { MATCH_STATUS_LABELS, COMP_STATUS_LABELS, KIND_LABELS, FORMAT_LABELS, fmtDateTime, fmtDate, fmtMoney, groupLabel, scoreOf } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import type { T } from "@/lib/i18n/core";
 import { CupIcon, LeagueIcon } from "./Art";
@@ -70,9 +70,9 @@ export async function MatchCard({ m, tz, rounds, mine }: { m: Match; tz: string;
         {m.is_bye ? <span className="badge dim">{t("Проход (bye)")}</span> : <MatchStatusBadge status={m.status} />}
       </div>
       <span className={`side ${hs}`}>{m.home_name ?? (m.is_bye ? "—" : t("Определится позже"))}</span>
-      <span className={`sc ${hs === "win" ? "win" : ""}`}>{done && !m.is_bye ? (m.forfeit ? (hs === "win" ? "W" : "L") : m.home_wins) : ""}</span>
+      <span className={`sc ${hs === "win" ? "win" : ""}`}>{done && !m.is_bye ? (m.forfeit ? (hs === "win" ? "W" : "L") : scoreOf(m)[0]) : ""}</span>
       <span className={`side ${as}`}>{m.away_name ?? (m.is_bye ? "—" : t("Определится позже"))}</span>
-      <span className={`sc ${as === "win" ? "win" : ""}`}>{done && !m.is_bye ? (m.forfeit ? (as === "win" ? "W" : "L") : m.away_wins) : ""}</span>
+      <span className={`sc ${as === "win" ? "win" : ""}`}>{done && !m.is_bye ? (m.forfeit ? (as === "win" ? "W" : "L") : scoreOf(m)[1]) : ""}</span>
       <span className="small faint" style={{ gridColumn: "1 / -1", marginTop: 6 }}>
         {m.is_bye ? t("Участник проходит дальше без игры") : `${fmtDateTime(m.scheduled_at, tz, t)} · ${m.best_of === 1 ? t("одна игра") : `Bo${m.best_of}`}`}
       </span>
@@ -191,7 +191,7 @@ export async function Bracket({ matches }: { matches: Match[] }) {
   const slot = (m: Match, side: "home" | "away") => {
     const id = side === "home" ? m.home_entry_id : m.away_entry_id;
     const name = side === "home" ? m.home_name : m.away_name;
-    const score = side === "home" ? m.home_wins : m.away_wins;
+    const score = scoreOf(m)[side === "home" ? 0 : 1];
     const done = m.status === "completed";
     const cls = !id ? "tbd" : done ? (m.winner_entry_id === id ? "win" : "lose") : "";
     return (

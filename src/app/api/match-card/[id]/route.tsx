@@ -3,7 +3,7 @@ import { getMatch, getCompetition } from "@/lib/data";
 import { entryRatings } from "@/lib/rating";
 import { DICTS } from "@/lib/i18n/dicts";
 import { isLocale, makeT } from "@/lib/i18n/core";
-import { fmtDate, fmtDateTime } from "@/lib/format";
+import { fmtDate, fmtDateTime, scoreOf } from "@/lib/format";
 import { loadFont } from "@/lib/og";
 
 // 1200×630 picture of a match for Discord, Telegram and Instagram:
@@ -34,7 +34,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const homeWon = done && m.winner_entry_id === m.home_entry_id;
   const awayWon = done && m.winner_entry_id === m.away_entry_id;
   const stage = m.stage === "league" || m.stage === "group" ? t("Тур {n}", { n: m.round }) : t("Плей-офф");
-  const score = done ? (m.forfeit ? t("ТП") : `${m.home_wins ?? 0}:${m.away_wins ?? 0}`) : "VS";
+  const score = done ? (m.forfeit ? t("ТП") : scoreOf(m).join(":")) : "VS";
   const games = done && !m.forfeit && (m.games?.length ?? 0) > 1 ? m.games!.map((g) => `${g.home}–${g.away}`).join("  ") : "";
   const when = done
     ? t("Итог матча")
