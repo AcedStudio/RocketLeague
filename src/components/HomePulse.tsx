@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getMatches, getStandings, getEntries, type Competition } from "@/lib/data";
 import { getPolls } from "@/lib/awards";
+import { matchOfRound } from "@/lib/motw";
 import { getT } from "@/lib/i18n/server";
 import { fmtDate, fmtDateTime, scoreOf } from "@/lib/format";
 import { Countdown } from "@/components/client";
@@ -10,11 +11,12 @@ import { Countdown } from "@/components/client";
 export async function HomePulse({ comp, userId }: { comp: Competition; userId: string | null }) {
   const t = await getT();
   if (comp.draw_state !== "published") return null;
-  const [matches, entries, tables, polls] = await Promise.all([
+  const [matches, entries, tables, polls, motw] = await Promise.all([
     getMatches(comp.id),
     getEntries(comp.id),
     comp.format === "round_robin" ? getStandings(comp) : Promise.resolve([]),
     getPolls(comp.id),
+    matchOfRound(comp),
   ]);
   const tz = comp.timezone;
   const real = matches.filter((m) => !m.is_bye && m.home_entry_id && m.away_entry_id);
@@ -95,6 +97,34 @@ export async function HomePulse({ comp, userId }: { comp: Competition; userId: s
           <span className="small">→</span>
         </Link>
       ) : null}
+
+      {motw && (
+        <Link href={`/match/${motw.match.id}`} className="motw">
+          <span className="eyebrow motw-eyebrow">🔥 {t("Матч тура {n}", { n: motw.round })}</span>
+          <div className="motw-vs">
+            <div className="motw-side">
+              <b>{motw.match.home_name}</b>
+              <small>
+                {motw.homePos ? `#${motw.homePos} · ` : ""}ELO {motw.homeElo}
+              </small>
+            </div>
+            <span className="motw-x">VS</span>
+            <div className="motw-side right">
+              <b>{motw.match.away_name}</b>
+              <small>
+                {motw.awayPos ? `#${motw.awayPos} · ` : ""}ELO {motw.awayElo}
+              </small>
+            </div>
+          </div>
+          <span className="small muted">
+            {motw.match.scheduled_at && motw.match.time_confirmed
+              ? fmtDateTime(motw.match.scheduled_at, tz, t)
+              : motw.match.play_by
+                ? t("сыграть до {date}", { date: fmtDate(motw.match.play_by, tz, t) })
+                : t("Время ещё не назначено")}
+          </span>
+        </Link>
+      )}
 
       <div className="pulse-grid">
         <div className="panel stack">

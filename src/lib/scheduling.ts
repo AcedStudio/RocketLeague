@@ -5,6 +5,7 @@ import { FormError } from "./errors";
 import { notify, notifyEntries, matchEvent, logAction } from "./notify";
 import { applyResult } from "./tournament";
 import { runTourPolls } from "./awards";
+import { announceMatchesOfRound } from "./motw";
 
 // Players agree on a match time themselves: one side proposes, the other accepts.
 // At the agreed time both sides check in; whoever doesn't show up within the
@@ -102,7 +103,7 @@ export async function respondProposal(proposalId: string, userId: string, accept
       await q("update match_proposals set status = 'expired', responded_at = now() where match_id = $1 and status = 'pending'", [m.id], c);
       await q(
         `update matches set scheduled_at = $2, time_confirmed = true, home_checkin_at = null, away_checkin_at = null,
-                remind60_at = null, remind10_at = null, reminded_at = null, auto_handled_at = null, updated_at = now() where id = $1`,
+                remind60_at = null, remind10_at = null, reminded_at = null, remind_deadline_at = null, auto_handled_at = null, updated_at = now() where id = $1`,
         [m.id, p.at],
         c,
       );
@@ -202,6 +203,27 @@ export async function sweep(force = false): Promise<{ reminded: number; forfeits
     }
   }
 
+  // 1b. Round deadline in two days and still no agreed time: nudge both players (once per match).
+  const nudge = await q<{ id: string; number: number; play_by: Date; home_entry_id: string; away_entry_id: string; timezone: string; comp: string }>(
+    `update matches m set remind_deadline_at = now() from competitions c
+      where c.id = m.competition_id and m.remind_deadline_at is null and not m.time_confirmed and not m.is_bye
+        and m.status in ('upcoming', 'ready') and c.draw_state = 'published'
+        and m.home_entry_id is not null and m.away_entry_id is not null
+        and m.play_by between now() and now() + interval '48 hours'
+      returning m.id, m.number, m.play_by, m.home_entry_id, m.away_entry_id, c.timezone, c.name as comp`,
+  );
+  for (const m of nudge) {
+    await notifyEntries(
+      undefined,
+      [m.home_entry_id, m.away_entry_id],
+      "⏰ Матч #{n}: осталось меньше 2 дней",
+      "{comp} · сыграть до {when}. Договоритесь о времени, иначе матч может закончиться техническим поражением.",
+      `/match/${m.id}`,
+      { n: m.number, comp: m.comp, ...when(m.play_by, m.timezone) },
+    );
+    out.reminded++;
+  }
+
   // 2. No-shows: grace period after the start is over and nobody reported a result.
   const noshows = await q<{ id: string }>(
     `select m.id from matches m join competitions c on c.id = m.competition_id
@@ -268,5 +290,6 @@ export async function sweep(force = false): Promise<{ reminded: number; forfeits
   if (out.forfeits || out.flagged) await logAction(undefined, null, "sweep", JSON.stringify(out));
   // Player-of-the-tour polls ride on the same clock.
   await runTourPolls().catch((e) => console.error("[polls]", e));
+  await announceMatchesOfRound().catch((e) => console.error("[motw]", e));
   return out;
 }

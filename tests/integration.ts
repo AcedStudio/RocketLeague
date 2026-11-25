@@ -16,6 +16,9 @@ import type { User } from "../src/lib/auth";
 import { runTourPolls, vote, nominees, tourAwards } from "../src/lib/awards";
 import { saveMatchFiles, listMatchFiles, deleteMatchFile } from "../src/lib/files";
 import { playerAchievements } from "../src/lib/achievements";
+import { playerRivals } from "../src/lib/rivals";
+import { matchOfRound } from "../src/lib/motw";
+import { sweep } from "../src/lib/scheduling";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -539,6 +542,43 @@ async function main() {
     assert.ok(list.find((a) => a.def.key === "clean_sheet")!.done);
     const again = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🏅%' and created_at > now() - interval '5 minutes'", [home.id]);
     assert.equal(again!.n, notes!.n, "nothing announced twice");
+  });
+
+  await step("rivals, match of the round, two-day deadline nudge", async () => {
+    const rc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
+    for (const p of players.slice(0, 4)) await registerSolo(rc, p);
+    await close(rc);
+    await runDraw(rc, admin);
+    await publishDraw(rc, admin);
+    const comp = (await getCompetition(rc))!;
+    const all = (await getMatches(rc)).filter((m) => m.stage === "league" && !m.is_bye);
+    const r1 = all.filter((m) => m.round === 1);
+    const motw1 = await matchOfRound(comp);
+    assert.equal(motw1!.round, 1);
+    assert.ok(r1.some((m) => m.id === motw1!.match.id), "picked from round 1");
+    for (const m of r1) await refereeResult(m.id, admin, { games: [{ home: 3, away: 1 }] }, "");
+    const motw2 = await matchOfRound(comp);
+    assert.equal(motw2!.round, 2, "moves on once round 1 is played");
+    assert.ok(motw2!.homePos && motw2!.awayPos, "table positions known after results");
+
+    const home = users.get((await membersOf(r1[0].home_entry_id!))[0])!;
+    const rivals = await playerRivals(home.id);
+    const vs = rivals.find((r) => r.opponent === r1[0].away_name)!;
+    assert.equal(vs.played, 1);
+    assert.equal(vs.wins, 1);
+    assert.equal(`${vs.gf}:${vs.ga}`, "3:1");
+    assert.equal(vs.last_score, "3:1");
+
+    const target = (await getMatches(rc)).find((m) => m.round === 2 && !m.is_bye && m.home_entry_id && m.away_entry_id)!;
+    await q("update matches set play_by = now() + interval '30 hours', time_confirmed = false where id = $1", [target.id]);
+    await sweep(true);
+    const nudged = await one<{ at: Date | null }>("select remind_deadline_at as at from matches where id = $1", [target.id]);
+    assert.ok(nudged!.at, "nudge recorded");
+    const before = await one<{ n: number }>("select count(*)::int as n from notifications where title like '⏰%' and link = $1", [`/match/${target.id}`]);
+    assert.ok(before!.n >= 2, "both players notified");
+    await sweep(true);
+    const after = await one<{ n: number }>("select count(*)::int as n from notifications where title like '⏰%' and link = $1", [`/match/${target.id}`]);
+    assert.equal(after!.n, before!.n, "sent only once");
   });
 
   console.log(`\n${passed} integration checks passed`);

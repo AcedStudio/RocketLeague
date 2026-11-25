@@ -10,6 +10,7 @@ import { FutCard, STAT_LABELS } from "@/components/FutCard";
 import { getPlayerCard } from "@/lib/cards";
 import { STAT_KEYS } from "@/lib/engine/card";
 import { playerAchievements } from "@/lib/achievements";
+import { playerRivals } from "@/lib/rivals";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   );
   if (!u) notFound();
 
-  const [entries, matches, awards, ratings, h1, h2, card, achievements] = await Promise.all([
+  const [entries, matches, awards, ratings, h1, h2, card, achievements, rivals] = await Promise.all([
     q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
       `select e.id, e.name, c.name as comp, c.slug, c.mode, c.status
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
@@ -54,6 +55,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     ratingHistory(id, "2v2"),
     getPlayerCard(id),
     playerAchievements(id),
+    playerRivals(id),
   ]);
   const earned = achievements.filter((a) => a.done).length;
   const wins = matches.filter((m) => m.won).length;
@@ -147,6 +149,38 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           })}
         </div>
       </section>
+      {rivals.length > 0 && (
+        <section className="stack" id="rivals">
+          <h2 style={{ fontSize: "1.3rem" }}>⚔️ {t("Соперники")}</h2>
+          <div className="rival-grid">
+            {rivals.map((r) => {
+              const pct = Math.round((r.wins / r.played) * 100);
+              const body = (
+                <>
+                  <div className="rival-top">
+                    <b>{r.opponent}</b>
+                    <span className={`badge plain ${r.wins > r.losses ? "ok" : r.wins < r.losses ? "danger" : "dim"}`}>
+                      {r.wins}–{r.losses}
+                    </span>
+                  </div>
+                  <span className="rival-bar" aria-label={t("Побед: {n}%", { n: pct })}>
+                    <i style={{ width: `${pct}%` }} />
+                  </span>
+                  <span className="small muted">
+                    {t("Матчей: {n}", { n: r.played })} · {t("Голы {gf}:{ga}", { gf: r.gf, ga: r.ga })}
+                    {r.last_score && ` · ${t("последний {score}", { score: r.last_score })} ${r.last_won ? "✅" : "❌"}`}
+                  </span>
+                </>
+              );
+              return r.opponent_user_id ? (
+                <Link key={r.opponent_user_id} href={`/players/${r.opponent_user_id}`} className="rival">{body}</Link>
+              ) : (
+                <div key={r.last_match_id} className="rival">{body}</div>
+              );
+            })}
+          </div>
+        </section>
+      )}
       <div className="split">
         <section className="stack">
           <h2 style={{ fontSize: "1.3rem" }}>{t("История матчей")}</h2>
