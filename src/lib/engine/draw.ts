@@ -59,3 +59,17 @@ export function drawGroups(entries: readonly DrawEntry[], opts: DrawOptions): Dr
   }
   return { seed: opts.seed, groups };
 }
+
+/** Group setups that make sense for `n` entries: at least 3 per group, fewer qualifiers than group size,
+ *  and a playoff of 2/4/8/16 (no byes). Ordered from the most common choice. */
+export function groupOptions(n: number): { groups: number; qualifiers: number; playoff: number }[] {
+  const out: { groups: number; qualifiers: number; playoff: number }[] = [];
+  for (let g = 2; g <= Math.min(GROUP_LETTERS.length, Math.floor(n / 3)); g++) {
+    const size = Math.floor(n / g);
+    for (let q = 1; q < size && q <= 4; q++) {
+      const playoff = g * q;
+      if ([2, 4, 8, 16].includes(playoff)) out.push({ groups: g, qualifiers: q, playoff });
+    }
+  }
+  return out.sort((a, b) => Math.abs(a.playoff - 4) - Math.abs(b.playoff - 4) || a.groups - b.groups);
+}
