@@ -100,6 +100,7 @@ export type Match = {
   time_confirmed: boolean;
   home_checkin_at: Date | null;
   away_checkin_at: Date | null;
+  completed_at?: Date | null;
 };
 
 export type Group = { id: string; name: string; position: number; entry_ids: string[] };
