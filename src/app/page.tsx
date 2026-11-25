@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { dbConfigured, one } from "@/lib/db";
+import { dbConfigured, one, q } from "@/lib/db";
 import { getFeaturedCompetition, listCompetitions, getAnnouncements, entryCounts, getMatches, getSettings } from "@/lib/data";
 import { getUser } from "@/lib/auth";
 import { FORMAT_LABELS, KIND_LABELS, fmtDate, fmtMoney } from "@/lib/format";
@@ -31,6 +31,12 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
   const prize = featured ? fmtMoney(featured.prize_pool, featured.prize_currency, t.intl) : null;
   const leagues = comps.filter((c) => c.kind === "league");
   const cups = comps.filter((c) => c.kind === "cup");
+  // The live block follows a running competition: the one I play in first, then the featured one, then any.
+  const running = comps.filter((c) => c.draw_state === "published" && ["in_progress", "playoffs"].includes(c.status));
+  const myComps = user && running.length > 1
+    ? new Set((await q<{ competition_id: string }>("select e.competition_id from entries e join entry_members em on em.entry_id = e.id and em.active where em.user_id = $1 and e.status = 'confirmed'", [user.id])).map((r) => r.competition_id))
+    : new Set<string>();
+  const pulseComp = running.find((c) => myComps.has(c.id)) ?? running.find((c) => c.id === featured?.id) ?? running[0] ?? null;
   const startsInFuture = featured?.start_at && new Date(featured.start_at).getTime() > Date.now();
 
   return (
@@ -137,7 +143,7 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
         <Flash sp={sp} />
       </div>
 
-      {featured && <HomePulse comp={featured} userId={user?.id ?? null} />}
+      {pulseComp && <HomePulse comp={pulseComp} userId={user?.id ?? null} />}
 
       {news.length > 0 && (
         <section className="wrap section" style={{ paddingBottom: 0 }}>
