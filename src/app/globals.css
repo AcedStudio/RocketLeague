@@ -529,15 +529,6 @@ table.standings td.move .same { color: var(--ink-faint); }
 .match-card-preview img { display: block; width: 100%; height: auto; }
 @media (hover: hover) and (pointer: fine) { .match-card-preview:hover { transform: translateY(-2px); border-color: var(--accent); } }
 
-/* Predictions */
-.pick-row { display: grid !important; grid-template-columns: 1fr auto 1fr; grid-template-areas: "meta meta meta" "home score away"; gap: 6px 12px; align-items: center; }
-.pick-meta { grid-area: meta; }
-.pick-team { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pick-team.right { grid-area: home; text-align: right; }
-.pick-team:last-child { grid-area: away; }
-.pick-inputs, .pick-own { grid-area: score; display: flex; align-items: center; gap: 6px; }
-.pick-inputs .input { width: 52px; text-align: center; padding: 8px 6px; font-weight: 700; }
-
 /* Player of the tour poll */
 .poll { border-top: 1px solid var(--line); padding-top: var(--s3); display: grid; gap: 8px; }
 .poll-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
@@ -551,10 +542,6 @@ table.standings td.move .same { color: var(--ink-faint); }
 .poll-name, .poll-votes { position: relative; }
 .poll-votes { font-weight: 700; color: var(--gold); }
 .poll-winner { border-top: 1px solid var(--line); padding-top: var(--s3); font-weight: 600; color: var(--gold); }
-.split-bar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; font: 700 0.8rem/30px var(--font-display); }
-.split-bar span { min-width: 42px; text-align: center; color: var(--accent-ink); }
-.split-bar span:first-child { background: var(--accent-strong); }
-.split-bar span:last-child { background: var(--accent-light); }
 
 /* Match screenshots */
 .shot-drop { display: flex; align-items: center; justify-content: center; min-height: 64px; border: 1px dashed var(--line-strong); border-radius: var(--r-sm); cursor: pointer; color: var(--ink-soft); text-align: center; padding: 10px; transition: border-color 150ms; }

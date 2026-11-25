@@ -14,7 +14,6 @@ import {
 import { getStandings, getCompetition, getMatches, entryCounts, type Match } from "../src/lib/data";
 import type { User } from "../src/lib/auth";
 import { runTourPolls, vote, nominees, tourAwards } from "../src/lib/awards";
-import { savePredictions, predictionTable, predictionSplit } from "../src/lib/predictions";
 import { saveMatchFiles, listMatchFiles, deleteMatchFile } from "../src/lib/files";
 
 let passed = 0;
@@ -492,33 +491,6 @@ async function main() {
     await rejects(vote(pc, "league", 1, voters[1].id, star.user_id), /закрыто/);
     assert.ok((await tourAwards(star.user_id)) >= 1);
     assert.ok((await getPlayerCard(star.user_id))!.tourAwards >= 1, "badge counted on the FUT card");
-  });
-
-  await step("predictions: own match skipped, locked at kickoff, points 3/2/1/0", async () => {
-    const xc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
-    for (const p of players.slice(0, 4)) await registerSolo(xc, p);
-    await close(xc);
-    await runDraw(xc, admin);
-    await publishDraw(xc, admin);
-    const ms = (await getMatches(xc)).filter((m) => m.stage === "league" && m.round === 1 && !m.is_bye);
-    const [m1, m2] = ms;
-    const inM1 = [...(await membersOf(m1.home_entry_id!)), ...(await membersOf(m1.away_entry_id!))];
-    const fan = players[8]; // not registered in this competition
-    const player = users.get(inM1[0])!;
-    await rejects(savePredictions(fan.id, xc, { [m1.id]: [2, 2] }), /ничьих/);
-    assert.equal(await savePredictions(fan.id, xc, { [m1.id]: [3, 1], [m2.id]: [1, 2] }), 2);
-    assert.equal(await savePredictions(fan.id, xc, { [m1.id]: [3, 1] }), 1, "update is allowed before kickoff");
-    assert.equal(await savePredictions(player.id, xc, { [m1.id]: [5, 0], [m2.id]: [4, 2] }), 1, "own match is skipped");
-    assert.deepEqual(await predictionSplit(m1.id), { home: 1, away: 0 });
-    await q("update matches set scheduled_at = now() - interval '1 minute' where id = $1", [m2.id]);
-    assert.equal(await savePredictions(players[9].id, xc, { [m2.id]: [1, 0] }), 0, "locked after kickoff");
-    await refereeResult(m1.id, admin, { games: [{ home: 3, away: 1 }] }, "");
-    await refereeResult(m2.id, admin, { games: [{ home: 2, away: 3 }] }, "");
-    const table = await predictionTable(xc);
-    const f = table.find((r) => r.user_id === fan.id)!;
-    assert.equal(f.points, 3 + 2, "exact on m1 (3:1); 1:2 on a 2:3 result = winner and margin");
-    assert.equal(f.exact, 1);
-    assert.equal(table.find((r) => r.user_id === player.id)!.points, 0, "4:2 on a 2:3 result: wrong winner");
   });
 
   await step("screenshots: players and referee upload, outsiders can't, max per match, magic bytes checked", async () => {

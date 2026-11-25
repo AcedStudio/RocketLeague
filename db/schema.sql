@@ -330,17 +330,8 @@ create table if not exists tour_votes (
   foreign key (competition_id, stage, round) references tour_polls(competition_id, stage, round) on delete cascade
 );
 
--- Score predictions: anyone except the two sides, until the match starts.
-create table if not exists predictions (
-  match_id uuid not null references matches(id) on delete cascade,
-  user_id uuid not null references users(id) on delete cascade,
-  home int not null check (home between 0 and 99),
-  away int not null check (away between 0 and 99),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  primary key (match_id, user_id)
-);
-create index if not exists predictions_user on predictions (user_id);
+-- The predictions feature was removed.
+drop table if exists predictions;
 
 -- Result screenshots, stored compressed in the database (small WebP/JPEG, max ~1.5 MB).
 create table if not exists match_files (
