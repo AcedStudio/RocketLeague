@@ -7,7 +7,7 @@ const OLD_HOSTS = new Set(["rl-arena-eight.vercel.app"]);
 export function middleware(req: NextRequest) {
   const site = process.env.SITE_URL;
   const host = req.headers.get("host") ?? "";
-  if (!site || !OLD_HOSTS.has(host)) return NextResponse.next();
+  if (!site || !OLD_HOSTS.has(host) || new URL(site).host === host) return NextResponse.next();
   const target = new URL(req.nextUrl.pathname + req.nextUrl.search, site);
   return NextResponse.redirect(target, 308);
 }
