@@ -7,7 +7,7 @@ import { leaderboard, playerRatings } from "@/lib/rating";
 import { tierOf } from "@/lib/engine/elo";
 import { DICTS } from "@/lib/i18n/dicts";
 import { isLocale, makeT, type Locale, type T } from "@/lib/i18n/core";
-import { fmtDateTime, groupLabel, renderStored } from "@/lib/format";
+import { fmtDateTime, groupLabel, renderStored, scoreOf } from "@/lib/format";
 import { respondProposal, checkIn, sweep } from "@/lib/scheduling";
 import { FormError } from "@/lib/errors";
 
@@ -126,11 +126,11 @@ async function h2h(t: T, me: DUser, opponent: DUser): Promise<Answer> {
   if (!a) return notLinked(t, true);
   if (!b) return notLinked(t, false);
   if (a.id === b.id) return one_(t, t("Выберите другого игрока"), undefined, RED);
-  const rows = await q<{ id: string; a_won: boolean; home_name: string; away_name: string; home_wins: number; away_wins: number; forfeit: boolean; comp: string }>(
+  const rows = await q<{ id: string; a_won: boolean; home_name: string; away_name: string; home_wins: number; away_wins: number; best_of: number; games: { home: number; away: number }[] | null; forfeit: boolean; comp: string }>(
     `with ea as (select entry_id from entry_members where user_id = $1 and active),
           eb as (select entry_id from entry_members where user_id = $2 and active)
      select m.id, m.winner_entry_id in (select entry_id from ea) as a_won, he.name as home_name, ae.name as away_name,
-            m.home_wins, m.away_wins, m.forfeit, c.name as comp
+            m.home_wins, m.away_wins, m.best_of, m.games, m.forfeit, c.name as comp
        from matches m join competitions c on c.id = m.competition_id
        join entries he on he.id = m.home_entry_id join entries ae on ae.id = m.away_entry_id
       where m.status = 'completed' and not m.is_bye
@@ -142,7 +142,7 @@ async function h2h(t: T, me: DUser, opponent: DUser): Promise<Answer> {
   const title = `⚔️ ${a.rl_nickname} vs ${b.rl_nickname}`;
   if (!rows.length) return one_(t, title, t("Они ещё не встречались"));
   const aw = rows.filter((r) => r.a_won).length;
-  const last = rows.slice(0, 5).map((r) => `${r.a_won ? "🟩" : "🟥"} ${r.home_name} ${r.forfeit ? t("ТП") : `${r.home_wins}:${r.away_wins}`} ${r.away_name} · ${r.comp} · [#](${siteUrl()}/match/${r.id})`);
+  const last = rows.slice(0, 5).map((r) => `${r.a_won ? "🟩" : "🟥"} ${r.home_name} ${r.forfeit ? t("ТП") : scoreOf(r).join(":")} ${r.away_name} · ${r.comp} · [#](${siteUrl()}/match/${r.id})`);
   return {
     embeds: [
       {

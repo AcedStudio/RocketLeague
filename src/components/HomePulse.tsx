@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getMatches, getStandings, getEntries, type Competition } from "@/lib/data";
 import { getPolls } from "@/lib/awards";
 import { getT } from "@/lib/i18n/server";
-import { fmtDate, fmtDateTime } from "@/lib/format";
+import { fmtDate, fmtDateTime, scoreOf } from "@/lib/format";
 import { Countdown } from "@/components/client";
 
 // The "live" part of the home page: my next match, season progress, latest results, leaders, open vote.
@@ -109,7 +109,7 @@ export async function HomePulse({ comp, userId }: { comp: Competition; userId: s
                 return (
                   <Link key={m.id} href={`/match/${m.id}`} className="pulse-result">
                     <span className={`right${hw ? " win" : ""}`}>{m.home_name}</span>
-                    <b className="num">{m.forfeit ? (hw ? "W:FF" : "FF:W") : `${m.home_wins ?? 0}:${m.away_wins ?? 0}`}</b>
+                    <b className="num">{m.forfeit ? (hw ? "W:FF" : "FF:W") : scoreOf(m).join(":")}</b>
                     <span className={!hw ? "win" : ""}>{m.away_name}</span>
                   </Link>
                 );

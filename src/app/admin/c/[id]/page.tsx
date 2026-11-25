@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { getCompetition, getEntries, entryCounts, getMatches, getGroups, getPrizes, type Competition, type Match } from "@/lib/data";
-import { ENTRY_STATUS_LABELS, PAYOUT_LABELS, fmtDateTime, fmtMoney, toLocalInput, groupLabel } from "@/lib/format";
+import { ENTRY_STATUS_LABELS, PAYOUT_LABELS, fmtDateTime, fmtMoney, toLocalInput, groupLabel, scoreOf } from "@/lib/format";
 import { CompetitionForm } from "@/components/CompetitionForm";
 import { CompStatusBadge, Flash, MatchStatusBadge, pick, stageLabel, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
@@ -377,7 +377,7 @@ async function MatchesTab({ comp, status, rt }: { comp: Competition; status: str
                 <td className="num"><Link href={`/match/${m.id}`}>#{m.number}</Link></td>
                 <td className="small muted">{stageLabel(t, m, rounds)}</td>
                 <td><Link href={`/match/${m.id}`}>{m.home_name ?? "?"} — {m.away_name ?? "?"}</Link></td>
-                <td className="num">{m.status === "completed" ? (m.forfeit ? t("ТП") : `${m.home_wins}:${m.away_wins}`) : ""}</td>
+                <td className="num">{m.status === "completed" ? (m.forfeit ? t("ТП") : scoreOf(m).join(":")) : ""}</td>
                 <td><MatchStatusBadge status={m.status} /></td>
                 <td>
                   <form action={scheduleAction} className="inline-form">
