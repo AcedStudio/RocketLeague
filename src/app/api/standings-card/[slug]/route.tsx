@@ -36,7 +36,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     getPrizes(comp.id),
   ]);
   const prevPos = new Map(before.flatMap((g) => g.rows.map((r) => [r.id, r.position] as const)));
-  const prizes = Math.max(1, ...prizeRows.map((p) => p.place));
+  const prizes = Math.max(1, ...prizeRows.map((p) => p.place ?? 0));
   const rows = tables.reduce((s, g) => s + g.rows.length + (g.group ? 1 : 0), 0);
   const H = Math.max(1080, 330 + rows * ROW + 120);
 
