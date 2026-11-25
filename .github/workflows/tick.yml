@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - run: curl -fsS --max-time 90 https://rl-arena-eight.vercel.app/api/cron/tick
+      - run: curl -fsS --max-time 90 https://rlchamp.uz/api/cron/tick
