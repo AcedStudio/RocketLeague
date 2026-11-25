@@ -561,13 +561,13 @@ async function main() {
     assert.equal(motw2!.round, 2, "moves on once round 1 is played");
     assert.ok(motw2!.homePos && motw2!.awayPos, "table positions known after results");
 
+    // Test players meet across many test competitions, so compare against the record before this result.
     const home = users.get((await membersOf(r1[0].home_entry_id!))[0])!;
-    const rivals = await playerRivals(home.id);
-    const vs = rivals.find((r) => r.opponent === r1[0].away_name)!;
-    assert.equal(vs.played, 1);
-    assert.equal(vs.wins, 1);
-    assert.equal(`${vs.gf}:${vs.ga}`, "3:1");
+    const vs = (await playerRivals(home.id)).find((r) => r.last_match_id === r1[0].id)!;
+    assert.ok(vs, "latest meeting is the one just played");
     assert.equal(vs.last_score, "3:1");
+    assert.equal(vs.last_won, true);
+    assert.equal(vs.wins + vs.losses, vs.played);
 
     const target = (await getMatches(rc)).find((m) => m.round === 2 && !m.is_bye && m.home_entry_id && m.away_entry_id)!;
     await q("update matches set play_by = now() + interval '30 hours', time_confirmed = false where id = $1", [target.id]);
