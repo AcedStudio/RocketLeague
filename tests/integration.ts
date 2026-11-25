@@ -14,8 +14,8 @@ import {
 import { getStandings, getCompetition, getMatches, entryCounts, type Match } from "../src/lib/data";
 import type { User } from "../src/lib/auth";
 import { runTourPolls, vote, nominees, tourAwards } from "../src/lib/awards";
-import { savePredictions, predictionTable, predictionSplit } from "../src/lib/predictions";
 import { saveMatchFiles, listMatchFiles, deleteMatchFile } from "../src/lib/files";
+import { playerAchievements } from "../src/lib/achievements";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -71,6 +71,8 @@ async function playAll(compId: string, users: Map<string, User>, stage?: string,
 
 async function main() {
   await q(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"));
+  // The qa database holds thousands of old test users: skip the one-time silent backfill there.
+  await q("insert into settings (key, value) values ('achievements_backfill', 'test') on conflict (key) do nothing");
   const admin = await mkUser("admin", "admin");
   const users = new Map<string, User>();
   const players: User[] = [];
@@ -494,33 +496,6 @@ async function main() {
     assert.ok((await getPlayerCard(star.user_id))!.tourAwards >= 1, "badge counted on the FUT card");
   });
 
-  await step("predictions: own match skipped, locked at kickoff, points 3/2/1/0", async () => {
-    const xc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
-    for (const p of players.slice(0, 4)) await registerSolo(xc, p);
-    await close(xc);
-    await runDraw(xc, admin);
-    await publishDraw(xc, admin);
-    const ms = (await getMatches(xc)).filter((m) => m.stage === "league" && m.round === 1 && !m.is_bye);
-    const [m1, m2] = ms;
-    const inM1 = [...(await membersOf(m1.home_entry_id!)), ...(await membersOf(m1.away_entry_id!))];
-    const fan = players[8]; // not registered in this competition
-    const player = users.get(inM1[0])!;
-    await rejects(savePredictions(fan.id, xc, { [m1.id]: [2, 2] }), /ничьих/);
-    assert.equal(await savePredictions(fan.id, xc, { [m1.id]: [3, 1], [m2.id]: [1, 2] }), 2);
-    assert.equal(await savePredictions(fan.id, xc, { [m1.id]: [3, 1] }), 1, "update is allowed before kickoff");
-    assert.equal(await savePredictions(player.id, xc, { [m1.id]: [5, 0], [m2.id]: [4, 2] }), 1, "own match is skipped");
-    assert.deepEqual(await predictionSplit(m1.id), { home: 1, away: 0 });
-    await q("update matches set scheduled_at = now() - interval '1 minute' where id = $1", [m2.id]);
-    assert.equal(await savePredictions(players[9].id, xc, { [m2.id]: [1, 0] }), 0, "locked after kickoff");
-    await refereeResult(m1.id, admin, { games: [{ home: 3, away: 1 }] }, "");
-    await refereeResult(m2.id, admin, { games: [{ home: 2, away: 3 }] }, "");
-    const table = await predictionTable(xc);
-    const f = table.find((r) => r.user_id === fan.id)!;
-    assert.equal(f.points, 3 + 2, "exact on m1 (3:1); 1:2 on a 2:3 result = winner and margin");
-    assert.equal(f.exact, 1);
-    assert.equal(table.find((r) => r.user_id === player.id)!.points, 0, "4:2 on a 2:3 result: wrong winner");
-  });
-
   await step("screenshots: players and referee upload, outsiders can't, max per match, magic bytes checked", async () => {
     const sc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
     for (const p of players.slice(0, 4)) await registerSolo(sc, p);
@@ -541,6 +516,29 @@ async function main() {
     await rejects(deleteMatchFile(files[0].id, players[10]), /свой скриншот/);
     assert.equal(await deleteMatchFile(files[0].id, home), m.id);
     assert.equal((await listMatchFiles(m.id)).length, 1);
+  });
+
+  await step("achievements: unlocked by results, announced once, kept after a correction", async () => {
+    const ac = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
+    for (const p of players.slice(0, 4)) await registerSolo(ac, p);
+    await close(ac);
+    await runDraw(ac, admin);
+    await publishDraw(ac, admin);
+    const m = (await getMatches(ac)).find((x) => !x.is_bye && x.home_entry_id && x.away_entry_id)!;
+    const home = users.get((await membersOf(m.home_entry_id!))[0])!;
+    const before = new Set((await q<{ key: string }>("select key from user_achievements where user_id = $1", [home.id])).map((r) => r.key));
+    await refereeResult(m.id, admin, { games: [{ home: 6, away: 0 }] }, "");
+    const got = new Set((await q<{ key: string }>("select key from user_achievements where user_id = $1", [home.id])).map((r) => r.key));
+    for (const k of ["first_win", "clean_sheet", "rout"]) assert.ok(got.has(k), k);
+    const fresh = [...got].filter((k) => !before.has(k));
+    const notes = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🏅%' and created_at > now() - interval '5 minutes'", [home.id]);
+    assert.equal(notes!.n, fresh.length, "one notification per new badge");
+    // A correction to a loss doesn't take earned badges away.
+    await refereeResult(m.id, admin, { games: [{ home: 0, away: 1 }] }, "");
+    const list = await playerAchievements(home.id);
+    assert.ok(list.find((a) => a.def.key === "clean_sheet")!.done);
+    const again = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🏅%' and created_at > now() - interval '5 minutes'", [home.id]);
+    assert.equal(again!.n, notes!.n, "nothing announced twice");
   });
 
   console.log(`\n${passed} integration checks passed`);

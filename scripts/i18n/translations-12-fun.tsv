@@ -1,12 +1,7 @@
 {comp} · голосов: {votes}	{comp} · ovozlar: {votes}	{comp} · votes: {votes}
 {comp}: выберите игрока тура {n}	{comp}: {n}-tur o‘yinchisini tanlang	{comp}: pick the player of round {n}
-В Rocket League не бывает ничьих — выберите победителя	Rocket League’da durang bo‘lmaydi — g‘olibni tanlang	There are no draws in Rocket League — pick a winner
-Ваш прогноз {pick} · итог {actual}	Sizning bashoratingiz {pick} · natija {actual}	Your pick {pick} · result {actual}
-Введите хотя бы один прогноз	Kamida bitta bashorat kiriting	Enter at least one prediction
-Войдите, чтобы делать прогнозы	Bashorat qilish uchun kiring	Sign in to make predictions
 Войдите, чтобы проголосовать	Ovoz berish uchun kiring	Sign in to vote
 Время ещё не назначено	Vaqt hali belgilanmagan	Time not set yet
-Вы: {place} место · {points} очков	Siz: {place}-o‘rin · {points} ochko	You: {place} place · {points} pts
 Выберите игрока	O‘yinchini tanlang	Pick a player
 Выберите скриншот	Skrinshotni tanlang	Choose a screenshot
 Выберите скриншоты (до {n})	Skrinshotlarni tanlang ({n} tagacha)	Choose screenshots (up to {n})
@@ -15,54 +10,34 @@
 Голосование за этот тур ещё не открыто	Bu tur uchun ovoz berish hali ochilmagan	Voting for this round isn't open yet
 Голосование за этот тур закрыто	Bu tur uchun ovoz berish yopilgan	Voting for this round is closed
 Голосование открыто на 48 часов	Ovoz berish 48 soat ochiq	Voting is open for 48 hours
-Для серии Bo{bo} укажите счёт серии, например {need}:1	Bo{bo} seriyasi uchun seriya hisobini kiriting, masalan {need}:1	For a Bo{bo} series enter the series score, e.g. {need}:1
 Добавлены скриншоты: {n}	Skrinshotlar qo‘shildi: {n}	Screenshots added: {n}
-За {home}: {h}, за {away}: {a}	{home} uchun: {h}, {away} uchun: {a}	For {home}: {h}, for {away}: {a}
 За себя голосовать нельзя	O‘zingizga ovoz berib bo‘lmaydi	You can't vote for yourself
 Загружаем…	Yuklanmoqda…	Uploading…
 Загружать скриншоты могут только игроки матча и судья	Skrinshotlarni faqat o‘yin ishtirokchilari va hakam yuklay oladi	Only the match players and referee can upload screenshots
 Загрузить	Yuklash	Upload
-Заполните оба поля счёта	Hisobning ikkala maydonini to‘ldiring	Fill in both score fields
 Игрок тура	Tur o‘yinchisi	Player of the round
 Изменение	O‘zgarish	Change
 Итог матча	O‘yin natijasi	Final result
 Картинка результата	Natija rasmi	Result image
 Кто сыграл лучше всех? Голосуйте на сайте — 48 часов.	Kim eng yaxshi o‘ynadi? Saytda ovoz bering — 48 soat.	Who played best? Vote on the site — 48 hours.
 Лидер	Lider	Leader
-Можно менять до начала матча.	O‘yin boshlanguncha o‘zgartirish mumkin.	You can change it until kickoff.
-Мои прогнозы	Mening bashoratlarim	My predictions
-На этот матч ещё нет прогнозов	Bu o‘yinga hali bashoratlar yo‘q	No predictions for this match yet
 Не больше {n} скриншотов на матч	Bir o‘yinga {n} tadan ko‘p skrinshot bo‘lmaydi	No more than {n} screenshots per match
 Не удалось обработать картинку — попробуйте другой файл	Rasmni qayta ishlab bo‘lmadi — boshqa faylni sinab ko‘ring	Couldn't process the image — try another file
 Нужна картинка: PNG, JPG или WEBP	Rasm kerak: PNG, JPG yoki WEBP	An image is required: PNG, JPG or WEBP
 Опустился на {n}	{n} pog‘ona tushdi	Down {n}
 Поднялся на {n}	{n} pog‘ona ko‘tarildi	Up {n}
-Пока никто не сделал прогноз — будьте первым	Hali hech kim bashorat qilmagan — birinchi bo‘ling	No predictions yet — be the first
 Призовые места	Sovrinli o‘rinlar	Prize places
 Приложите скриншот итогового счёта — так судье проще подтвердить результат.	Yakuniy hisob skrinshotini qo‘shing — hakamga natijani tasdiqlash osonroq bo‘ladi.	Attach a screenshot of the final score — it makes the referee's job easier.
-Прогнозов	Bashoratlar	Picks
-Прогнозы	Bashoratlar	Predictions
-Прогнозы откроются после жеребьёвки	Bashoratlar qur’adan keyin ochiladi	Predictions open after the draw
-Прогнозы сохранены: {n}	Bashoratlar saqlandi: {n}	Predictions saved: {n}
-Сделать прогноз	Bashorat qilish	Make a prediction
-Сделать прогноз →	Bashorat qilish →	Make a prediction →
-Сейчас нет матчей для прогноза	Hozir bashorat uchun o‘yinlar yo‘q	No matches open for predictions right now
 Сжимаем…	Siqilmoqda…	Compressing…
 Скачать картинку	Rasmni yuklab olish	Download image
 Скриншот от {name}	{name} skrinshoti	Screenshot by {name}
 Скриншот удалён	Skrinshot o‘chirildi	Screenshot deleted
 Скриншоты загружены: {n}	Skrinshotlar yuklandi: {n}	Screenshots uploaded: {n}
 Скриншоты матча	O‘yin skrinshotlari	Match screenshots
-Сохранить прогнозы	Bashoratlarni saqlash	Save predictions
-Счёт должен быть числом от 0 до 99	Hisob 0 dan 99 gacha son bo‘lishi kerak	The score must be a number from 0 to 99
-Таблица прогнозистов	Bashoratchilar jadvali	Predictor table
-Точный счёт	Aniq hisob	Exact score
-Угадайте счёт матчей до их начала. Точный счёт — {exact} очка, верный победитель и разница — {margin}, просто победитель — {winner}. Свои матчи прогнозировать нельзя.	O‘yinlar hisobini boshlanishidan oldin toping. Aniq hisob — {exact} ochko, to‘g‘ri g‘olib va farq — {margin}, faqat g‘olib — {winner}. O‘z o‘yiningizga bashorat qilib bo‘lmaydi.	Guess match scores before kickoff. Exact score — {exact} pts, right winner and margin — {margin}, just the winner — {winner}. You can't predict your own matches.
 Удалить можно только свой скриншот	Faqat o‘z skrinshotingizni o‘chirish mumkin	You can only delete your own screenshot
 Удалить скриншот?	Skrinshot o‘chirilsinmi?	Delete the screenshot?
 Файл слишком большой (максимум 1,5 МБ)	Fayl juda katta (ko‘pi bilan 1,5 MB)	File is too large (1.5 MB max)
 Этот игрок не играл в этом туре	Bu o‘yinchi ushbu turda o‘ynamagan	This player didn't play in this round
-ваш матч	sizning o‘yiningiz	your match
 голосов: {n}	ovozlar: {n}	votes: {n}
 голосование до {when}	ovoz berish {when} gacha	voting until {when}
 изменение после тура {n}	{n}-turdan keyingi o‘zgarish	change after round {n}

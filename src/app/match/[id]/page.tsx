@@ -10,7 +10,6 @@ import { GamesInput, SubmitButton, LocalTime, ShotPicker } from "@/components/cl
 import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction, matchRefereeAction, uploadShotsAction, deleteShotAction } from "@/app/actions/match";
 import { listMatchFiles, MAX_FILES_PER_MATCH } from "@/lib/files";
 import { refereeCandidates } from "@/lib/referees";
-import { predictionSplit } from "@/lib/predictions";
 import { getT } from "@/lib/i18n/server";
 import { matchRatingChanges } from "@/lib/rating";
 import { Delta } from "@/components/rating";
@@ -33,7 +32,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const user = await getUser();
   if (comp.draw_state !== "published" && !isAdmin(user?.role)) notFound();
 
-  const [home, away, reports, events, side, roundsRow, elo, refCandidates, split, shots] = await Promise.all([
+  const [home, away, reports, events, side, roundsRow, elo, refCandidates, shots] = await Promise.all([
     m.home_entry_id ? getEntry(m.home_entry_id) : null,
     m.away_entry_id ? getEntry(m.away_entry_id) : null,
     q<Report>(
@@ -48,7 +47,6 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     q<{ r: number }>("select max(round)::int as r from matches where competition_id = $1 and stage = 'knockout'", [comp.id]),
     matchRatingChanges(m.id),
     isAdmin(user?.role) ? refereeCandidates(comp.id) : Promise.resolve([]),
-    predictionSplit(m.id),
     listMatchFiles(m.id),
   ]);
   const rounds = roundsRow[0]?.r ?? undefined;
@@ -311,20 +309,6 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
               >
                 {t("Скачать картинку")}
               </a>
-            </section>
-          )}
-          {(split.home + split.away > 0 || (!done && !m.is_bye && m.home_entry_id && m.away_entry_id)) && (
-            <section className="stack">
-              <h3>🔮 {t("Прогнозы")}</h3>
-              {split.home + split.away > 0 ? (
-                <div className="split-bar" role="img" aria-label={t("За {home}: {h}, за {away}: {a}", { home: m.home_name ?? "", h: split.home, away: m.away_name ?? "", a: split.away })}>
-                  <span style={{ flex: Math.max(split.home, 0.0001) }}>{Math.round((split.home / (split.home + split.away)) * 100)}%</span>
-                  <span style={{ flex: Math.max(split.away, 0.0001) }}>{Math.round((split.away / (split.home + split.away)) * 100)}%</span>
-                </div>
-              ) : (
-                <p className="small muted" style={{ margin: 0 }}>{t("На этот матч ещё нет прогнозов")}</p>
-              )}
-              {!done && <Link className="small" href={`/c/${comp.slug}/predictions`}>{t("Сделать прогноз →")}</Link>}
             </section>
           )}
           {elo.length > 0 && (

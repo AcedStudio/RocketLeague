@@ -9,6 +9,7 @@ import { RatingCard, Delta } from "@/components/rating";
 import { FutCard, STAT_LABELS } from "@/components/FutCard";
 import { getPlayerCard } from "@/lib/cards";
 import { STAT_KEYS } from "@/lib/engine/card";
+import { playerAchievements } from "@/lib/achievements";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   );
   if (!u) notFound();
 
-  const [entries, matches, awards, ratings, h1, h2, card] = await Promise.all([
+  const [entries, matches, awards, ratings, h1, h2, card, achievements] = await Promise.all([
     q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
       `select e.id, e.name, c.name as comp, c.slug, c.mode, c.status
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
@@ -52,7 +53,9 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     ratingHistory(id, "1v1"),
     ratingHistory(id, "2v2"),
     getPlayerCard(id),
+    playerAchievements(id),
   ]);
+  const earned = achievements.filter((a) => a.done).length;
   const wins = matches.filter((m) => m.won).length;
   const losses = matches.length - wins;
   const medal = (p: number) => (p === 1 ? t("Чемпион") : p === 2 ? t("Финалист") : t("Бронза"));
@@ -117,6 +120,33 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           </div>
         </section>
       )}
+      <section className="stack" id="achievements">
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
+          <h2 style={{ fontSize: "1.3rem" }}>🏅 {t("Значки")}</h2>
+          <span className="small muted">{t("{n} из {total}", { n: earned, total: achievements.length })}</span>
+        </div>
+        <div className="ach-grid">
+          {[...achievements].sort((a, b) => Number(b.done) - Number(a.done)).map((a) => {
+            const pct = Math.min(100, Math.round((a.value / a.def.target) * 100));
+            return (
+              <div key={a.def.key} className={`ach${a.done ? " done" : ""}`} title={t(a.def.desc, { n: a.def.target })}>
+                <span className="ach-icon" aria-hidden>{a.def.icon}</span>
+                <span className="ach-text">
+                  <b>{t(a.def.name)}</b>
+                  <small>{t(a.def.desc, { n: a.def.target })}</small>
+                  {a.done ? (
+                    a.unlocked_at && <small className="faint">{fmtDate(a.unlocked_at, "Asia/Tashkent", t)}</small>
+                  ) : (
+                    <span className="ach-bar" aria-label={`${Math.min(a.value, a.def.target)} / ${a.def.target}`}>
+                      <i style={{ width: `${pct}%` }} />
+                    </span>
+                  )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
       <div className="split">
         <section className="stack">
           <h2 style={{ fontSize: "1.3rem" }}>{t("История матчей")}</h2>

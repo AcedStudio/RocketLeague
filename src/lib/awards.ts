@@ -1,4 +1,5 @@
 import "server-only";
+import { checkAchievements } from "./achievements";
 import { q, one, tx } from "./db";
 import { FormError } from "./errors";
 import { notify, logAction } from "./notify";
@@ -109,6 +110,14 @@ export async function runTourPolls(onlyComp?: string): Promise<{ opened: number;
         link,
         color: GOLD_COLOR,
       });
+      if (r.stage === "league") {
+        await enqueueChannel(c, "announce", {
+          title: "📊 {comp}: таблица после тура {n}",
+          params: { comp: r.comp, n: r.round },
+          image: `/api/standings-card/${r.slug}?v=${r.round}-${Date.now()}`,
+          link: `/c/${r.slug}/standings`,
+        });
+      }
     });
   }
 
@@ -131,6 +140,7 @@ export async function runTourPolls(onlyComp?: string): Promise<{ opened: number;
       );
       out.closed++;
       if (!top) return;
+      await checkAchievements(c, [top.user_id]);
       const link = `/players/${top.user_id}`;
       await notify(c, [top.user_id], "⭐ Вы — игрок тура {n}!", "{comp} · голосов: {votes}", link, { n: p.round, comp: p.comp, votes: top.votes });
       await enqueueChannel(c, "announce", {
