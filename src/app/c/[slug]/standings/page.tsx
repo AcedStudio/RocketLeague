@@ -62,6 +62,9 @@ export default async function Standings({ params }: { params: Promise<{ slug: st
         <span>
           {t("Победа {w} · поражение {l} · при равенстве: {tb}", { w: comp.points_win, l: comp.points_loss, tb: comp.tiebreakers.map((tb) => t(TIEBREAKER_LABELS[tb])).join(" → ") })}
         </span>
+        <a href={`/api/standings-card/${comp.slug}?lang=${t.locale}&v=${lastRound ?? 0}`} target="_blank" rel="noopener">
+          🖼 {t("Картинка таблицы")}
+        </a>
         <Link href={`/api/export/${comp.id}/standings`}>CSV</Link>
       </div>
     </div>

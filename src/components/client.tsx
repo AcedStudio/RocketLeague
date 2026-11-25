@@ -382,3 +382,43 @@ export function ShotPicker({ left }: { left: number }) {
     </div>
   );
 }
+
+type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
+
+/** "Install the app" button: Android/desktop Chrome get the real prompt, iPhone gets a one-line hint. */
+export function InstallApp() {
+  const t = useT();
+  const [evt, setEvt] = useState<InstallEvent | null>(null);
+  const [ios, setIos] = useState(false);
+  const [hint, setHint] = useState(false);
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone;
+    if (standalone) return;
+    setIos(/iphone|ipad|ipod/i.test(navigator.userAgent));
+    const on = (e: Event) => {
+      e.preventDefault();
+      setEvt(e as InstallEvent);
+    };
+    window.addEventListener("beforeinstallprompt", on);
+    return () => window.removeEventListener("beforeinstallprompt", on);
+  }, []);
+  if (!evt && !ios) return null;
+  return (
+    <span className="install-app">
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        onClick={async () => {
+          if (evt) {
+            await evt.prompt();
+            await evt.userChoice;
+            setEvt(null);
+          } else setHint((v) => !v);
+        }}
+      >
+        📲 {t("Установить приложение")}
+      </button>
+      {hint && <small className="muted">{t("В Safari нажмите «Поделиться» → «На экран Домой»")}</small>}
+    </span>
+  );
+}

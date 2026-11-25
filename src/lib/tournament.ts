@@ -15,6 +15,7 @@ import type { User } from "./auth";
 import type { Params } from "./i18n/core";
 import { enqueueChannel, enqueueParticipantRole, GOLD_COLOR } from "./discord";
 import { discordAfterResult, discordAfterFinish, eloLines } from "./discord-server";
+import { checkAchievements, matchPeople } from "./achievements";
 
 // ---------------------------------------------------------------- helpers
 
@@ -496,6 +497,7 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
   });
   await discordAfterResult(c, m.id);
   await maybeFinish(c, comp);
+  await checkAchievements(c, await matchPeople(c, m.id));
 }
 
 async function placeIntoSlot(c: PoolClient, matchId: string, side: "home" | "away", entryId: string) {
@@ -540,6 +542,8 @@ async function maybeFinish(c: PoolClient, comp: Competition) {
     const all = await q<{ user_id: string }>("select user_id from entry_members where competition_id = $1 and active", [comp.id], c);
     await notify(c, all.map((r) => r.user_id), "{comp} завершён", "Чемпион: {champion}", `/c/${comp.slug}`, { comp: comp.name, champion: name?.name ?? "" });
     await enqueueChannel(c, "announce", { title: "{comp} завершён", description: "Чемпион: {champion}", params: { comp: comp.name, champion: name?.name ?? "" }, link: `/c/${comp.slug}`, color: GOLD_COLOR });
+    const champs = await q<{ user_id: string }>("select user_id from entry_members where entry_id = $1 and active", [champion], c);
+    await checkAchievements(c, champs.map((r) => r.user_id));
   }
   await discordAfterFinish(c, comp.id);
 }

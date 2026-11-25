@@ -344,3 +344,11 @@ create table if not exists match_files (
   created_at timestamptz not null default now()
 );
 create index if not exists match_files_match on match_files (match_id, created_at);
+
+-- Achievements: earned once, kept forever.
+create table if not exists user_achievements (
+  user_id uuid not null references users(id) on delete cascade,
+  key text not null,
+  unlocked_at timestamptz not null default now(),
+  primary key (user_id, key)
+);

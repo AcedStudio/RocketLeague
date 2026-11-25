@@ -30,6 +30,8 @@ export function collectKeys(root = new URL("../src", import.meta.url).pathname) 
   for (const m of readFileSync(join(root, "lib/engine/elo.ts"), "utf8").matchAll(/name: "([^"]+)"/g)) keys.add(m[1]);
   // Series validation messages (src/lib/engine/results.ts) are shown to players via FormError.
   for (const m of readFileSync(join(root, "lib/engine/results.ts"), "utf8").matchAll(/error: "([^"]+)"/g)) keys.add(m[1]);
+  // Achievement names and descriptions (src/lib/engine/achievements.ts).
+  for (const m of readFileSync(join(root, "lib/engine/achievements.ts"), "utf8").matchAll(/(?:name|desc): "([^"]+)"/g)) keys.add(m[1]);
   return [...keys].sort();
 }
 
