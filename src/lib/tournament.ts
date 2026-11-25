@@ -491,6 +491,7 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
     description: "{comp} · матч #{n}",
     params: { home: nameOf(m.home_entry_id), away: nameOf(m.away_entry_id), score: result.forfeitWinner ? (winnerSide === "home" ? "W:FF" : "FF:W") : `${hw}:${aw}`, comp: comp.name, n: m.number },
     fields: elo ? [{ name: "ELO", value: elo }] : undefined,
+    image: `/api/match-card/${m.id}?v=${hw}-${aw}-${Date.now()}`,
     link: `/match/${m.id}`,
   });
   await discordAfterResult(c, m.id);

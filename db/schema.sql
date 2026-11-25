@@ -306,3 +306,50 @@ alter table matches add column if not exists referee_user_id uuid references use
 create index if not exists matches_referee on matches (referee_user_id) where referee_user_id is not null;
 -- When on, players don't report scores themselves: the assigned referee (or staff) enters the result.
 alter table competitions add column if not exists referee_only boolean not null default false;
+
+-- Player of the tour: a 48-hour vote opens once a tour is played (or its deadline passes).
+create table if not exists tour_polls (
+  competition_id uuid not null references competitions(id) on delete cascade,
+  stage text not null,
+  round int not null,
+  opened_at timestamptz not null default now(),
+  closes_at timestamptz not null,
+  closed_at timestamptz,
+  winner_id uuid references users(id) on delete set null,
+  winner_votes int not null default 0,
+  primary key (competition_id, stage, round)
+);
+create table if not exists tour_votes (
+  competition_id uuid not null,
+  stage text not null,
+  round int not null,
+  voter_id uuid not null references users(id) on delete cascade,
+  nominee_id uuid not null references users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (competition_id, stage, round, voter_id),
+  foreign key (competition_id, stage, round) references tour_polls(competition_id, stage, round) on delete cascade
+);
+
+-- Score predictions: anyone except the two sides, until the match starts.
+create table if not exists predictions (
+  match_id uuid not null references matches(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
+  home int not null check (home between 0 and 99),
+  away int not null check (away between 0 and 99),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (match_id, user_id)
+);
+create index if not exists predictions_user on predictions (user_id);
+
+-- Result screenshots, stored compressed in the database (small WebP/JPEG, max ~1.5 MB).
+create table if not exists match_files (
+  id uuid primary key default gen_random_uuid(),
+  match_id uuid not null references matches(id) on delete cascade,
+  uploader_id uuid references users(id) on delete set null,
+  mime text not null check (mime in ('image/webp', 'image/jpeg', 'image/png')),
+  bytes int not null,
+  data bytea not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists match_files_match on match_files (match_id, created_at);

@@ -4,6 +4,7 @@ import { CARD_THEMES } from "@/components/FutCard";
 import { STAT_KEYS } from "@/lib/engine/card";
 import { DICTS } from "@/lib/i18n/dicts";
 import { isLocale, makeT } from "@/lib/i18n/core";
+import { loadFont } from "@/lib/og";
 
 // PNG of a player's FUT card, used in Discord (/rank) and for sharing.
 // Rendered with satori: flexbox only, so the layout mirrors the CSS card in a simpler form.
@@ -11,17 +12,6 @@ import { isLocale, makeT } from "@/lib/i18n/core";
 export const revalidate = 300;
 
 const PLATFORM_SHORT: Record<string, string> = { pc: "PC", playstation: "PS", xbox: "XB" };
-
-/** Loads only the glyphs we need from Google Fonts (TTF, which satori can read). */
-async function loadFont(family: string, weight: number, text: string): Promise<ArrayBuffer | null> {
-  try {
-    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${family}:wght@${weight}&text=${encodeURIComponent(text)}`)).text();
-    const url = css.match(/src: url\((.+?)\) format\('(opentype|truetype)'\)/)?.[1];
-    return url ? await (await fetch(url)).arrayBuffer() : null;
-  } catch {
-    return null;
-  }
-}
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

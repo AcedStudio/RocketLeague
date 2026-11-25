@@ -4,6 +4,7 @@ import { q, one, tx, lockCompetition } from "./db";
 import { FormError } from "./errors";
 import { notify, notifyEntries, matchEvent, logAction } from "./notify";
 import { applyResult } from "./tournament";
+import { runTourPolls } from "./awards";
 
 // Players agree on a match time themselves: one side proposes, the other accepts.
 // At the agreed time both sides check in; whoever doesn't show up within the
@@ -265,5 +266,7 @@ export async function sweep(force = false): Promise<{ reminded: number; forfeits
     });
   }
   if (out.forfeits || out.flagged) await logAction(undefined, null, "sweep", JSON.stringify(out));
+  // Player-of-the-tour polls ride on the same clock.
+  await runTourPolls().catch((e) => console.error("[polls]", e));
   return out;
 }

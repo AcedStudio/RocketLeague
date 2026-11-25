@@ -46,6 +46,8 @@ export function SubmitButton({
   pendingText,
   name,
   value,
+  disabled,
+  quiet,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -53,6 +55,9 @@ export function SubmitButton({
   pendingText?: string;
   name?: string;
   value?: string;
+  disabled?: boolean;
+  /** Keep the label while sending (for groups of option buttons). */
+  quiet?: boolean;
 }) {
   const { pending } = useFormStatus();
   const t = useT();
@@ -60,14 +65,14 @@ export function SubmitButton({
     <button
       type="submit"
       className={className}
-      disabled={pending}
+      disabled={pending || disabled}
       name={name}
       value={value}
       onClick={(e) => {
         if (confirm && !window.confirm(confirm)) e.preventDefault();
       }}
     >
-      {pending ? pendingText ?? t("Сохраняем…") : children}
+      {pending && !quiet ? pendingText ?? t("Сохраняем…") : children}
     </button>
   );
 }
@@ -306,5 +311,74 @@ export function AutoSubmitForm({ action, className, children, anchor = "view" }:
     >
       {children}
     </form>
+  );
+}
+
+/** Picks screenshots, shrinks them in the browser (≤1600px WEBP) and swaps them into the form before upload. */
+export function ShotPicker({ left }: { left: number }) {
+  const t = useT();
+  const ref = useRef<HTMLInputElement>(null);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function shrink(f: File): Promise<File> {
+    const bmp = await createImageBitmap(f);
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * k);
+    canvas.height = Math.round(bmp.height * k);
+    canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close();
+    for (const quality of [0.82, 0.7, 0.55]) {
+      const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/webp", quality));
+      if (blob && blob.type === "image/webp" && blob.size <= 1_400_000) return new File([blob], f.name.replace(/\.\w+$/, "") + ".webp", { type: "image/webp" });
+      if (blob && blob.type !== "image/webp") {
+        // Safari without WEBP encoding: fall back to JPEG.
+        const jpg = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", quality));
+        if (jpg && jpg.size <= 1_400_000) return new File([jpg], f.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
+      }
+    }
+    throw new Error("too big");
+  }
+
+  async function onChange() {
+    const input = ref.current!;
+    const files = [...(input.files ?? [])].slice(0, left);
+    previews.forEach(URL.revokeObjectURL);
+    setErr("");
+    if (!files.length) return setPreviews([]);
+    setBusy(true);
+    try {
+      const out = await Promise.all(files.map(shrink));
+      const dt = new DataTransfer();
+      out.forEach((f) => dt.items.add(f));
+      input.files = dt.files;
+      setPreviews(out.map((f) => URL.createObjectURL(f)));
+    } catch {
+      input.value = "";
+      setPreviews([]);
+      setErr(t("Не удалось обработать картинку — попробуйте другой файл"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="stack-sm">
+      <label className="shot-drop">
+        <input ref={ref} type="file" name="shots" accept="image/png,image/jpeg,image/webp" multiple onChange={onChange} required />
+        <span>📷 {busy ? t("Сжимаем…") : previews.length ? t("Выбрано: {n}", { n: previews.length }) : t("Выберите скриншоты (до {n})", { n: left })}</span>
+      </label>
+      {err && <p className="small" style={{ color: "var(--danger)", margin: 0 }}>{err}</p>}
+      {previews.length > 0 && (
+        <div className="shot-grid">
+          {previews.map((src) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={src} src={src} alt="" />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

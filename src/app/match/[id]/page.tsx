@@ -6,9 +6,11 @@ import { q } from "@/lib/db";
 import { userSide } from "@/lib/tournament";
 import { fmtDateTime, toLocalInput, MATCH_STATUS_LABELS, renderStored } from "@/lib/format";
 import { Flash, MatchStatusBadge, stageLabel, type SP } from "@/components/ui";
-import { GamesInput, SubmitButton, LocalTime } from "@/components/client";
-import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction, matchRefereeAction } from "@/app/actions/match";
+import { GamesInput, SubmitButton, LocalTime, ShotPicker } from "@/components/client";
+import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction, matchRefereeAction, uploadShotsAction, deleteShotAction } from "@/app/actions/match";
+import { listMatchFiles, MAX_FILES_PER_MATCH } from "@/lib/files";
 import { refereeCandidates } from "@/lib/referees";
+import { predictionSplit } from "@/lib/predictions";
 import { getT } from "@/lib/i18n/server";
 import { matchRatingChanges } from "@/lib/rating";
 import { Delta } from "@/components/rating";
@@ -31,7 +33,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const user = await getUser();
   if (comp.draw_state !== "published" && !isAdmin(user?.role)) notFound();
 
-  const [home, away, reports, events, side, roundsRow, elo, refCandidates] = await Promise.all([
+  const [home, away, reports, events, side, roundsRow, elo, refCandidates, split, shots] = await Promise.all([
     m.home_entry_id ? getEntry(m.home_entry_id) : null,
     m.away_entry_id ? getEntry(m.away_entry_id) : null,
     q<Report>(
@@ -46,6 +48,8 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     q<{ r: number }>("select max(round)::int as r from matches where competition_id = $1 and stage = 'knockout'", [comp.id]),
     matchRatingChanges(m.id),
     isAdmin(user?.role) ? refereeCandidates(comp.id) : Promise.resolve([]),
+    predictionSplit(m.id),
+    listMatchFiles(m.id),
   ]);
   const rounds = roundsRow[0]?.r ?? undefined;
   // Opportunistic: apply due reminders and forfeits (throttled, also run by the 5-minute tick).
@@ -61,6 +65,8 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const done = m.status === "completed";
   const homeWin = done && m.winner_entry_id === m.home_entry_id;
   const awayWin = done && m.winner_entry_id === m.away_entry_id;
+  const canShoot = !!user && (staff || assignedRef || !!side) && !!m.home_entry_id && !!m.away_entry_id && !m.is_bye;
+  const shotsLeft = MAX_FILES_PER_MATCH - shots.length;
   const entryName = (eid: string) => (eid === m.home_entry_id ? m.home_name : m.away_name);
 
   const team = (e: typeof home, name: string | null, win: boolean) => (
@@ -193,6 +199,43 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             </section>
           )}
 
+          {(shots.length > 0 || canShoot) && (
+            <section className="panel stack" id="shots">
+              <h3>📷 {t("Скриншоты матча")}</h3>
+              {shots.length > 0 ? (
+                <div className="shot-grid">
+                  {shots.map((f) => (
+                    <figure key={f.id} className="shot">
+                      <a href={`/api/file/${f.id}`} target="_blank" rel="noopener">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/api/file/${f.id}`} alt={t("Скриншот от {name}", { name: f.uploader ?? "—" })} loading="lazy" />
+                      </a>
+                      <figcaption className="small faint">
+                        {f.uploader ?? "—"} · {fmtDateTime(f.created_at, comp.timezone, t)}
+                        {user && (user.id === f.uploader_id || staff) && (
+                          <form action={deleteShotAction} style={{ display: "inline" }}>
+                            <input type="hidden" name="match_id" value={m.id} />
+                            <input type="hidden" name="file_id" value={f.id} />
+                            <SubmitButton className="link-btn" confirm={t("Удалить скриншот?")} quiet>✕</SubmitButton>
+                          </form>
+                        )}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              ) : (
+                <p className="small muted" style={{ margin: 0 }}>{t("Приложите скриншот итогового счёта — так судье проще подтвердить результат.")}</p>
+              )}
+              {canShoot && shotsLeft > 0 && (
+                <form action={uploadShotsAction} className="stack-sm">
+                  <input type="hidden" name="match_id" value={m.id} />
+                  <ShotPicker left={shotsLeft} />
+                  <SubmitButton className="btn btn-sm" pendingText={t("Загружаем…")}>{t("Загрузить")}</SubmitButton>
+                </form>
+              )}
+            </section>
+          )}
+
           {ref && m.home_entry_id && m.away_entry_id && !m.is_bye && (
             <section className="panel stack" style={{ borderColor: "rgba(217,173,80,.4)" }}>
               <h3>{t("Судейская панель")}</h3>
@@ -254,6 +297,36 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         </div>
 
         <aside className="stack-lg">
+          {m.home_entry_id && m.away_entry_id && !m.is_bye && (
+            <section className="stack">
+              <h3>{done ? t("Картинка результата") : "Match Day"}</h3>
+              <a href={`/api/match-card/${m.id}?lang=${t.locale}&v=${m.status}-${m.home_wins ?? 0}-${m.away_wins ?? 0}`} target="_blank" rel="noopener" className="match-card-preview">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api/match-card/${m.id}?lang=${t.locale}&v=${m.status}-${m.home_wins ?? 0}-${m.away_wins ?? 0}`} alt={`${m.home_name} — ${m.away_name}`} width={1200} height={630} loading="lazy" />
+              </a>
+              <a
+                className="btn btn-ghost btn-sm"
+                href={`/api/match-card/${m.id}?lang=${t.locale}&v=${m.status}-${m.home_wins ?? 0}-${m.away_wins ?? 0}`}
+                download={`rlc-match-${m.number}.png`}
+              >
+                {t("Скачать картинку")}
+              </a>
+            </section>
+          )}
+          {(split.home + split.away > 0 || (!done && !m.is_bye && m.home_entry_id && m.away_entry_id)) && (
+            <section className="stack">
+              <h3>🔮 {t("Прогнозы")}</h3>
+              {split.home + split.away > 0 ? (
+                <div className="split-bar" role="img" aria-label={t("За {home}: {h}, за {away}: {a}", { home: m.home_name ?? "", h: split.home, away: m.away_name ?? "", a: split.away })}>
+                  <span style={{ flex: Math.max(split.home, 0.0001) }}>{Math.round((split.home / (split.home + split.away)) * 100)}%</span>
+                  <span style={{ flex: Math.max(split.away, 0.0001) }}>{Math.round((split.away / (split.home + split.away)) * 100)}%</span>
+                </div>
+              ) : (
+                <p className="small muted" style={{ margin: 0 }}>{t("На этот матч ещё нет прогнозов")}</p>
+              )}
+              {!done && <Link className="small" href={`/c/${comp.slug}/predictions`}>{t("Сделать прогноз →")}</Link>}
+            </section>
+          )}
           {elo.length > 0 && (
             <section className="stack">
               <h3>{t("Изменение рейтинга")}</h3>

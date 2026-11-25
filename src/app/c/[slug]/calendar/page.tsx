@@ -7,6 +7,10 @@ import { getT } from "@/lib/i18n/server";
 import { pick, type SP } from "@/components/ui";
 import { AutoSubmitForm } from "@/components/client";
 import { entryRatings } from "@/lib/rating";
+import { getPolls, nominees as getNominees, myVote, type Nominee } from "@/lib/awards";
+import { voteAction } from "@/app/actions/fun";
+import { Flash } from "@/components/ui";
+import { SubmitButton } from "@/components/client";
 
 export async function generateMetadata() {
   const t = await getT();
@@ -47,6 +51,15 @@ export default async function Calendar({ params, searchParams }: { params: Promi
 
   const now = Date.now();
   const current = tours.find((x) => x.matches.some((m) => m.status !== "completed"))?.round ?? null;
+
+  // Player-of-the-tour polls: open ones get nominees and my vote.
+  const polls = new Map((await getPolls(comp.id)).filter((p) => p.stage === stage).map((p) => [p.round, p]));
+  const openPolls = [...polls.values()].filter((p) => !p.closed_at && new Date(p.closes_at).getTime() > now);
+  const pollData = new Map<number, { list: Nominee[]; mine: string | null }>(
+    await Promise.all(
+      openPolls.map(async (p) => [p.round, { list: await getNominees(comp.id, stage, p.round), mine: user ? await myVote(comp.id, stage, p.round, user.id) : null }] as const),
+    ),
+  );
   const confirmed = entries.filter((e) => e.status === "confirmed").sort((a, b) => a.name.localeCompare(b.name));
   const nameOf = new Map(confirmed.map((e) => [e.id, e.name]));
   const myEntry = user ? confirmed.find((e) => e.members.some((m) => m.user_id === user.id)) : undefined;
@@ -115,6 +128,7 @@ export default async function Calendar({ params, searchParams }: { params: Promi
 
   return (
     <div className="stack-lg">
+      <Flash sp={sp} />
       <div className="stack-sm">
         <h2 style={{ fontSize: "1.4rem" }}>{t("Календарь сезона")}</h2>
         <p className="muted" style={{ margin: 0 }}>
@@ -309,6 +323,57 @@ export default async function Calendar({ params, searchParams }: { params: Promi
                   })}
                 </ul>
                 {stage === "league" && resting.length > 0 && <footer className="small faint">{t("Отдыхает: {names}", { names: resting.map((e) => e.name).join(", ") })}</footer>}
+                {(() => {
+                  const poll = polls.get(tour.round);
+                  if (!poll) return null;
+                  const data = pollData.get(tour.round);
+                  if (data) {
+                    const total = data.list.reduce((s2, n) => s2 + n.votes, 0);
+                    return (
+                      <div className="poll">
+                        <div className="poll-head">
+                          <b>⭐ {t("Игрок тура")}</b>
+                          <span className="small muted">{t("голосование до {when}", { when: fmtDateTime(poll.closes_at, tz, t) })}</span>
+                        </div>
+                        <form action={voteAction} className="poll-list">
+                          <input type="hidden" name="slug" value={slug} />
+                          <input type="hidden" name="competition_id" value={comp.id} />
+                          <input type="hidden" name="stage" value={stage} />
+                          <input type="hidden" name="round" value={tour.round} />
+                          {data.list.map((n) => {
+                            const share = total ? Math.round((n.votes / total) * 100) : 0;
+                            const self = user?.id === n.user_id;
+                            return (
+                              <SubmitButton
+                                key={n.user_id}
+                                className={`poll-option${data.mine === n.user_id ? " chosen" : ""}`}
+                                name="nominee"
+                                value={n.user_id}
+                                disabled={!user || self}
+                                quiet
+                              >
+                                <span className="poll-bar" style={{ width: `${share}%` }} aria-hidden />
+                                <span className="poll-name">
+                                  {data.mine === n.user_id ? "✓ " : ""}
+                                  {n.nickname}
+                                  <small className="faint"> {n.won ? t("В") : t("П")}{n.score ? ` ${n.score}` : ""}</small>
+                                </span>
+                                <span className="poll-votes num">{n.votes}</span>
+                              </SubmitButton>
+                            );
+                          })}
+                        </form>
+                        {!user && <p className="small faint" style={{ margin: 0 }}>{t("Войдите, чтобы проголосовать")}</p>}
+                      </div>
+                    );
+                  }
+                  return poll.winner_name ? (
+                    <div className="poll-winner">
+                      ⭐ {t("Игрок тура")}: <Link href={`/players/${poll.winner_id}`}>{poll.winner_name}</Link>
+                      <span className="small faint"> · {t("голосов: {n}", { n: poll.winner_votes })}</span>
+                    </div>
+                  ) : null;
+                })()}
               </article>
             );
           })}
