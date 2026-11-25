@@ -69,8 +69,10 @@ export function safeNext(v: unknown, fallback = "/"): string {
 }
 
 function withParam(path: string, key: string, msg: string) {
-  const sep = path.includes("?") ? "&" : "?";
-  return `${path}${sep}${key}=${encodeURIComponent(msg)}`;
+  const i = path.indexOf("#");
+  const [base, hash] = i < 0 ? [path, ""] : [path.slice(0, i), path.slice(i)];
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}${key}=${encodeURIComponent(msg)}${hash}`;
 }
 
 export function ok(path: string, msg: string): never {

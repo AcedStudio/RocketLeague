@@ -55,10 +55,11 @@ export async function FutCard({ card, size = "lg", link = false }: { card: Playe
       </div>
       <div className="fut-foot">
         <span>{card.tier ? t(card.tier.name) : t("Калибровка {n}/{total}", { n: card.ratedGames, total: 5 })}</span>
-        {(card.titles > 0 || card.reigning.length > 0) && (
+        {(card.titles > 0 || card.reigning.length > 0 || card.tourAwards > 0) && (
           <span>
             {card.titles > 0 && `🏆${card.titles > 1 ? `×${card.titles}` : ""}`}
             {card.reigning.map((m) => ` 👑${m}`)}
+            {card.tourAwards > 0 && ` ⭐${card.tourAwards > 1 ? `×${card.tourAwards}` : ""}`}
           </span>
         )}
       </div>

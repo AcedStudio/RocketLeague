@@ -86,14 +86,29 @@ export async function MatchCard({ m, tz, rounds, mine }: { m: Match; tz: string;
   );
 }
 
-export async function StandingsTable({ table, highlight, showForm = true }: { table: GroupTable; highlight?: string | null; showForm?: boolean }) {
+export async function StandingsTable({
+  table,
+  highlight,
+  showForm = true,
+  previous,
+  zones,
+}: {
+  table: GroupTable;
+  highlight?: string | null;
+  showForm?: boolean;
+  /** Position of each entry before the latest tour: drives the ▲▼ arrows and the slide-in animation. */
+  previous?: Map<string, number>;
+  /** League colours: gold for the leader, green for prize places. */
+  zones?: { champion: boolean; prizes: number };
+}) {
   const t = await getT();
   return (
     <div className="table-wrap">
-      <table>
+      <table className={previous ? "standings animated" : "standings"}>
         <thead>
           <tr>
             <th>#</th>
+            {previous && <th className="c move-h" aria-label={t("Изменение")} />}
             <th>{table.group ? groupLabel(table.group.name, t) : t("Участник")}</th>
             <th className="c" title={t("Сыграно")}>{t("И")}</th>
             <th className="c" title={t("Победы")}>{t("В")}</th>
@@ -106,9 +121,37 @@ export async function StandingsTable({ table, highlight, showForm = true }: { ta
           </tr>
         </thead>
         <tbody>
-          {table.rows.map((r) => (
-            <tr key={r.id} className={`${r.position <= table.qualify ? "qualified" : ""} ${highlight === r.id ? "mine" : ""}`}>
+          {table.rows.map((r, i) => {
+            const before = previous?.get(r.id);
+            const move = before ? before - r.position : 0;
+            const zone = zones
+              ? r.position === 1 && zones.champion
+                ? "zone-gold"
+                : r.position <= zones.prizes
+                  ? "zone-prize"
+                  : ""
+              : r.position <= table.qualify
+                ? "qualified"
+                : "";
+            return (
+            <tr
+              key={r.id}
+              className={`${zone} ${highlight === r.id ? "mine" : ""}`}
+              style={move ? ({ "--shift": -move, "--i": i } as React.CSSProperties) : undefined}
+              data-move={move ? (move > 0 ? "up" : "down") : undefined}
+            >
               <td className="pos">{r.position}</td>
+              {previous && (
+                <td className="c move">
+                  {move > 0 ? (
+                    <span className="up" title={t("Поднялся на {n}", { n: move })}>▲{move}</span>
+                  ) : move < 0 ? (
+                    <span className="down" title={t("Опустился на {n}", { n: -move })}>▼{-move}</span>
+                  ) : (
+                    <span className="same">–</span>
+                  )}
+                </td>
+              )}
               <td style={{ fontWeight: 600 }}>{r.name}</td>
               <td className="c">{r.played}</td>
               <td className="c">{r.wins}</td>
@@ -129,7 +172,8 @@ export async function StandingsTable({ table, highlight, showForm = true }: { ta
                 </td>
               )}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>

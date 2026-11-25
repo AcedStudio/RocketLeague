@@ -106,6 +106,8 @@ export type Button = { label: string; id: string; style?: 1 | 2 | 3 | 4 };
 /** A localisable message: Russian templates + params, rendered at send time. */
 export type MessageSpec = {
   buttons?: Button[];
+  /** Site-relative image path (e.g. /api/match-card/…); the locale is appended at send time. */
+  image?: string;
   title: string;
   description?: string;
   params?: Params;
@@ -123,6 +125,7 @@ export function renderMessage(spec: MessageSpec, locale: Locale) {
     url: spec.link ? (spec.link.startsWith("http") ? spec.link : `${siteUrl()}${spec.link}`) : undefined,
     color: spec.color ?? BRAND_COLOR,
     fields: spec.fields?.slice(0, 25).map((f) => ({ name: groupLabel(f.name, t).slice(0, 256), value: f.value.slice(0, 1024) || "—", inline: f.inline })),
+    image: spec.image ? { url: `${siteUrl()}${spec.image}${spec.image.includes("?") ? "&" : "?"}lang=${locale}` } : undefined,
   };
   const components = spec.buttons?.length
     ? [{ type: 1, components: spec.buttons.slice(0, 5).map((b) => ({ type: 2, style: b.style ?? 2, label: renderStored(t, b.label, p).slice(0, 80), custom_id: b.id })) }]

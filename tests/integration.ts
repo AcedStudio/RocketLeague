@@ -13,6 +13,9 @@ import {
 } from "../src/lib/tournament";
 import { getStandings, getCompetition, getMatches, entryCounts, type Match } from "../src/lib/data";
 import type { User } from "../src/lib/auth";
+import { runTourPolls, vote, nominees, tourAwards } from "../src/lib/awards";
+import { savePredictions, predictionTable, predictionSplit } from "../src/lib/predictions";
+import { saveMatchFiles, listMatchFiles, deleteMatchFile } from "../src/lib/files";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -460,6 +463,84 @@ async function main() {
       assert.ok(!plays.includes(m.referee_user_id!), "referee doesn't play in the match");
     }
     assert.equal(new Set(t2.map((m) => m.referee_user_id)).size, t2.length, "different referee per match");
+  });
+
+  await step("player of the tour: poll opens after the tour, self-vote refused, winner awarded", async () => {
+    const pc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
+    for (const p of players.slice(0, 4)) await registerSolo(pc, p);
+    await close(pc);
+    await runDraw(pc, admin);
+    await publishDraw(pc, admin);
+    const t1 = (await getMatches(pc)).filter((m) => m.stage === "league" && m.round === 1 && !m.is_bye);
+    assert.equal((await runTourPolls(pc)).opened, 0, "nothing played yet → no poll");
+    for (const m of t1) await refereeResult(m.id, admin, { games: [{ home: 3, away: 1 }] }, "");
+    assert.equal((await runTourPolls(pc)).opened, 1);
+    const list = await nominees(pc, "league", 1);
+    assert.equal(list.length, t1.length * 2, "both sides of each tour-1 match are nominated");
+    const star = list.find((n) => n.won)!;
+    const voters = players.slice(0, 4).filter((p) => p.id !== star.user_id);
+    await rejects(vote(pc, "league", 1, star.user_id, star.user_id), /За себя/);
+    await rejects(vote(pc, "league", 2, voters[0].id, star.user_id), /ещё не открыто/);
+    for (const v of voters) await vote(pc, "league", 1, v.id, star.user_id);
+    await vote(pc, "league", 1, voters[0].id, star.user_id); // re-vote just replaces
+    assert.equal((await nominees(pc, "league", 1)).find((n) => n.user_id === star.user_id)!.votes, voters.length);
+    await q("update tour_polls set closes_at = now() - interval '1 minute' where competition_id = $1", [pc]);
+    assert.equal((await runTourPolls(pc)).closed, 1);
+    const poll = await one<{ winner_id: string; winner_votes: number }>("select winner_id, winner_votes from tour_polls where competition_id = $1", [pc]);
+    assert.equal(poll!.winner_id, star.user_id);
+    assert.equal(poll!.winner_votes, voters.length);
+    await rejects(vote(pc, "league", 1, voters[1].id, star.user_id), /закрыто/);
+    assert.ok((await tourAwards(star.user_id)) >= 1);
+    assert.ok((await getPlayerCard(star.user_id))!.tourAwards >= 1, "badge counted on the FUT card");
+  });
+
+  await step("predictions: own match skipped, locked at kickoff, points 3/2/1/0", async () => {
+    const xc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
+    for (const p of players.slice(0, 4)) await registerSolo(xc, p);
+    await close(xc);
+    await runDraw(xc, admin);
+    await publishDraw(xc, admin);
+    const ms = (await getMatches(xc)).filter((m) => m.stage === "league" && m.round === 1 && !m.is_bye);
+    const [m1, m2] = ms;
+    const inM1 = [...(await membersOf(m1.home_entry_id!)), ...(await membersOf(m1.away_entry_id!))];
+    const fan = players[8]; // not registered in this competition
+    const player = users.get(inM1[0])!;
+    await rejects(savePredictions(fan.id, xc, { [m1.id]: [2, 2] }), /ничьих/);
+    assert.equal(await savePredictions(fan.id, xc, { [m1.id]: [3, 1], [m2.id]: [1, 2] }), 2);
+    assert.equal(await savePredictions(fan.id, xc, { [m1.id]: [3, 1] }), 1, "update is allowed before kickoff");
+    assert.equal(await savePredictions(player.id, xc, { [m1.id]: [5, 0], [m2.id]: [4, 2] }), 1, "own match is skipped");
+    assert.deepEqual(await predictionSplit(m1.id), { home: 1, away: 0 });
+    await q("update matches set scheduled_at = now() - interval '1 minute' where id = $1", [m2.id]);
+    assert.equal(await savePredictions(players[9].id, xc, { [m2.id]: [1, 0] }), 0, "locked after kickoff");
+    await refereeResult(m1.id, admin, { games: [{ home: 3, away: 1 }] }, "");
+    await refereeResult(m2.id, admin, { games: [{ home: 2, away: 3 }] }, "");
+    const table = await predictionTable(xc);
+    const f = table.find((r) => r.user_id === fan.id)!;
+    assert.equal(f.points, 3 + 1, "exact on m1, right winner on m2");
+    assert.equal(f.exact, 1);
+    assert.equal(table.find((r) => r.user_id === player.id)!.points, 0, "4:2 on a 2:3 result: wrong winner");
+  });
+
+  await step("screenshots: players and referee upload, outsiders can't, max per match, magic bytes checked", async () => {
+    const sc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
+    for (const p of players.slice(0, 4)) await registerSolo(sc, p);
+    await close(sc);
+    await runDraw(sc, admin);
+    await publishDraw(sc, admin);
+    const m = (await getMatches(sc)).find((x) => !x.is_bye && x.home_entry_id && x.away_entry_id)!;
+    const home = users.get((await membersOf(m.home_entry_id!))[0])!;
+    const png = new File([Buffer.from("89504e470d0a1a0a0000000d49484452", "hex")], "a.png", { type: "image/png" });
+    const fake = new File([Buffer.from("not an image at all")], "b.png", { type: "image/png" });
+    await rejects(saveMatchFiles(m, players[10], [png]), /только игроки/);
+    await rejects(saveMatchFiles(m, home, [fake]), /Нужна картинка/);
+    assert.equal(await saveMatchFiles(m, home, [png, png]), 2);
+    await rejects(saveMatchFiles(m, home, Array(7).fill(png)), /Не больше/);
+    const files = await listMatchFiles(m.id);
+    assert.equal(files.length, 2);
+    assert.equal(files[0].mime, "image/png");
+    await rejects(deleteMatchFile(files[0].id, players[10]), /свой скриншот/);
+    assert.equal(await deleteMatchFile(files[0].id, home), m.id);
+    assert.equal((await listMatchFiles(m.id)).length, 1);
   });
 
   console.log(`\n${passed} integration checks passed`);

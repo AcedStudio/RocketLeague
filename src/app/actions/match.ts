@@ -8,6 +8,9 @@ import { one, q, tx } from "@/lib/db";
 import { notifyEntries, logAction, matchEvent } from "@/lib/notify";
 import { fromLocalInput, MATCH_STATUS_LABELS } from "@/lib/format";
 import { canReferee, assignReferees } from "@/lib/referees";
+import { saveMatchFiles, deleteMatchFile } from "@/lib/files";
+import { getMatch } from "@/lib/data";
+import { getT } from "@/lib/i18n/server";
 
 function matchId(fd: FormData) {
   const id = String(fd.get("match_id") ?? "");
@@ -133,4 +136,27 @@ export async function matchRefereeAction(fd: FormData) {
     changed = await assignReferees(m.competition_id, { [id]: ref }, user);
   });
   ok(path, changed ? "Судья назначен" : "Без изменений");
+}
+
+export async function uploadShotsAction(fd: FormData) {
+  const id = matchId(fd);
+  const path = `/match/${id}#shots`;
+  const user = await requireUser(path);
+  let n = 0;
+  await guard(path, async () => {
+    const m = await getMatch(id);
+    if (!m) throw new FormError("Матч не найден");
+    n = await saveMatchFiles(m, user, fd.getAll("shots").filter((v): v is File => typeof v === "object"));
+  });
+  ok(path, (await getT())("Скриншоты загружены: {n}", { n }));
+}
+
+export async function deleteShotAction(fd: FormData) {
+  const id = matchId(fd);
+  const path = `/match/${id}#shots`;
+  const user = await requireUser(path);
+  await guard(path, async () => {
+    await deleteMatchFile(String(fd.get("file_id") ?? ""), user);
+  });
+  ok(path, "Скриншот удалён");
 }

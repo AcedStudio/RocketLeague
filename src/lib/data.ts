@@ -263,14 +263,29 @@ export async function getMatch(id: string, c?: Queryable) {
   return one<Match>(`${MATCH_SELECT} where m.id = $1`, [id], c);
 }
 
+/** Latest tour with at least one official result (league/group stage), or null. */
+export async function lastPlayedRound(competitionId: string, c?: Queryable) {
+  const r = await one<{ r: number | null }>(
+    "select max(round)::int as r from matches where competition_id = $1 and stage in ('group','league') and status = 'completed' and not is_bye",
+    [competitionId],
+    c,
+  );
+  return r?.r ?? null;
+}
+
 export type GroupTable = { group: Group | null; rows: (StandingRow & { name: string })[]; qualify: number };
 
 /** Live tables: one per group (cups) or one table (leagues). Only official results count. */
-export async function getStandings(comp: Competition, c?: Queryable): Promise<GroupTable[]> {
+export async function getStandings(comp: Competition, c?: Queryable, opts: { beforeRound?: number } = {}): Promise<GroupTable[]> {
   const [groups, entries, matches] = await Promise.all([
     getGroups(comp.id, c),
     getEntries(comp.id, {}, c),
-    q<Match>(`select * from matches where competition_id = $1 and stage in ('group','league') and status = 'completed' and not is_bye`, [comp.id], c),
+    q<Match>(
+      `select * from matches where competition_id = $1 and stage in ('group','league') and status = 'completed' and not is_bye
+          and ($2::int is null or round < $2)`,
+      [comp.id, opts.beforeRound ?? null],
+      c,
+    ),
   ]);
   const names = new Map(entries.map((e) => [e.id, e.name]));
   const cfg = { pointsWin: comp.points_win, pointsLoss: comp.points_loss, tiebreakers: comp.tiebreakers };
