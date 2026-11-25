@@ -6,6 +6,7 @@ import { FORMAT_LABELS, KIND_LABELS, fmtDate, fmtMoney } from "@/lib/format";
 import { Countdown } from "@/components/client";
 import { CompetitionRow, CompStatusBadge, Flash, MatchCard, SetupNotice, type SP } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
+import { HomePulse } from "@/components/HomePulse";
 
 export const dynamic = "force-dynamic";
 
@@ -36,14 +37,16 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
     <>
       <section className="hero-banner">
         <picture>
-          <source type="image/webp" srcSet="/brand/hero-960.webp 960w, /brand/hero-1672.webp 1672w" sizes="100vw" />
+          <source type="image/avif" srcSet="/brand/hero-960.avif 960w, /brand/hero-1672.avif 1672w, /brand/hero-2560.avif 2560w, /brand/hero-3344.avif 3344w" sizes="100vw" />
+          <source type="image/webp" srcSet="/brand/hero-960.webp 960w, /brand/hero-1672.webp 1672w, /brand/hero-2560.webp 2560w, /brand/hero-3344.webp 3344w" sizes="100vw" />
           <img
             src="/brand/hero-1672.jpg"
-            srcSet="/brand/hero-960.jpg 960w, /brand/hero-1672.jpg 1672w"
+            srcSet="/brand/hero-960.jpg 960w, /brand/hero-1672.jpg 1672w, /brand/hero-2560.jpg 2560w"
             sizes="100vw"
             width={1672}
             height={941}
             fetchPriority="high"
+            decoding="async"
             alt={t("RLC — Rocket League Championship. Играй, соревнуйся, стань легендой")}
           />
         </picture>
@@ -133,6 +136,8 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
       <div className="wrap" style={{ paddingTop: 24 }}>
         <Flash sp={sp} />
       </div>
+
+      {featured && <HomePulse comp={featured} userId={user?.id ?? null} />}
 
       {news.length > 0 && (
         <section className="wrap section" style={{ paddingBottom: 0 }}>
