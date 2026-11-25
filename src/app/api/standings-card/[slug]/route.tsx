@@ -4,6 +4,7 @@ import { DICTS } from "@/lib/i18n/dicts";
 import { isLocale, makeT } from "@/lib/i18n/core";
 import { groupLabel } from "@/lib/format";
 import { loadFont } from "@/lib/og";
+import { siteUrl } from "@/lib/discord";
 
 // Portrait picture of the league table after the latest tour (Discord, Telegram, Instagram stories).
 // Satori layout: flexbox only, every multi-child block has display:flex.
@@ -117,7 +118,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
 
         <div style={{ display: "flex", flex: 1 }} />
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, color: `${LIGHT}aa`, marginTop: 28 }}>
-          <div style={{ display: "flex" }}>rl-arena-eight.vercel.app</div>
+          <div style={{ display: "flex" }}>{siteUrl().replace(/^https?:\/\//, "")}</div>
           <div style={{ display: "flex" }}>{`#${comp.slug}`}</div>
         </div>
       </div>
