@@ -5,7 +5,7 @@ import { q, one, tx, lockCompetition, isUniqueViolation, type Queryable } from "
 import { FormError } from "./errors";
 import { notify, notifyEntries, logAction, matchEvent } from "./notify";
 import { getCompetition, getStandings, entryCounts, type Competition, type Match, type Entry } from "./data";
-import { drawGroups, validateDraw, GROUP_LETTERS } from "./engine/draw.ts";
+import { drawGroups, validateDraw, groupOptions, GROUP_LETTERS } from "./engine/draw.ts";
 import { roundRobin, seasonDeadlineDays } from "./engine/roundRobin.ts";
 import { fromLocalInput, toLocalInput } from "./format";
 import { buildKnockout, seedQualifiers, type QualifierRow } from "./engine/knockout.ts";
@@ -303,7 +303,16 @@ export async function runDraw(competitionId: string, actor: User): Promise<strin
       const err = validateDraw(eligible.length, comp.group_count);
       if (err) throw new FormError(err);
       const minGroup = Math.floor(eligible.length / comp.group_count);
-      if (comp.qualifiers_per_group >= minGroup) throw new FormError("Из группы на {size} участников не могут выйти {q}: уменьшите число выходящих или групп", { size: minGroup, q: comp.qualifiers_per_group });
+      if (comp.qualifiers_per_group >= minGroup) {
+        const best = groupOptions(eligible.length)[0];
+        const base = { n: eligible.length, g: comp.group_count, size: minGroup, q: comp.qualifiers_per_group };
+        throw new FormError(
+          best
+            ? "{n} участников на {g} групп — это по {size} в группе, а выходят {q}, то есть все. Подойдёт: групп — {g2}, по {size2} в группе, выходят {q2} (плей-офф на {p}). Поменяйте в «Настройки» → «Турнирная сетка»."
+            : "{n} участников на {g} групп — это по {size} в группе, а выходят {q}, то есть все. Уменьшите число групп или выходящих.",
+          best ? { ...base, g2: best.groups, size2: Math.floor(eligible.length / best.groups), q2: best.qualifiers, p: best.playoff } : base,
+        );
+      }
       const result = drawGroups(eligible.map((e) => ({ id: e.id, seed: e.seed })), { groupCount: comp.group_count, seeded: comp.seeded_draw, seed });
       let n = 1;
       for (let i = 0; i < result.groups.length; i++) {
