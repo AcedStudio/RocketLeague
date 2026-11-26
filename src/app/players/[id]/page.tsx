@@ -14,6 +14,20 @@ import { playerRivals } from "@/lib/rivals";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return {};
+  const [card, t] = await Promise.all([getPlayerCard(id), getT()]);
+  if (!card) return {};
+  const description = t("Карточка игрока: OVR {ovr} · матчей {n} · побед {w}", { ovr: card.stats.ovr, n: card.stats.played, w: card.stats.wins });
+  return {
+    title: card.nickname,
+    description,
+    openGraph: { title: card.nickname, description, images: [{ url: `/api/card/${id}?lang=${t.locale}`, width: 400, height: 560 }] },
+    twitter: { card: "summary" },
+  };
+}
+
 export default async function Player({ params }: { params: Promise<{ id: string }> }) {
   const t = await getT();
   const { id } = await params;

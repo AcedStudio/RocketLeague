@@ -11,7 +11,12 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const [comp, t] = await Promise.all([getCompetitionBySlug((await params).slug), getT()]);
-  return { title: comp?.name ?? t("Соревнование") };
+  if (!comp) return { title: t("Соревнование") };
+  const description = [t(comp.format === "round_robin" ? "Лига" : comp.format === "knockout" ? "Плей-офф" : "Группы + плей-офф"), comp.mode, comp.description?.slice(0, 140)].filter(Boolean).join(" · ");
+  const image = comp.draw_state === "published" && comp.format !== "knockout"
+    ? { url: `/api/standings-card/${comp.slug}?lang=${t.locale}`, width: 1080, height: 1080 }
+    : { url: "/brand/hero-1672.jpg", width: 1672, height: 941 };
+  return { title: comp.name, description, openGraph: { title: comp.name, description, images: [image] } };
 }
 
 export default async function CompLayout({ children, params }: { children: React.ReactNode; params: Promise<{ slug: string }> }) {
