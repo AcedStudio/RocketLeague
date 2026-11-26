@@ -11,6 +11,9 @@ import { reportAction, respondAction, refereeResultAction, matchStatusAction, sc
 import { listMatchFiles, MAX_FILES_PER_MATCH } from "@/lib/files";
 import { MatchJourney } from "@/components/MatchJourney";
 import { matchOfRound } from "@/lib/motw";
+import { entryRatings } from "@/lib/rating";
+import { winChance } from "@/lib/engine/odds.ts";
+import { matchCommentary } from "@/lib/commentary";
 import { refereeCandidates } from "@/lib/referees";
 import { getT } from "@/lib/i18n/server";
 import { matchRatingChanges } from "@/lib/rating";
@@ -48,7 +51,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const user = await getUser();
   if (comp.draw_state !== "published" && !isAdmin(user?.role)) notFound();
 
-  const [home, away, reports, events, side, roundsRow, elo, refCandidates, shots, motw] = await Promise.all([
+  const [home, away, reports, events, side, roundsRow, elo, refCandidates, shots, motw, ratings, story] = await Promise.all([
     m.home_entry_id ? getEntry(m.home_entry_id) : null,
     m.away_entry_id ? getEntry(m.away_entry_id) : null,
     q<Report>(
@@ -65,7 +68,12 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
     isAdmin(user?.role) ? refereeCandidates(comp.id) : Promise.resolve([]),
     listMatchFiles(m.id),
     m.stage === "league" ? matchOfRound(comp) : Promise.resolve(null),
+    entryRatings(comp.id),
+    m.status === "completed" ? matchCommentary(undefined, comp.id, m.id).catch(() => []) : Promise.resolve([]),
   ]);
+  const rH = ratings.find((r) => r.entry_id === m.home_entry_id)?.rating;
+  const rA = ratings.find((r) => r.entry_id === m.away_entry_id)?.rating;
+  const chance = rH && rA && !m.is_bye ? Math.round(winChance(rH, rA) * 100) : null;
   const rounds = roundsRow[0]?.r ?? undefined;
   // Opportunistic: apply due reminders and forfeits (throttled, also run by the 5-minute tick).
   after(() => sweep().catch((e) => console.error("[sweep]", e)));
@@ -125,6 +133,22 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             !m.is_bye && <span className="badge dim plain">⚖ {t("Судья ещё не назначен")}</span>
           )}
         </p>
+        {story.length > 0 && (
+          <div className="story">
+            {story.map((l) => (
+              <span key={l.key}>{renderStored(t, l.text, l.params)}</span>
+            ))}
+          </div>
+        )}
+        {chance !== null && !done && (
+          <div className="win-chance" aria-label={t("Шанс победы: {home} {h}% — {away} {a}%", { home: m.home_name ?? "", h: chance, away: m.away_name ?? "", a: 100 - chance })}>
+            <span className="small muted">{t("Шанс победы по рейтингу")}</span>
+            <div className="win-chance-bar">
+              <i style={{ flex: Math.max(chance, 4) }}><b className="num">{chance}%</b></i>
+              <i style={{ flex: Math.max(100 - chance, 4) }}><b className="num">{100 - chance}%</b></i>
+            </div>
+          </div>
+        )}
         <p className="muted" style={{ textAlign: "center" }}>
           {fmtDateTime(m.scheduled_at, comp.timezone, t)} ({comp.timezone})
           {m.scheduled_at && <LocalTime iso={new Date(m.scheduled_at).toISOString()} />}

@@ -19,6 +19,9 @@ import { playerAchievements } from "../src/lib/achievements";
 import { playerRivals } from "../src/lib/rivals";
 import { matchOfRound } from "../src/lib/motw";
 import { sweep } from "../src/lib/scheduling";
+import { leagueOdds } from "../src/lib/odds";
+import { getTeamOfRound } from "../src/lib/totw";
+import { competitionRecords, matchCommentary } from "../src/lib/commentary";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -579,6 +582,41 @@ async function main() {
     await sweep(true);
     const after = await one<{ n: number }>("select count(*)::int as n from notifications where title like '⏰%' and link = $1", [`/match/${target.id}`]);
     assert.equal(after!.n, before!.n, "sent only once");
+  });
+
+  await step("season fun: title odds, team of the round + In-Form card, commentary and records", async () => {
+    const fc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
+    for (const p of players.slice(0, 6)) await registerSolo(fc, p);
+    await close(fc);
+    await runDraw(fc, admin);
+    await publishDraw(fc, admin);
+    const comp = (await getCompetition(fc))!;
+    const before = await leagueOdds(comp);
+    const sum = [...before!.odds.values()].reduce((s, o) => s + o.title, 0);
+    assert.ok(Math.abs(sum - 1) < 1e-6, "title chances add up to 100%");
+
+    const r1 = (await getMatches(fc)).filter((m) => m.stage === "league" && m.round === 1 && !m.is_bye);
+    const scores = [[7, 0], [3, 2], [2, 1]];
+    for (const [i, m] of r1.entries()) await refereeResult(m.id, admin, { games: [{ home: scores[i % 3][0], away: scores[i % 3][1] }] }, "");
+    await runTourPolls(fc);
+    const team = await getTeamOfRound(fc, "league", 1);
+    assert.equal(team.length, 2, "6 players → team of 2");
+    const star = team[0];
+    assert.ok(team.every((p) => p.gf > p.ga), "only winners make the team");
+    assert.ok(team[0].score >= team[1].score, "ranked by performance");
+    const card = (await getPlayerCard(star.user_id))!;
+    assert.equal(card.inForm?.round, 1, "In-Form card is active");
+    assert.ok((await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🃏%'", [star.user_id]))!.n >= 1);
+
+    const after = await leagueOdds(comp);
+    assert.notDeepEqual([...after!.odds.values()].map((o) => o.title), [...before!.odds.values()].map((o) => o.title), "odds move after results");
+
+    const rec = await competitionRecords(fc);
+    assert.equal(rec.biggestWin!.score, "7:0");
+    assert.ok(rec.topScorer!.goals >= 7);
+    const story = await matchCommentary(undefined, fc, r1[0].id);
+    assert.ok(Array.isArray(story));
+    assert.ok(story.some((l) => l.key === "clean"), "7:0 is a clean-sheet win");
   });
 
   console.log(`\n${passed} integration checks passed`);

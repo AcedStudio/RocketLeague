@@ -11,6 +11,7 @@ import { getPlayerCard } from "@/lib/cards";
 import { STAT_KEYS } from "@/lib/engine/card";
 import { playerAchievements } from "@/lib/achievements";
 import { playerRivals } from "@/lib/rivals";
+import { playerInForms } from "@/lib/totw";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   );
   if (!u) notFound();
 
-  const [entries, matches, awards, ratings, h1, h2, card, achievements, rivals] = await Promise.all([
+  const [entries, matches, awards, ratings, h1, h2, card, achievements, rivals, informs] = await Promise.all([
     q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
       `select e.id, e.name, c.name as comp, c.slug, c.mode, c.status
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
@@ -70,6 +71,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     getPlayerCard(id),
     playerAchievements(id),
     playerRivals(id),
+    playerInForms(id),
   ]);
   const earned = achievements.filter((a) => a.done).length;
   const wins = matches.filter((m) => m.won).length;
@@ -163,6 +165,21 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           })}
         </div>
       </section>
+      {informs.length > 0 && (
+        <section className="stack" id="inform">
+          <h2 style={{ fontSize: "1.3rem" }}>🃏 {t("Коллекция In-Form")}</h2>
+          <div className="if-strip">
+            {informs.map((f) => (
+              <Link key={`${f.slug}-${f.round}`} href={`/c/${f.slug}/calendar#tour-${f.round}`} className={`if-mini${f.active ? " active" : ""}`}>
+                <span className="if-tag">IF</span>
+                <b>{t("Тур {n}", { n: f.round })}</b>
+                <small>{f.competition}</small>
+                <small className="num">{f.gf}:{f.ga}</small>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       {rivals.length > 0 && (
         <section className="stack" id="rivals">
           <h2 style={{ fontSize: "1.3rem" }}>⚔️ {t("Соперники")}</h2>

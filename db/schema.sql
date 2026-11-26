@@ -355,3 +355,20 @@ create table if not exists user_achievements (
 
 -- "Two days left and no agreed time" nudge, sent once per match.
 alter table matches add column if not exists remind_deadline_at timestamptz;
+
+-- Team of the round: the best performers of each league/group round (In-Form cards).
+create table if not exists tour_team (
+  competition_id uuid not null references competitions(id) on delete cascade,
+  stage text not null,
+  round int not null,
+  user_id uuid not null references users(id) on delete cascade,
+  rank int not null,
+  score numeric not null,
+  match_id uuid references matches(id) on delete set null,
+  gf int not null default 0,
+  ga int not null default 0,
+  elo_delta int not null default 0,
+  created_at timestamptz not null default now(),
+  primary key (competition_id, stage, round, user_id)
+);
+create index if not exists tour_team_user on tour_team (user_id, created_at desc);

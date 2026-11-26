@@ -659,3 +659,109 @@ a.rival:hover { border-color: var(--accent); transform: translateY(-1px); }
 .lost-ball { width: 0.78em; height: 0.78em; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #88edff 30%, #029ffc 70%, #03203d); box-shadow: 0 0 40px rgba(55, 190, 254, 0.55); animation: lost-bounce 1.6s cubic-bezier(.5, 0, .5, 1) infinite; }
 @keyframes lost-bounce { 50% { transform: translateY(-0.16em) rotate(180deg); } }
 @media (prefers-reduced-motion: reduce) { .lost-ball { animation: none; } }
+
+/* Championship odds */
+.odds-list { display: grid; gap: 6px; }
+.odds-row { display: grid; grid-template-columns: minmax(90px, 180px) 1fr 56px 48px; gap: 12px; align-items: center; padding: 6px 8px; border-radius: var(--r-sm); }
+.odds-row.mine { background: rgba(2, 159, 252, 0.08); box-shadow: inset 3px 0 0 var(--accent); }
+.odds-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.odds-bar { position: relative; height: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.odds-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; transform-origin: left; animation: odds-grow 900ms var(--ease-out) both; }
+.odds-bar i.top { background: rgba(67, 217, 160, 0.4); }
+.odds-bar i.title { background: linear-gradient(90deg, #b88a2e, var(--gold), #f3d58b); box-shadow: 0 0 12px rgba(217, 173, 80, 0.5); }
+.odds-row.sure .odds-title { color: var(--gold); }
+.odds-title { text-align: right; }
+.odds-top { text-align: right; }
+@keyframes odds-grow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .odds-bar i { animation: none; } }
+@media (max-width: 560px) { .odds-row { grid-template-columns: 90px 1fr 48px; } .odds-top { display: none; } }
+.win-chance { display: grid; gap: 6px; justify-items: center; width: 100%; max-width: 420px; margin: 0 auto; }
+.win-chance-bar { display: flex; width: 100%; height: 26px; border-radius: 13px; overflow: hidden; gap: 2px; }
+.win-chance-bar i { display: flex; align-items: center; min-width: 0; padding: 0 10px; font-style: normal; }
+.win-chance-bar i:first-child { background: linear-gradient(90deg, #0279c4, var(--accent-strong)); justify-content: flex-start; }
+.win-chance-bar i:last-child { background: linear-gradient(90deg, var(--accent-light), #5fd8ff); justify-content: flex-end; color: var(--accent-ink); }
+.win-chance-bar b { font: 700 0.8rem/1 var(--font-display); }
+
+/* In-Form card (team of the round) */
+.fut-inform { box-shadow: none; }
+.fut-inform::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(135deg, rgba(243, 213, 139, 0.07) 0 2px, transparent 2px 14px), radial-gradient(90% 60% at 50% 35%, rgba(243, 213, 139, 0.22), transparent 70%); }
+.fut-wrap:has(.fut-inform) { filter: drop-shadow(0 0 22px rgba(217, 173, 80, 0.45)) drop-shadow(0 18px 28px rgba(0, 0, 0, 0.5)); }
+.fut-if { position: absolute; top: calc(var(--w) * 0.1); right: calc(var(--w) * 0.11); padding: 3px 7px; border-radius: 6px; font: 800 calc(var(--w) * 0.05)/1 var(--font-display); letter-spacing: 0.06em; color: #0a0a0c; background: linear-gradient(135deg, #fff3c4, #d9ad50 55%, #a77a22); box-shadow: 0 0 12px rgba(217, 173, 80, 0.7); }
+.totw-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border-top: 1px solid var(--line); padding-top: var(--s3); }
+.totw-label { font: 700 0.82rem/1 var(--font-display); color: var(--gold); text-decoration: none; margin-right: 4px; }
+.totw-chip { padding: 5px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 600; text-decoration: none; color: #f3d58b; background: linear-gradient(135deg, #2c271d, #0d0d10); border: 1px solid rgba(217, 173, 80, 0.45); }
+.totw-chip.first { box-shadow: 0 0 12px rgba(217, 173, 80, 0.45); border-color: var(--gold); }
+.if-strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scroll-snap-type: x mandatory; }
+.if-mini { flex: none; scroll-snap-align: start; position: relative; display: grid; gap: 4px; width: 128px; padding: 14px 12px; border-radius: 14px; text-decoration: none; color: #f3d58b; background: linear-gradient(160deg, #3b3427, #0a0a0c 75%); border: 1px solid rgba(217, 173, 80, 0.35); transition: transform 180ms var(--ease-out); }
+.if-mini:hover { transform: translateY(-3px); }
+.if-mini.active { border-color: var(--gold); box-shadow: 0 0 18px rgba(217, 173, 80, 0.45); }
+.if-mini b { font-family: var(--font-display); color: #fff; }
+.if-mini small { color: rgba(243, 213, 139, 0.75); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.if-tag { position: absolute; top: 10px; right: 10px; padding: 2px 6px; border-radius: 5px; font: 800 0.65rem/1 var(--font-display); color: #0a0a0c; background: linear-gradient(135deg, #fff3c4, #d9ad50); }
+
+/* Commentary + records */
+.story { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.story span { padding: 6px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; background: var(--gold-wash); border: 1px solid rgba(217, 173, 80, 0.35); color: var(--ink); }
+.records { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.record { position: relative; display: grid; gap: 4px; padding: 14px 16px 14px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; overflow: hidden; transition: border-color 150ms, transform 150ms var(--ease-out); }
+a.record:hover { border-color: var(--gold); transform: translateY(-2px); }
+.record small { color: var(--ink-soft); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.record b { font: 800 1.8rem/1.1 var(--font-display); background: linear-gradient(135deg, #fff3c4, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.record-icon { position: absolute; right: 10px; top: 8px; font-size: 1.6rem; opacity: 0.85; }
+.record .small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ================= Polish: brighter, livelier, still calm ================= */
+
+/* Ambient arena light behind every page: two slow-moving glows and faint pitch lines. */
+body::before {
+  content: ""; position: fixed; inset: -20vh -20vw; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(40vw 40vw at 12% 8%, rgba(2, 159, 252, 0.16), transparent 60%),
+    radial-gradient(36vw 36vw at 92% 30%, rgba(217, 173, 80, 0.09), transparent 60%),
+    radial-gradient(50vw 40vw at 50% 110%, rgba(55, 190, 254, 0.10), transparent 60%);
+  animation: arena-drift 28s ease-in-out infinite alternate;
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(136, 237, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(136, 237, 255, 0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%);
+}
+@keyframes arena-drift { to { transform: translate3d(3vw, 2vh, 0) scale(1.06); } }
+
+/* Header: a thin light line, like stadium floodlights. */
+.topbar { border-bottom-color: transparent; }
+.topbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: linear-gradient(90deg, transparent, rgba(55, 190, 254, 0.7) 30%, rgba(217, 173, 80, 0.7) 70%, transparent); opacity: 0.6; }
+.nav a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--accent-light); }
+
+/* Primary buttons: soft glow and a light sweep on hover. */
+.btn:not(.btn-ghost):not(.btn-danger) { position: relative; overflow: hidden; box-shadow: 0 6px 18px rgba(2, 159, 252, 0.22); }
+.btn:not(.btn-ghost):not(.btn-danger)::after { content: ""; position: absolute; inset: 0; transform: translateX(-120%); background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%); pointer-events: none; }
+@media (hover: hover) and (pointer: fine) {
+  .btn:not(.btn-ghost):not(.btn-danger):hover::after { transform: translateX(120%); transition: transform 650ms var(--ease-out); }
+  .btn:not(.btn-ghost):not(.btn-danger):hover { box-shadow: 0 8px 26px rgba(2, 159, 252, 0.38); }
+}
+
+/* Panels: a faint top highlight and a lift on hover for clickable ones. */
+.panel { background: linear-gradient(180deg, rgba(136, 237, 255, 0.035), transparent 40%), var(--surface); }
+.list-row { transition: background-color 150ms var(--ease-out), transform 150ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { a.list-row:hover { transform: translateX(3px); } }
+
+/* Big headings glow slightly. */
+main h1 { text-shadow: 0 0 40px rgba(55, 190, 254, 0.18); }
+
+/* Sections float in as they scroll into view (where the browser supports it). */
+@supports (animation-timeline: view()) {
+  .panel, .records, .odds, .rival-grid, .ach-grid, .if-strip, .tour, .pulse-grid, .motw, .journey {
+    animation: rise-in linear both; animation-timeline: view(); animation-range: entry 0% entry 35%;
+  }
+}
+@keyframes rise-in { from { opacity: 0; transform: translateY(18px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, .panel, .records, .odds, .rival-grid, .ach-grid, .if-strip, .tour, .pulse-grid, .motw, .journey { animation: none !important; }
+  .btn::after { display: none; }
+}

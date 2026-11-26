@@ -16,6 +16,7 @@ import type { Params } from "./i18n/core";
 import { enqueueChannel, enqueueParticipantRole, GOLD_COLOR } from "./discord";
 import { discordAfterResult, discordAfterFinish, eloLines } from "./discord-server";
 import { checkAchievements, matchPeople } from "./achievements";
+import { matchCommentary } from "./commentary";
 
 // ---------------------------------------------------------------- helpers
 
@@ -496,11 +497,15 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
   const names = await q<{ id: string; name: string }>("select id, name from entries where id = any($1::uuid[])", [[m.home_entry_id, m.away_entry_id]], c);
   const nameOf = (id: string) => names.find((x) => x.id === id)?.name ?? "?";
   const elo = await eloLines(c, m.id);
+  const story = await matchCommentary(c, comp.id, m.id).catch(() => []);
   await enqueueChannel(c, "results", {
     title: "{home} {score} {away}",
     description: "{comp} · матч #{n}",
     params: { home: nameOf(m.home_entry_id), away: nameOf(m.away_entry_id), score: result.forfeitWinner ? (winnerSide === "home" ? "W:FF" : "FF:W") : m.best_of === 1 ? `${hg}:${ag}` : `${hw}:${aw}`, comp: comp.name, n: m.number },
-    fields: elo ? [{ name: "ELO", value: elo }] : undefined,
+    fields: [
+      ...(story.length ? [{ name: "Комментатор", value: "", lines: story.map((l) => ({ text: l.text, params: l.params })) }] : []),
+      ...(elo ? [{ name: "ELO", value: elo }] : []),
+    ],
     image: `/api/match-card/${m.id}?v=${hw}-${aw}-${Date.now()}`,
     link: `/match/${m.id}`,
   });

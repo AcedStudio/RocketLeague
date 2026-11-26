@@ -1,4 +1,5 @@
 import "server-only";
+import { playerInForms, INFORM_BOOST } from "./totw";
 import { q, one } from "./db";
 import { computeCard, type CardStats, type MatchLine } from "./engine/card.ts";
 import { tierOf, START_RATING, type Tier } from "./engine/elo.ts";
@@ -19,6 +20,9 @@ export type PlayerCard = {
   tourAwards: number;
   reigning: string[];
   ratings: ModeRating[];
+  /** Team of the round within the last week: special design, boosted OVR. */
+  inForm: { round: number; competition: string } | null;
+  inFormCount: number;
 };
 
 type Row = { side: "home" | "away"; won: boolean; forfeit: boolean; games: { home: number; away: number }[] | null };
@@ -26,7 +30,7 @@ type Row = { side: "home" | "away"; won: boolean; forfeit: boolean; games: { hom
 export async function getPlayerCard(userId: string): Promise<PlayerCard | null> {
   const u = await one<{ id: string; rl_nickname: string; platform: string }>("select id, rl_nickname, platform from users where id = $1", [userId]);
   if (!u) return null;
-  const [rows, ratings, titles, awards] = await Promise.all([
+  const [rows, ratings, titles, awards, informs] = await Promise.all([
     q<Row>(
       `with mine as (select entry_id from entry_members where user_id = $1 and active)
        select case when m.home_entry_id in (select entry_id from mine) then 'home' else 'away' end as side,
@@ -46,6 +50,7 @@ export async function getPlayerCard(userId: string): Promise<PlayerCard | null> 
       [userId],
     ),
     one<{ n: number }>("select count(*)::int as n from tour_polls where winner_id = $1", [userId]),
+    playerInForms(userId),
   ]);
   const lines: MatchLine[] = rows.map((r) => ({
     won: r.won,
@@ -55,6 +60,9 @@ export async function getPlayerCard(userId: string): Promise<PlayerCard | null> 
   // The card shows the mode the player is best known for: more rated games, then higher rating.
   const main = [...ratings].sort((a, b) => b.games - a.games || b.rating - a.rating)[0];
   const calibrated = main.games >= CALIBRATION;
+  const stats = computeCard(lines, main.games ? main.rating : null);
+  const active = informs.find((f) => f.active);
+  if (active) stats.ovr = Math.min(99, stats.ovr + INFORM_BOOST);
   return {
     id: u.id,
     nickname: u.rl_nickname,
@@ -63,10 +71,12 @@ export async function getPlayerCard(userId: string): Promise<PlayerCard | null> 
     rating: main.games ? main.rating : START_RATING,
     ratedGames: main.games,
     tier: calibrated ? tierOf(main.rating) : null,
-    stats: computeCard(lines, main.games ? main.rating : null),
+    stats,
     titles: titles.length,
     tourAwards: awards?.n ?? 0,
     reigning: titles.filter((x) => x.reigning).map((x) => x.mode),
     ratings,
+    inForm: active ? { round: active.round, competition: active.competition } : null,
+    inFormCount: informs.length,
   };
 }

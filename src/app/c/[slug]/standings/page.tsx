@@ -5,6 +5,7 @@ import { getUser } from "@/lib/auth";
 import { TIEBREAKER_LABELS } from "@/lib/engine/standings.ts";
 import { StandingsTable } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
+import { leagueOdds } from "@/lib/odds";
 
 export default async function Standings({ params }: { params: Promise<{ slug: string }> }) {
   const t = await getT();
@@ -25,6 +26,9 @@ export default async function Standings({ params }: { params: Promise<{ slug: st
   const prevTables = lastRound && lastRound > 1 ? await getStandings(comp, undefined, { beforeRound: lastRound }) : null;
   const previous = prevTables ? new Map(prevTables.flatMap((tb) => tb.rows.map((r) => [r.id, r.position] as const))) : undefined;
   const prizePlaces = Math.max(0, ...prizes.map((p) => p.place ?? 0));
+  const odds = isLeague ? await leagueOdds(comp) : null;
+  const pct = (x: number) => (x >= 0.995 ? "99%+" : x > 0 && x < 0.005 ? "<1%" : `${Math.round(x * 100)}%`);
+  const oddsRows = odds ? tables[0].rows.map((r) => ({ ...r, o: odds.odds.get(r.id)! })).filter((r) => r.o).sort((a, b) => b.o.title - a.o.title || a.o.avgPos - b.o.avgPos) : [];
 
   return (
     <div className="stack-lg">
@@ -38,6 +42,31 @@ export default async function Standings({ params }: { params: Promise<{ slug: st
           />
         </section>
       ))}
+      {odds && oddsRows.length > 0 && (
+        <section className="panel stack odds">
+          <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
+            <h3>📈 {t("Шансы на чемпионство")}</h3>
+            <span className="small faint">{t("2000 симуляций оставшихся матчей по рейтингу ELO")}</span>
+          </div>
+          <div className="odds-list">
+            {oddsRows.map((r) => (
+              <div key={r.id} className={`odds-row${r.id === mine ? " mine" : ""}${r.o.title >= 0.995 ? " sure" : ""}`}>
+                <span className="odds-name">{r.name}</span>
+                <span className="odds-bar" aria-hidden>
+                  <i className="top" style={{ width: `${r.o.top * 100}%` }} />
+                  <i className="title" style={{ width: `${r.o.title * 100}%` }} />
+                </span>
+                <b className="num odds-title">{pct(r.o.title)}</b>
+                {odds.topN > 1 && <span className="num small muted odds-top">{pct(r.o.top)}</span>}
+              </div>
+            ))}
+          </div>
+          <div className="legend" style={{ marginTop: 0 }}>
+            <span><i style={{ background: "var(--gold)" }} />{t("Шанс на титул")}</span>
+            {odds.topN > 1 && <span><i style={{ background: "rgba(67, 217, 160, 0.55)" }} />{t("Шанс на призовые места (топ-{n})", { n: odds.topN })}</span>}
+          </div>
+        </section>
+      )}
       <div className="legend">
         {isLeague ? (
           <>
