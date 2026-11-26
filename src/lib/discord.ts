@@ -93,7 +93,7 @@ export type Embed = {
   description?: string;
   url?: string;
   color?: number;
-  fields?: { name: string; value: string; inline?: boolean; lines?: { text: string; params: Params }[] }[];
+  fields?: { name: string; value: string; inline?: boolean }[];
   footer?: { text: string };
   thumbnail?: { url: string };
   image?: { url: string };
@@ -113,7 +113,7 @@ export type MessageSpec = {
   params?: Params;
   link?: string;
   color?: number;
-  fields?: { name: string; value: string; inline?: boolean }[];
+  fields?: { name: string; value: string; inline?: boolean; lines?: { text: string; params: Params }[] }[];
 };
 
 export function renderMessage(spec: MessageSpec, locale: Locale) {
