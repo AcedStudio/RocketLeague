@@ -38,8 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/players", label: t("Игроки") },
     { href: "/stats", label: t("Статистика") },
     { href: "/hall", label: t("Зал славы") },
+    { href: "/duels", label: t("Дуэли") },
     { href: "/rules", label: t("Правила") },
-    { href: "/faq", label: "FAQ" },
   ];
   const unread = user && dbConfigured()
     ? (await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and read_at is null", [user.id]))?.n ?? 0
@@ -91,6 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <div className="user-menu-list">
                       <Link href="/me">{t("Профиль")}</Link>
                       <Link href={`/players/${user.id}`}>{t("Моя карточка")}</Link>
+                      <Link href="/duels">⚔️ {t("Мои дуэли")}</Link>
                       {isReferee(user.role) && <Link href="/admin">{isAdmin(user.role) ? t("Админка") : t("Судейская")}</Link>}
                       <form action={logout}>
                         <button type="submit">{t("Выйти")}</button>

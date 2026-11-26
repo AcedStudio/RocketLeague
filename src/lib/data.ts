@@ -5,6 +5,7 @@ import { computeStandings, type StandingRow, type Tiebreaker } from "./engine/st
 
 export type Competition = {
   referee_only: boolean;
+  champion_entry_id?: string | null;
   season_days: number;
   noshow_minutes: number;
   deadline_forfeit: boolean;

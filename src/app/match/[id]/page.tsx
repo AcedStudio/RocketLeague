@@ -14,6 +14,7 @@ import { matchOfRound } from "@/lib/motw";
 import { entryRatings } from "@/lib/rating";
 import { winChance } from "@/lib/engine/odds.ts";
 import { matchCommentary } from "@/lib/commentary";
+import { rivalryBetween } from "@/lib/derby";
 import { refereeCandidates } from "@/lib/referees";
 import { getT } from "@/lib/i18n/server";
 import { matchRatingChanges } from "@/lib/rating";
@@ -74,6 +75,9 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const rH = ratings.find((r) => r.entry_id === m.home_entry_id)?.rating;
   const rA = ratings.find((r) => r.entry_id === m.away_entry_id)?.rating;
   const chance = rH && rA && !m.is_bye ? Math.round(winChance(rH, rA) * 100) : null;
+  const hU = home?.members.length === 1 ? home.members[0].user_id : null;
+  const aU = away?.members.length === 1 ? away.members[0].user_id : null;
+  const rivalry = hU && aU ? await rivalryBetween(hU, aU) : null;
   const rounds = roundsRow[0]?.r ?? undefined;
   // Opportunistic: apply due reminders and forfeits (throttled, also run by the 5-minute tick).
   after(() => sweep().catch((e) => console.error("[sweep]", e)));
@@ -115,6 +119,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             {t("Матч #{n}", { n: m.number })} · {stageLabel(t, m, rounds)} · {m.best_of === 1 ? t("одна игра") : `Bo${m.best_of}`}
           </span>
           <span className="row" style={{ gap: 8 }}>
+            {rivalry?.derby && <span className="badge derby plain">⚡ {t("Дерби")}</span>}
             {motw?.match.id === m.id && <span className="badge gold plain">🔥 {t("Матч тура")}</span>}
             <MatchStatusBadge status={m.status} />
           </span>
@@ -133,6 +138,11 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             !m.is_bye && <span className="badge dim plain">⚖ {t("Судья ещё не назначен")}</span>
           )}
         </p>
+        {rivalry && rivalry.meetings > (done ? 1 : 0) && (
+          <p className="h2h-line">
+            {t("Личные встречи (лига + дуэли): {home} {h} — {a} {away}", { home: m.home_name ?? "", away: m.away_name ?? "", h: rivalry.xWins, a: rivalry.yWins })}
+          </p>
+        )}
         {story.length > 0 && (
           <div className="story">
             {story.map((l) => (

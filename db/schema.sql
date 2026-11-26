@@ -372,3 +372,27 @@ create table if not exists tour_team (
   primary key (competition_id, stage, round, user_id)
 );
 create index if not exists tour_team_user on tour_team (user_id, created_at desc);
+
+-- Duels: friendly 1v1 challenges outside competitions. One game, no draws; the other player confirms the score.
+create table if not exists duels (
+  id uuid primary key default gen_random_uuid(),
+  challenger_id uuid not null references users(id) on delete cascade,
+  opponent_id uuid not null references users(id) on delete cascade,
+  message text not null default '',
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'declined', 'cancelled', 'expired', 'reported', 'completed')),
+  created_at timestamptz not null default now(),
+  responded_at timestamptz,
+  reported_by uuid references users(id) on delete set null,
+  reported_at timestamptz,
+  ch_goals int,
+  op_goals int,
+  winner_id uuid references users(id) on delete set null,
+  completed_at timestamptz,
+  check (challenger_id <> opponent_id)
+);
+create index if not exists duels_challenger on duels (challenger_id, created_at desc);
+create index if not exists duels_opponent on duels (opponent_id, created_at desc);
+create index if not exists duels_open on duels (status, created_at) where status in ('pending', 'accepted', 'reported');
+
+-- Cosmetic card frame the player picked (unlocked by level).
+alter table users add column if not exists card_frame text not null default 'none';
