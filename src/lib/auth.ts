@@ -3,7 +3,6 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
-import bcrypt from "bcryptjs";
 import { one, dbConfigured } from "./db";
 
 export type Role = "superadmin" | "admin" | "referee" | "participant";
@@ -22,19 +21,8 @@ export type User = {
 
 const COOKIE = "rla_session";
 
-function secret(): Uint8Array {
-  const s = process.env.AUTH_SECRET;
-  if (!s || s.length < 32) throw new Error("AUTH_SECRET не задан или короче 32 символов");
-  return new TextEncoder().encode(s);
-}
-
-export async function hashPassword(pw: string) {
-  return bcrypt.hash(pw, 11);
-}
-
-export async function verifyPassword(pw: string, hash: string) {
-  return bcrypt.compare(pw, hash);
-}
+import { secret, hashPassword, verifyPassword, signShort, verifyShort } from "./crypto";
+export { hashPassword, verifyPassword, signShort, verifyShort };
 
 export async function createSession(userId: string) {
   const token = await new SignJWT({})
@@ -101,21 +89,6 @@ export const ROLE_LABELS: Record<Role, string> = {
   referee: "Судья",
   participant: "Участник",
 };
-
-/** Short-lived signed tokens for OAuth state and the pending Discord signup. */
-export async function signShort(payload: Record<string, unknown>, ttl: string) {
-  return new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(ttl).sign(secret());
-}
-
-export async function verifyShort<T>(token: string | undefined): Promise<T | null> {
-  if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
-    return payload as T;
-  } catch {
-    return null;
-  }
-}
 
 export const DISCORD_PENDING_COOKIE = "rla_discord_pending";
 export type DiscordPending = { id: string; username: string; displayName: string; accessToken: string };
