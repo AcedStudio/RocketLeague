@@ -64,14 +64,17 @@ export async function signup(fd: FormData) {
 
 export async function login(fd: FormData) {
   const next = safeNext(fd.get("next"), "/me");
+  let mustChange = false;
   await guard(`/login?next=${encodeURIComponent(next)}`, async () => {
     const mail = emailField(fd);
     const password = str(fd, "password", "Пароль", { max: 100 });
-    const u = await one<{ id: string; password_hash: string | null }>("select id, password_hash from users where email = $1", [mail]);
+    const u = await one<{ id: string; password_hash: string | null; must_change_password: boolean }>("select id, password_hash, must_change_password from users where email = $1", [mail]);
     // Same message either way, so emails can't be probed.
     if (!u || !u.password_hash || !(await verifyPassword(password, u.password_hash))) throw new FormError("Неверный email или пароль");
     await createSession(u.id);
+    mustChange = u.must_change_password;
   });
+  if (mustChange) ok("/me#password", "Вы вошли по временному паролю — придумайте свой новый пароль");
   redirect(next);
 }
 
@@ -106,7 +109,7 @@ export async function changePassword(fd: FormData) {
       const current = str(fd, "current", "Текущий пароль", { max: 100 });
       if (!(await verifyPassword(current, u.password_hash))) throw new FormError("Текущий пароль неверный");
     }
-    await q("update users set password_hash = $2 where id = $1", [user.id, await hashPassword(next)]);
+    await q("update users set password_hash = $2, must_change_password = false where id = $1", [user.id, await hashPassword(next)]);
   });
   ok("/me", "Пароль изменён");
 }

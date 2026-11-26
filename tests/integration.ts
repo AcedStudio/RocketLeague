@@ -26,6 +26,8 @@ import { createDuel, respondDuel, reportDuel, confirmDuel, cancelDuel, sweepDuel
 import { playerLevel } from "../src/lib/levels";
 import { rivalryBetween } from "../src/lib/derby";
 import { playerSeason } from "../src/lib/wrapped";
+import { resetToTemp, resetLink, checkResetToken, consumeResetToken } from "../src/lib/password-reset";
+import { verifyPassword } from "../src/lib/auth";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -674,6 +676,32 @@ async function main() {
     const season = (await playerSeason(someComp!.user_id, someComp!.competition_id))!;
     assert.ok(season.story.played >= 1);
     assert.equal(season.story.wins + season.story.losses, season.story.played);
+  });
+
+  await step("password reset: temporary password, one-time link, admins can't reset admins", async () => {
+    const player = await mkUser("forgetful");
+    const plainAdmin = await mkUser("plain_admin", "admin");
+    const otherAdmin = await mkUser("other_admin", "admin");
+    const temp = await resetToTemp(plainAdmin, player.id);
+    assert.match(temp.password, /^rl-[a-z2-9]{4}-[a-z2-9]{4}$/);
+    const row = (await one<{ password_hash: string; must_change_password: boolean }>("select password_hash, must_change_password from users where id = $1", [player.id]))!;
+    assert.ok(await verifyPassword(temp.password, row.password_hash), "the temporary password works");
+    assert.equal(row.must_change_password, true, "a change is required at the next sign-in");
+
+    const { link } = await resetLink(plainAdmin, player.id);
+    const token = decodeURIComponent(link.split("token=")[1]);
+    assert.equal((await checkResetToken(token))?.id, player.id);
+    await consumeResetToken(token, "brand-new-pass");
+    const after = (await one<{ password_hash: string; must_change_password: boolean }>("select password_hash, must_change_password from users where id = $1", [player.id]))!;
+    assert.ok(await verifyPassword("brand-new-pass", after.password_hash));
+    assert.equal(after.must_change_password, false);
+    assert.equal(await checkResetToken(token), null, "the link works only once");
+    await rejects(consumeResetToken(token, "again-pass-1"), /устарела/);
+
+    await rejects(resetToTemp(plainAdmin, otherAdmin.id), /супер-администратор/);
+    await rejects(resetToTemp(plainAdmin, plainAdmin.id), /в профиле/);
+    const boss = await mkUser("boss", "superadmin");
+    assert.ok((await resetToTemp(boss, otherAdmin.id)).password, "the super admin can reset an admin");
   });
 
   console.log(`\n${passed} integration checks passed`);

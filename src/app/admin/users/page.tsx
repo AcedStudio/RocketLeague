@@ -6,6 +6,7 @@ import { setRole } from "@/app/actions/admin";
 import { Flash, pick, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { getT } from "@/lib/i18n/server";
+import { ResetPassword } from "@/components/ResetPassword";
 
 export default async function AdminUsers({ searchParams }: { searchParams: SP }) {
   const t = await getT();
@@ -28,7 +29,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: SP })
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>{t("Игрок")}</th><th>Email</th><th>{t("Контакт")}</th><th>{t("Роль")}</th></tr>
+            <tr><th>{t("Игрок")}</th><th>Email</th><th>{t("Контакт")}</th><th>{t("Роль")}</th><th>{t("Пароль")}</th></tr>
           </thead>
           <tbody>
             {users.map((u) => (
@@ -51,6 +52,9 @@ export default async function AdminUsers({ searchParams }: { searchParams: SP })
                   ) : (
                     <span className="badge dim plain">{t(ROLE_LABELS[u.role])}</span>
                   )}
+                </td>
+                <td>
+                  {u.id !== me.id && (me.role === "superadmin" || u.role === "participant" || u.role === "referee") ? <ResetPassword userId={u.id} /> : <span className="faint small">—</span>}
                 </td>
               </tr>
             ))}
