@@ -1,6 +1,6 @@
 {name} отклонил вызов	{name} chaqiruvni rad etdi	{name} declined the challenge
 {name}: сезон в {comp}	{name}: {comp} mavsumi	{name}: season in {comp}
-{w} побед · {l} поражений	{w} g‘alaba · {l} mag‘lubiyat	{w} wins · {l} losses
+Победы: {w} · поражения: {l}	G‘alabalar: {w} · mag‘lubiyatlar: {l}	Wins: {w} · losses: {l}
 {xp} / {to} XP до уровня {n}	{n}-darajagacha {xp} / {to} XP	{xp} / {to} XP to level {n}
 Активных дуэлей нет.	Faol duellar yo‘q.	No active duels.
 Без рамки	Ramkasiz	No frame
@@ -34,7 +34,7 @@
 Листайте вбок →	Yonga suring →	Swipe sideways →
 Личные встречи (лига + дуэли): {home} {h} — {a} {away}	Shaxsiy uchrashuvlar (liga + duellar): {home} {h} — {a} {away}	Head-to-head (league + duels): {home} {h} — {a} {away}
 Лучшая серия	Eng yaxshi seriya	Best streak
-Лучшая серия: {n} побед подряд 🔥	Eng yaxshi seriya: ketma-ket {n} g‘alaba 🔥	Best streak: {n} wins in a row 🔥
+Лучшая серия побед: {n} 🔥	Eng uzun g‘alabalar seriyasi: {n} 🔥	Longest winning streak: {n} 🔥
 Лучшие дуэлянты	Eng yaxshi duelchilar	Top duellists
 Лучший матч	Eng yaxshi o‘yin	Best match
 Лучший матч: {score} против {name}	Eng yaxshi o‘yin: {name}ga qarshi {score}	Best match: {score} vs {name}

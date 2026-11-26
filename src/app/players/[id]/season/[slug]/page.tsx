@@ -52,9 +52,9 @@ export default async function Season({ params }: P) {
             <small>{t("побед")}</small>
           </div>
           <p className="wr-lead num">
-            {t("{w} побед · {l} поражений", { w: st.wins, l: st.losses })}
+            {t("Победы: {w} · поражения: {l}", { w: st.wins, l: st.losses })}
           </p>
-          {st.longestStreak >= 2 && <p className="small">{t("Лучшая серия: {n} побед подряд 🔥", { n: st.longestStreak })}</p>}
+          {st.longestStreak >= 2 && <p className="small">{t("Лучшая серия побед: {n} 🔥", { n: st.longestStreak })}</p>}
         </>
       ),
     },
