@@ -22,8 +22,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const locale = isLocale(lang) ? lang : "uz";
   const t = makeT(locale, DICTS[locale]);
 
-  const theme = CARD_THEMES[card.tier?.key ?? "calib"];
-  const tierName = card.tier ? t(card.tier.name) : t("Калибровка {n}/{total}", { n: card.ratedGames, total: 5 });
+  const theme = CARD_THEMES[card.inForm ? "inform" : (card.tier?.key ?? "calib")];
+  const tierName = card.inForm
+    ? `IF · ${t("Команда тура {n}", { n: card.inForm.round })}`
+    : card.tier ? t(card.tier.name) : t("Калибровка {n}/{total}", { n: card.ratedGames, total: 5 });
   const titles = `${card.titles ? `🏆${card.titles > 1 ? `×${card.titles}` : ""}` : ""}${card.reigning.map((m) => ` 👑${m}`).join("")}`;
   const text = `${card.nickname}${card.nickname.toUpperCase()}${tierName}0123456789 ×:/OVRATKDEFWINCLUFRMEXPPSXBC1v2`;
   const font = await loadFont("Unbounded", 800, text);

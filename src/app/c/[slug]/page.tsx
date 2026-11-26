@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { competitionRecords } from "@/lib/commentary";
 import { getCompetitionBySlug, entryCounts, getUserEntry, getAnnouncements, getPrizes } from "@/lib/data";
 import { getUser } from "@/lib/auth";
 import { one } from "@/lib/db";
@@ -16,7 +17,7 @@ export default async function Overview({ params, searchParams }: { params: Promi
   const comp = await getCompetitionBySlug(slug);
   if (!comp) notFound();
   const user = await getUser();
-  const [counts, entry, news, prizes, progress] = await Promise.all([
+  const [counts, entry, news, prizes, progress, records] = await Promise.all([
     entryCounts(comp.id),
     user ? getUserEntry(comp.id, user.id) : null,
     getAnnouncements(comp.id, 5),
@@ -25,6 +26,7 @@ export default async function Overview({ params, searchParams }: { params: Promi
       "select count(*) filter (where not is_bye)::int as total, count(*) filter (where status = 'completed' and not is_bye)::int as done from matches where competition_id = $1",
       [comp.id],
     ),
+    competitionRecords(comp.id),
   ]);
   const prize = fmtMoney(comp.prize_pool, comp.prize_currency, t.intl);
   const deadlinePassed = comp.registration_deadline && new Date(comp.registration_deadline).getTime() < Date.now();
@@ -96,6 +98,44 @@ export default async function Overview({ params, searchParams }: { params: Promi
               </div>
               <div className="progress" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                 <i style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          )}
+
+          {records.biggestWin && (
+            <div className="stack">
+              <h2 style={{ fontSize: "1.4rem" }}>🏅 {t("Рекорды сезона")}</h2>
+              <div className="records">
+                <Link href={`/match/${records.biggestWin.matchId}`} className="record">
+                  <span className="record-icon">💥</span>
+                  <small>{t("Самая крупная победа")}</small>
+                  <b className="num">{records.biggestWin.score}</b>
+                  <span className="small muted">{records.biggestWin.winner} — {records.biggestWin.loser}</span>
+                </Link>
+                {records.mostGoals && (
+                  <Link href={`/match/${records.mostGoals.matchId}`} className="record">
+                    <span className="record-icon">🎆</span>
+                    <small>{t("Больше всего голов в матче")}</small>
+                    <b className="num">{records.mostGoals.total}</b>
+                    <span className="small muted">{records.mostGoals.winner} {records.mostGoals.score} {records.mostGoals.loser}</span>
+                  </Link>
+                )}
+                {records.longestStreak && (
+                  <div className="record">
+                    <span className="record-icon">🔥</span>
+                    <small>{t("Самая длинная серия побед")}</small>
+                    <b className="num">{records.longestStreak.n}</b>
+                    <span className="small muted">{records.longestStreak.name}</span>
+                  </div>
+                )}
+                {records.topScorer && (
+                  <div className="record">
+                    <span className="record-icon">⚽</span>
+                    <small>{t("Лучший бомбардир")}</small>
+                    <b className="num">{records.topScorer.goals}</b>
+                    <span className="small muted">{records.topScorer.name}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -9,6 +9,7 @@ import { AutoSubmitForm } from "@/components/client";
 import { entryRatings } from "@/lib/rating";
 import { getPolls, nominees as getNominees, myVote, type Nominee } from "@/lib/awards";
 import { voteAction } from "@/app/actions/fun";
+import { q as dbq } from "@/lib/db";
 import { Flash } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 
@@ -54,6 +55,11 @@ export default async function Calendar({ params, searchParams }: { params: Promi
 
   // Player-of-the-tour polls: open ones get nominees and my vote.
   const polls = new Map((await getPolls(comp.id)).filter((p) => p.stage === stage).map((p) => [p.round, p]));
+  const teams = new Map<number, { user_id: string; nickname: string }[]>();
+  for (const row of await dbq<{ round: number; user_id: string; nickname: string }>(
+    "select t.round, t.user_id, u.rl_nickname as nickname from tour_team t join users u on u.id = t.user_id where t.competition_id = $1 and t.stage = $2 order by t.round, t.rank",
+    [comp.id, stage],
+  )) teams.set(row.round, [...(teams.get(row.round) ?? []), row]);
   const openPolls = [...polls.values()].filter((p) => !p.closed_at && new Date(p.closes_at).getTime() > now);
   const pollData = new Map<number, { list: Nominee[]; mine: string | null }>(
     await Promise.all(
@@ -323,6 +329,18 @@ export default async function Calendar({ params, searchParams }: { params: Promi
                   })}
                 </ul>
                 {stage === "league" && resting.length > 0 && <footer className="small faint">{t("Отдыхает: {names}", { names: resting.map((e) => e.name).join(", ") })}</footer>}
+                {teams.get(tour.round) && (
+                  <div className="totw-strip">
+                    <a href={`/api/totw/${comp.id}/${tour.round}?stage=${stage}&lang=${t.locale}`} target="_blank" rel="noopener" className="totw-label">
+                      🃏 {t("Команда тура")}
+                    </a>
+                    {teams.get(tour.round)!.map((p, i) => (
+                      <Link key={p.user_id} href={`/players/${p.user_id}`} className={`totw-chip${i === 0 ? " first" : ""}`}>
+                        {p.nickname}
+                      </Link>
+                    ))}
+                  </div>
+                )}
                 {(() => {
                   const poll = polls.get(tour.round);
                   if (!poll) return null;

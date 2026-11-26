@@ -1,5 +1,8 @@
 import "server-only";
 import { checkAchievements } from "./achievements";
+import { buildTeamOfRound, INFORM_BOOST } from "./totw";
+import { leagueOdds } from "./odds";
+import { getCompetition } from "./data";
 import { q, one, tx } from "./db";
 import { FormError } from "./errors";
 import { notify, logAction } from "./notify";
@@ -72,6 +75,16 @@ export async function vote(competitionId: string, stage: string, round: number, 
 
 /** Opens polls for finished tours and closes expired ones. Called by the 5-minute sweep. */
 export async function runTourPolls(onlyComp?: string): Promise<{ opened: number; closed: number }> {
+  // Rounds that finished before the team of the round existed get their team quietly (no posts).
+  const missing = await q<{ competition_id: string; stage: string; round: number }>(
+    `select p.competition_id, p.stage, p.round from tour_polls p
+      where ($1::uuid is null or p.competition_id = $1)
+        and not exists (select 1 from tour_team t where t.competition_id = p.competition_id and t.stage = p.stage and t.round = p.round)
+      limit 20`,
+    [onlyComp ?? null],
+  );
+  for (const m of missing) await buildTeamOfRound(undefined, m.competition_id, m.stage, m.round);
+
   const out = { opened: 0, closed: 0 };
   // Tours that are played (every match official) or past their deadline, with at least one result, and no poll yet.
   const ready = await q<{ competition_id: string; stage: string; round: number; comp: string; slug: string }>(
@@ -110,12 +123,34 @@ export async function runTourPolls(onlyComp?: string): Promise<{ opened: number;
         link,
         color: GOLD_COLOR,
       });
+      // Team of the round: In-Form cards for the best performers.
+      const team = await buildTeamOfRound(c, r.competition_id, r.stage, r.round);
+      if (team.length) {
+        for (const p of team) {
+          await notify(c, [p.user_id], "🃏 Вы в команде тура {n}!", "{comp} · ваша карточка стала In-Form на неделю (+{boost} OVR)", `/players/${p.user_id}`, { comp: r.comp, n: r.round, boost: INFORM_BOOST });
+        }
+        await enqueueChannel(c, "announce", {
+          title: "🃏 {comp}: команда тура {n}",
+          description: "{names}",
+          params: { comp: r.comp, n: r.round, names: team.map((p) => p.nickname).join(" · ") },
+          image: `/api/totw/${r.competition_id}/${r.round}?stage=${r.stage}&v=${Date.now()}`,
+          link: `/c/${r.slug}`,
+          color: GOLD_COLOR,
+        });
+      }
       if (r.stage === "league") {
+        const comp = await getCompetition(r.competition_id, c);
+        const odds = comp ? await leagueOdds(comp).catch(() => null) : null;
+        const names = new Map((await q<{ id: string; name: string }>("select id, name from entries where competition_id = $1", [r.competition_id], c)).map((e) => [e.id, e.name]));
+        const top = odds ? [...odds.odds.values()].filter((o) => o.title > 0).slice(0, 5) : [];
         await enqueueChannel(c, "announce", {
           title: "📊 {comp}: таблица после тура {n}",
           params: { comp: r.comp, n: r.round },
           image: `/api/standings-card/${r.slug}?v=${r.round}-${Date.now()}`,
           link: `/c/${r.slug}/standings`,
+          fields: top.length
+            ? [{ name: "Шансы на чемпионство", value: top.map((o, i) => `${["🥇", "🥈", "🥉", "4.", "5."][i]} ${names.get(o.id) ?? "?"} — ${Math.round(o.title * 100)}%`).join("\n") }]
+            : undefined,
         });
       }
     });

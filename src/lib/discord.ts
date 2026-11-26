@@ -93,7 +93,7 @@ export type Embed = {
   description?: string;
   url?: string;
   color?: number;
-  fields?: { name: string; value: string; inline?: boolean }[];
+  fields?: { name: string; value: string; inline?: boolean; lines?: { text: string; params: Params }[] }[];
   footer?: { text: string };
   thumbnail?: { url: string };
   image?: { url: string };
@@ -124,7 +124,11 @@ export function renderMessage(spec: MessageSpec, locale: Locale) {
     description: spec.description ? renderStored(t, spec.description, p).slice(0, 4000) : undefined,
     url: spec.link ? (spec.link.startsWith("http") ? spec.link : `${siteUrl()}${spec.link}`) : undefined,
     color: spec.color ?? BRAND_COLOR,
-    fields: spec.fields?.slice(0, 25).map((f) => ({ name: groupLabel(f.name, t).slice(0, 256), value: f.value.slice(0, 1024) || "—", inline: f.inline })),
+    fields: spec.fields?.slice(0, 25).map((f) => ({
+      name: groupLabel(f.name, t).slice(0, 256),
+      value: (f.lines ? f.lines.map((l) => renderStored(t, l.text, l.params)).join("\n") : f.value).slice(0, 1024) || "—",
+      inline: f.inline,
+    })),
     image: spec.image ? { url: `${siteUrl()}${spec.image}${spec.image.includes("?") ? "&" : "?"}lang=${locale}` } : undefined,
   };
   const components = spec.buttons?.length
