@@ -35,7 +35,7 @@ export async function FutCard({ card, size = "lg", link = false }: { card: Playe
   const theme = CARD_THEMES[key];
   const style = { "--c1": theme.c1, "--c2": theme.c2, "--ink": theme.ink } as React.CSSProperties;
   const body = (
-    <div className="fut-wrap">
+    <div className={`fut-wrap fut-frame-${card.frame ?? "none"}`}>
     <div className={`fut fut-${size}${theme.holo ? " fut-holo" : ""}${card.inForm ? " fut-inform" : ""}`} style={style} aria-label={t("Карточка игрока {name}", { name: card.nickname })}>
       <div className="fut-top">
         <div className="fut-ovr num">{card.stats.ovr}</div>

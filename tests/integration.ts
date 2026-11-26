@@ -22,6 +22,10 @@ import { sweep } from "../src/lib/scheduling";
 import { leagueOdds } from "../src/lib/odds";
 import { getTeamOfRound } from "../src/lib/totw";
 import { competitionRecords, matchCommentary } from "../src/lib/commentary";
+import { createDuel, respondDuel, reportDuel, confirmDuel, cancelDuel, sweepDuels } from "../src/lib/duels";
+import { playerLevel } from "../src/lib/levels";
+import { rivalryBetween } from "../src/lib/derby";
+import { playerSeason } from "../src/lib/wrapped";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -617,6 +621,59 @@ async function main() {
     const story = await matchCommentary(undefined, fc, r1[0].id);
     assert.ok(Array.isArray(story));
     assert.ok(story.some((l) => l.key === "clean"), "7:0 is a clean-sheet win");
+  });
+
+  await step("duels: challenge → accept → report → confirm; rules; expiry; levels, derby and season story", async () => {
+    const [a, b, c] = [await mkUser("duel_a"), await mkUser("duel_b"), await mkUser("duel_c")];
+    const lvlBefore = await playerLevel(a.id);
+
+    await rejects(createDuel(a.id, a.id, ""), /самого себя/);
+    const d1 = await createDuel(a.id, b.id, "gg?");
+    await rejects(createDuel(b.id, a.id, ""), /незавершённая дуэль/);
+    await rejects(respondDuel(d1, a.id, true), /только тот, кого вызвали/);
+    await rejects(reportDuel(d1, a.id, 3, 1), /после принятия/);
+    await respondDuel(d1, b.id, true);
+    await rejects(reportDuel(d1, c.id, 3, 1), /только участники/);
+    await rejects(reportDuel(d1, a.id, 2, 2), /ничьих/);
+    await reportDuel(d1, b.id, 1, 3); // b reports from their side: b 1, a 3
+    await rejects(confirmDuel(d1, b.id, true), /соперник/);
+    await confirmDuel(d1, a.id, false); // a disagrees → back to accepted
+    assert.equal((await one<{ status: string }>("select status from duels where id = $1", [d1]))!.status, "accepted");
+    await reportDuel(d1, a.id, 3, 1);
+    await confirmDuel(d1, b.id, true);
+    const done = (await one<{ status: string; winner_id: string; ch_goals: number; op_goals: number }>("select status, winner_id, ch_goals, op_goals from duels where id = $1", [d1]))!;
+    assert.deepEqual([done.status, done.winner_id, done.ch_goals, done.op_goals], ["completed", a.id, 3, 1]);
+
+    // A second duel the other way makes it 1–1: a derby.
+    const d2 = await createDuel(b.id, a.id, "");
+    await respondDuel(d2, a.id, true);
+    await reportDuel(d2, b.id, 4, 3);
+    await q("update duels set reported_at = now() - interval '25 hours' where id = $1", [d2]);
+    await sweepDuels();
+    assert.equal((await one<{ status: string }>("select status from duels where id = $1", [d2]))!.status, "completed", "auto-confirmed after 24h");
+    const rv = (await rivalryBetween(a.id, b.id))!;
+    assert.ok(rv.meetings >= 2);
+
+    // Unanswered challenges expire; cancelled ones stay cancelled.
+    const d3 = await createDuel(a.id, c.id, "");
+    await q("update duels set created_at = now() - interval '73 hours' where id = $1", [d3]);
+    await sweepDuels();
+    assert.equal((await one<{ status: string }>("select status from duels where id = $1", [d3]))!.status, "expired");
+    const d4 = await createDuel(c.id, a.id, "");
+    await cancelDuel(d4, c.id);
+    assert.equal((await one<{ status: string }>("select status from duels where id = $1", [d4]))!.status, "cancelled");
+
+    const lvlAfter = await playerLevel(a.id);
+    assert.equal(lvlAfter.xp - lvlBefore.xp, 2 * 10 + 1 * 10, "two duels played, one won");
+
+    // Season story for someone with league results.
+    const someComp = await one<{ competition_id: string; user_id: string }>(
+      `select e.competition_id, em.user_id from matches m join entries e on e.id = m.home_entry_id join entry_members em on em.entry_id = e.id
+        where m.status = 'completed' and not m.is_bye and e.status = 'confirmed' order by m.completed_at desc limit 1`,
+    );
+    const season = (await playerSeason(someComp!.user_id, someComp!.competition_id))!;
+    assert.ok(season.story.played >= 1);
+    assert.equal(season.story.wins + season.story.losses, season.story.played);
   });
 
   console.log(`\n${passed} integration checks passed`);

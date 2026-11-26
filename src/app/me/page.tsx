@@ -9,6 +9,9 @@ import { Flash, MatchStatusBadge, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { ProfileFields } from "@/components/ProfileFields";
 import { getT } from "@/lib/i18n/server";
+import { playerLevel } from "@/lib/levels";
+import { FRAMES } from "@/lib/engine/levels";
+import { frameAction } from "../actions/duels";
 
 export async function generateMetadata() {
   const t = await getT();
@@ -24,7 +27,7 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
     "select discord_username, discord_dm, password_hash is not null as has_password from users where id = $1",
     [user.id],
   );
-  const [entries, matches, judging] = await Promise.all([
+  const [entries, matches, judging, lvl, frameRow] = await Promise.all([
     q<{ id: string; name: string; status: string; number: number; slug: string; comp: string; mode: string }>(
       `select e.id, e.name, e.status, e.number, c.slug, c.name as comp, c.mode
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
@@ -49,6 +52,8 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
         order by m.scheduled_at nulls last, m.round, m.number limit 20`,
       [user.id],
     ),
+    playerLevel(user.id),
+    one<{ card_frame: string }>("select card_frame from users where id = $1", [user.id]),
   ]);
 
   return (
@@ -166,6 +171,24 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
                 <DiscordButton mode="link" label={t("Привязать Discord")} />
               </>
             )}
+          </section>
+          <section className="panel stack">
+            <h3>{t("Рамка карточки")}</h3>
+            <p className="muted small" style={{ margin: 0 }}>{t("Новые рамки открываются с уровнем. Ваш уровень: {n}", { n: lvl.level })}</p>
+            <form action={frameAction} className="frame-pick">
+              {FRAMES.map((f) => {
+                const open = f.level <= lvl.level;
+                return (
+                  <label key={f.key} className={`frame-opt fut-frame-${f.key}${open ? "" : " locked"}`}>
+                    <input type="radio" name="frame" value={f.key} defaultChecked={(frameRow?.card_frame ?? "none") === f.key} disabled={!open} />
+                    <span className="frame-swatch" aria-hidden />
+                    <span>{t(f.name)}</span>
+                    {!open && <small>🔒 {t("ур. {n}", { n: f.level })}</small>}
+                  </label>
+                );
+              })}
+              <SubmitButton className="btn btn-sm">{t("Сохранить")}</SubmitButton>
+            </form>
           </section>
           <form action={updateProfile} className="panel stack">
             <h3>{t("Профиль")}</h3>

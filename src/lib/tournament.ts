@@ -558,6 +558,15 @@ async function maybeFinish(c: PoolClient, comp: Competition) {
     await enqueueChannel(c, "announce", { title: "{comp} завершён", description: "Чемпион: {champion}", params: { comp: comp.name, champion: name?.name ?? "" }, link: `/c/${comp.slug}`, color: GOLD_COLOR });
     const champs = await q<{ user_id: string }>("select user_id from entry_members where entry_id = $1 and active", [champion], c);
     await checkAchievements(c, champs.map((r) => r.user_id));
+    // Everyone gets their season story.
+    const everyone = await q<{ user_id: string }>(
+      "select distinct em.user_id from entries e join entry_members em on em.entry_id = e.id and em.active where e.competition_id = $1 and e.status = 'confirmed'",
+      [comp.id],
+      c,
+    );
+    for (const p of everyone) {
+      await notify(c, [p.user_id], "🎬 {comp}: ваш сезон в цифрах готов", "Голы, лучший матч, главный соперник — и картинка, чтобы поделиться", `/players/${p.user_id}/season/${comp.slug}`, { comp: comp.name });
+    }
   }
   await discordAfterFinish(c, comp.id);
 }

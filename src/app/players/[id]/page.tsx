@@ -12,6 +12,13 @@ import { STAT_KEYS } from "@/lib/engine/card";
 import { playerAchievements } from "@/lib/achievements";
 import { playerRivals } from "@/lib/rivals";
 import { playerInForms } from "@/lib/totw";
+import { duelRecord } from "@/lib/duels";
+import { playerLevel } from "@/lib/levels";
+import { allDerbies } from "@/lib/derby";
+import { playerSeasons } from "@/lib/wrapped";
+import { getUser } from "@/lib/auth";
+import { challengeAction } from "@/app/actions/duels";
+import { SubmitButton } from "@/components/client";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +46,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   );
   if (!u) notFound();
 
-  const [entries, matches, awards, ratings, h1, h2, card, achievements, rivals, informs] = await Promise.all([
+  const [entries, matches, awards, ratings, h1, h2, card, achievements, rivals, informs, duels, viewer, lvl, derbyList, seasons] = await Promise.all([
     q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
       `select e.id, e.name, c.name as comp, c.slug, c.mode, c.status
          from entry_members em join entries e on e.id = em.entry_id join competitions c on c.id = e.competition_id
@@ -72,7 +79,13 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     playerAchievements(id),
     playerRivals(id),
     playerInForms(id),
+    duelRecord(id),
+    getUser(),
+    playerLevel(id),
+    allDerbies(),
+    playerSeasons(id),
   ]);
+  const derbyWith = new Set(derbyList.filter((d) => d.a === id || d.b === id).map((d) => (d.a === id ? d.b : d.a)));
   const earned = achievements.filter((a) => a.done).length;
   const wins = matches.filter((m) => m.won).length;
   const losses = matches.length - wins;
@@ -81,10 +94,31 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   return (
     <div className="wrap section stack-lg">
       <div>
-        <h1>{u.rl_nickname}</h1>
+        <div className="name-row">
+          <h1>{u.rl_nickname}</h1>
+          <span className="level-badge" title={t("Уровень игрока")}>
+            <small>{t("Ур.")}</small>
+            <b className="num">{lvl.level}</b>
+          </span>
+        </div>
+        <div className="xp" aria-label={t("Опыт: {xp} из {to}", { xp: lvl.xp, to: lvl.to })}>
+          <span className="xp-bar"><i style={{ width: `${Math.round(lvl.progress * 100)}%` }} /></span>
+          <span className="small muted num">{t("{xp} / {to} XP до уровня {n}", { xp: lvl.xp, to: lvl.to, n: lvl.level + 1 })}</span>
+        </div>
         <p className="muted" style={{ marginTop: 8 }}>
           {PLATFORM_LABELS[u.platform]} · {t("на платформе с {date}", { date: fmtDate(u.created_at, "Asia/Tashkent", t) })}
+          {duels.played > 0 && <> · ⚔️ {t("дуэли {w}–{l}", { w: duels.wins, l: duels.played - duels.wins })}</>}
         </p>
+        {viewer && viewer.id !== id && (
+          <details className="challenge">
+            <summary className="btn btn-sm">⚔️ {t("Бросить вызов")}</summary>
+            <form action={challengeAction} className="challenge-form">
+              <input type="hidden" name="opponent_id" value={id} />
+              <input className="input" name="message" maxLength={200} placeholder={t("Сообщение сопернику (необязательно)")} />
+              <SubmitButton className="btn btn-sm">{t("Отправить вызов")}</SubmitButton>
+            </form>
+          </details>
+        )}
       </div>
       <div className="card-hero">
         {card && <FutCard card={card} />}
@@ -138,6 +172,17 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           </div>
         </section>
       )}
+      {seasons.length > 0 && (
+        <div className="season-links">
+          {seasons.map((se) => (
+            <Link key={se.id} href={`/players/${id}/season/${se.slug}`} className="season-link">
+              <span>🎬 {t("Твой сезон")}</span>
+              <b>{se.name}</b>
+              <small>{t("матчей: {n}", { n: se.played })} →</small>
+            </Link>
+          ))}
+        </div>
+      )}
       <section className="stack" id="achievements">
         <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
           <h2 style={{ fontSize: "1.3rem" }}>🏅 {t("Значки")}</h2>
@@ -189,7 +234,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
               const body = (
                 <>
                   <div className="rival-top">
-                    <b>{r.opponent}</b>
+                    <b>{r.opponent_user_id && derbyWith.has(r.opponent_user_id) && <span title={t("Дерби")}>⚡ </span>}{r.opponent}</b>
                     <span className={`badge plain ${r.wins > r.losses ? "ok" : r.wins < r.losses ? "danger" : "dim"}`}>
                       {r.wins}–{r.losses}
                     </span>

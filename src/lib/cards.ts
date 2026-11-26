@@ -23,12 +23,13 @@ export type PlayerCard = {
   /** Team of the round within the last week: special design, boosted OVR. */
   inForm: { round: number; competition: string } | null;
   inFormCount: number;
+  frame: string;
 };
 
 type Row = { side: "home" | "away"; won: boolean; forfeit: boolean; games: { home: number; away: number }[] | null };
 
 export async function getPlayerCard(userId: string): Promise<PlayerCard | null> {
-  const u = await one<{ id: string; rl_nickname: string; platform: string }>("select id, rl_nickname, platform from users where id = $1", [userId]);
+  const u = await one<{ id: string; rl_nickname: string; platform: string; card_frame: string }>("select id, rl_nickname, platform, card_frame from users where id = $1", [userId]);
   if (!u) return null;
   const [rows, ratings, titles, awards, informs] = await Promise.all([
     q<Row>(
@@ -78,5 +79,6 @@ export async function getPlayerCard(userId: string): Promise<PlayerCard | null> 
     ratings,
     inForm: active ? { round: active.round, competition: active.competition } : null,
     inFormCount: informs.length,
+    frame: u.card_frame ?? "none",
   };
 }
