@@ -1,7 +1,8 @@
 import "server-only";
 import { createHash, randomInt } from "node:crypto";
 import { one, q } from "./db";
-import { hashPassword, signShort, verifyShort, type Role } from "./auth";
+import { hashPassword, signShort, verifyShort } from "./crypto";
+import type { Role } from "./auth";
 import { FormError } from "./errors";
 import { logAction } from "./notify";
 import { siteUrl } from "./discord";

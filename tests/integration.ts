@@ -27,7 +27,7 @@ import { playerLevel } from "../src/lib/levels";
 import { rivalryBetween } from "../src/lib/derby";
 import { playerSeason } from "../src/lib/wrapped";
 import { resetToTemp, resetLink, checkResetToken, consumeResetToken } from "../src/lib/password-reset";
-import { verifyPassword } from "../src/lib/auth";
+import { verifyPassword } from "../src/lib/crypto";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
