@@ -40,6 +40,9 @@ export default async function LoginPage({ searchParams }: { searchParams: SP }) 
         <p className="muted">
           {t("Нет аккаунта?")} <Link href={`/signup?next=${encodeURIComponent(next)}`}>{t("Создать")}</Link>
         </p>
+        <p className="small muted" style={{ marginTop: 4 }}>
+          {t("Забыли пароль? Войдите через Discord, если он привязан, или напишите администратору — он пришлёт ссылку для нового пароля.")}
+        </p>
       </div>
     </div>
   );

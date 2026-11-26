@@ -197,7 +197,7 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
             </div>
             <SubmitButton className="btn">{t("Сохранить")}</SubmitButton>
           </form>
-          <form action={changePassword} className="panel stack">
+          <form action={changePassword} className="panel stack" id="password">
             <h3>{t("Пароль")}</h3>
             {extra?.has_password ? (
               <label className="field">

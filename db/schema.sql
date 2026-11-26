@@ -396,3 +396,6 @@ create index if not exists duels_open on duels (status, created_at) where status
 
 -- Cosmetic card frame the player picked (unlocked by level).
 alter table users add column if not exists card_frame text not null default 'none';
+
+-- Admin password resets: a temporary password forces a change at the next sign-in.
+alter table users add column if not exists must_change_password boolean not null default false;
