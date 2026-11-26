@@ -32,3 +32,15 @@
 🔥 Ваш матч — матч тура {n}!	🔥 Sizning o‘yiningiz — {n}-tur o‘yini!	🔥 Your match is the match of round {n}!
 {n} участников на {g} групп — это по {size} в группе, а выходят {q}, то есть все. Подойдёт: групп — {g2}, по {size2} в группе, выходят {q2} (плей-офф на {p}). Поменяйте в «Настройки» → «Турнирная сетка».	{n} ishtirokchi {g} guruhga — har guruhda {size} kishi, chiqadi esa {q}, ya’ni hammasi. Mos variant: guruhlar — {g2}, har birida {size2} kishi, chiqadi {q2} (pley-off {p} kishilik). «Sozlamalar» → «Turnir setkasi» bo‘limida o‘zgartiring.	{n} entries in {g} groups is {size} per group, and {q} advance — that's everyone. Try: {g2} groups of {size2}, {q2} advance (a {p}-team playoff). Change it in Settings → Tournament structure.
 {n} участников на {g} групп — это по {size} в группе, а выходят {q}, то есть все. Уменьшите число групп или выходящих.	{n} ishtirokchi {g} guruhga — har guruhda {size} kishi, chiqadi esa {q}, ya’ni hammasi. Guruhlar yoki chiquvchilar sonini kamaytiring.	{n} entries in {g} groups is {size} per group, and {q} advance — that's everyone. Reduce groups or qualifiers.
+Мяч улетел за пределы поля	To‘p maydondan chiqib ketdi	The ball flew out of the arena
+Такой страницы нет. Возможно, ссылка устарела или соревнование ещё не опубликовано.	Bunday sahifa yo‘q. Ehtimol, havola eskirgan yoki musobaqa hali e’lon qilinmagan.	There's no such page. The link may be outdated or the competition isn't published yet.
+Карточка игрока: OVR {ovr} · матчей {n} · побед {w}	O‘yinchi kartasi: OVR {ovr} · o‘yinlar {n} · g‘alabalar {w}	Player card: OVR {ovr} · matches {n} · wins {w}
+{comp} · итог {score}	{comp} · natija {score}	{comp} · result {score}
+{comp} · тур {n}	{comp} · {n}-tur	{comp} · round {n}
+Требует внимания	E’tibor talab qiladi	Needs attention
+Всё под контролем — срочных дел нет	Hammasi nazoratda — shoshilinch ishlar yo‘q	All under control — nothing urgent
+Споры по результатам	Natijalar bo‘yicha nizolar	Result disputes
+Сыграны, но счёт не внесён	O‘ynalgan, lekin hisob kiritilmagan	Played, but no score entered
+Просрочены по дедлайну тура	Tur muddati o‘tib ketgan	Past the round deadline
+Матчи без судьи	Hakamsiz o‘yinlar	Matches without a referee
+Сообщения Discord не доставлены	Discord xabarlari yetkazilmadi	Discord messages not delivered

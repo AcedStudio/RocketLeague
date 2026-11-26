@@ -4,6 +4,7 @@ import { Unbounded, Onest } from "next/font/google";
 import "./globals.css";
 import { getUser, isAdmin, isReferee } from "@/lib/auth";
 import { getSettings } from "@/lib/data";
+import { siteUrl } from "@/lib/discord";
 import { one, dbConfigured } from "@/lib/db";
 import { LogoMark, BellIcon } from "@/components/Art";
 import { Suspense } from "react";
@@ -17,9 +18,13 @@ const text = Onest({ subsets: ["latin", "cyrillic"], variable: "--font-onest", d
 
 export async function generateMetadata(): Promise<Metadata> {
   const [s, t] = await Promise.all([getSettings(), getT()]);
+  const description = t(s.tagline);
   return {
+    metadataBase: new URL(siteUrl()),
     title: { default: s.site_name, template: `%s · ${s.site_name}` },
-    description: t(s.tagline),
+    description,
+    openGraph: { type: "website", siteName: s.site_name, description, images: [{ url: "/brand/hero-1672.jpg", width: 1672, height: 941 }] },
+    twitter: { card: "summary_large_image" },
   };
 }
 

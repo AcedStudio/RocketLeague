@@ -23,6 +23,20 @@ export const dynamic = "force-dynamic";
 
 type Report = { id: string; entry_id: string; games: { home: number; away: number }[]; proof_url: string; comment: string; status: string; response_comment: string; created_at: Date; reporter: string };
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return {};
+  const [m, t] = await Promise.all([getMatch(id), getT()]);
+  if (!m) return {};
+  const comp = await getCompetition(m.competition_id);
+  const title = `${m.home_name ?? "TBD"} vs ${m.away_name ?? "TBD"}`;
+  const description = m.status === "completed"
+    ? t("{comp} · итог {score}", { comp: comp?.name ?? "", score: scoreOf(m).join(":") })
+    : t("{comp} · тур {n}", { comp: comp?.name ?? "", n: m.round });
+  const v = `${m.status}-${m.home_wins ?? 0}-${m.away_wins ?? 0}`;
+  return { title, description, openGraph: { title, description, images: [{ url: `/api/match-card/${id}?lang=${t.locale}&v=${v}`, width: 1200, height: 630 }] } };
+}
+
 export default async function MatchPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: SP }) {
   const t = await getT();
   const [{ id }, sp] = await Promise.all([params, searchParams]);
