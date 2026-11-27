@@ -75,3 +75,12 @@ test("every avatar has its portrait in the sprite", () => {
   assert.equal(avatarItem("phoenix")?.rarity, "legendary");
   assert.equal(avatarItem("nope"), null);
 });
+
+import { FINISHERS, finisherItem } from "../src/lib/engine/shop.ts";
+test("victory effects: every one has its CSS animation", () => {
+  const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+  const tsx = readFileSync(new URL("../src/components/Finisher.tsx", import.meta.url), "utf8");
+  for (const f of [...FINISHERS, ...ITEMS.filter((i) => i.kind === "finisher")]) assert.ok(tsx.includes(`case "${f.key}"`), f.key);
+  assert.ok(css.includes(".fx .conf"));
+  assert.equal(finisherItem("crown")?.rarity, "legendary");
+});

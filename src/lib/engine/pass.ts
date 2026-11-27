@@ -66,7 +66,7 @@ export const REWARDS: Record<string, TierRewards[]> = {
       5: item("tag:ignition"), 10: item("avatar:ignition"), 15: item("tag:overcharged"), 20: item("banner:hyperspace"), 25: crate("elite"), 30: item("tag:s1"),
     };
     const elite: Record<number, Reward> = {
-      1: item("color:ignite"), 6: crate("rookie"), 10: item("tag:afterburner"), 12: crate("elite"), 16: item("banner:ignition"),
+      1: item("color:ignite"), 6: item("finisher:ignition"), 10: item("tag:afterburner"), 12: crate("elite"), 16: item("banner:ignition"),
       20: item("color:prism"), 22: crate("elite"), 25: item("tag:apex"), 28: crate("mythic"), 30: item("tag:supercharged"),
     };
     return {

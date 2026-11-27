@@ -763,6 +763,8 @@ async function main() {
     assert.equal((await wallet(buyer.id)).avatar, "volt", "a bought avatar is worn right away");
     await equipItem(buyer.id, "avatar:");
     assert.equal((await wallet(buyer.id)).avatar, null);
+    await buyItem(buyer.id, "finisher:confetti");
+    assert.equal((await wallet(buyer.id)).finisher, "confetti", "a bought victory effect is on right away");
 
     // Referee desk: an assigned match shows up under "time to enter the score" once its time has passed.
     const rc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1, referee_only: true });

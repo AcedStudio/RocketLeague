@@ -421,6 +421,7 @@ alter table users add column if not exists equipped_badge text;
 alter table users add column if not exists name_color text;
 alter table users add column if not exists banner text;
 alter table users add column if not exists avatar text;
+alter table users add column if not exists finisher text;
 
 -- Season Pass: XP from quests (activity XP is computed from matches/duels inside the season window).
 create table if not exists pass_xp (

@@ -2,6 +2,7 @@ import type { T } from "@/lib/i18n/core";
 import { SubmitButton } from "@/components/client";
 import { UserBadge, Nick, Avatar } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
+import { Finisher } from "@/components/Finisher";
 import { DEAL_DISCOUNT, RARITY_NAME, RARITIES, bannerClass, itemId, iconOf, type Item, type Crate, type Rarity } from "@/lib/engine/shop";
 import { buyAction, equipAction, crateAction } from "@/app/actions/shop";
 
@@ -50,16 +51,16 @@ export function Nameplate({ look, compact }: { look: Look; compact?: boolean }) 
 
 export const rarityClass = (r: Rarity) => `rar rar-${r}`;
 
-const KIND_LABEL = { tag: "Тег", color: "Цвет ника", banner: "Баннер", avatar: "Аватар" } as const;
+const KIND_LABEL = { tag: "Тег", color: "Цвет ника", banner: "Баннер", avatar: "Аватар", finisher: "Эффект победы" } as const;
 
-export type Owner = { signedIn: boolean; balance: number; owned: Set<string>; equipped: { badge: string | null; color: string | null; banner: string | null; avatar: string | null } };
+export type Owner = { signedIn: boolean; balance: number; owned: Set<string>; equipped: { badge: string | null; color: string | null; banner: string | null; avatar: string | null; finisher: string | null } };
 
 /** A product tile: art on top (with the item applied to your nameplate), details and the action below. */
 export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item; price: number; me: Owner; look: Look; ret: string; t: T; large?: boolean }) {
   const id = itemId(item);
   const owned = me.owned.has(id);
   const worn =
-    item.kind === "tag" ? me.equipped.badge === id : item.kind === "color" ? me.equipped.color === item.key : item.kind === "avatar" ? me.equipped.avatar === item.key : me.equipped.banner === item.key;
+    item.kind === "tag" ? me.equipped.badge === id : item.kind === "color" ? me.equipped.color === item.key : item.kind === "avatar" ? me.equipped.avatar === item.key : item.kind === "finisher" ? me.equipped.finisher === item.key : me.equipped.banner === item.key;
   const preview: Look =
     item.kind === "tag" ? { ...look, badge: id } : item.kind === "color" ? { ...look, color: item.key } : item.kind === "avatar" ? { ...look, avatar: item.key } : { ...look, banner: item.key };
   const afford = me.balance >= price;
@@ -71,6 +72,12 @@ export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item;
           <span className="it-glyph" aria-hidden>
             <Icon name={iconOf("tag", item.key)} size={large ? 112 : 76} />
           </span>
+        )}
+        {item.kind === "finisher" && (
+          <>
+            <span className="it-fx"><Finisher kind={item.key} loop /></span>
+            <span className="it-score num" aria-hidden>3 : 1</span>
+          </>
         )}
         {item.kind === "avatar" && (
           <span className="it-glyph it-avatar" aria-hidden>
