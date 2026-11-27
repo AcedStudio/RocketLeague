@@ -964,3 +964,14 @@ html, body { overflow-x: clip; }
   .topbar .wrap { position: relative; }
 }
 @keyframes mnav-in { from { opacity: 0; transform: translateY(-6px); } }
+/* Phones: short brand, menu labels on two lines, two shop items per row. */
+@media (max-width: 430px) {
+  .brand > span { display: none; }
+  .brand::after { content: "RLC"; font-size: 1.1rem; letter-spacing: 0.02em; background: linear-gradient(90deg, #88EDFF, #D9AD50); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .shop-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .shop-item { padding: 22px 8px 12px; }
+}
+@media (max-width: 1180px) {
+  .mobile-nav a.mnav-tile { padding: 10px; gap: 8px; font-size: 0.9rem; line-height: 1.2; }
+  .mobile-nav a.mnav-tile span:last-child { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+}
