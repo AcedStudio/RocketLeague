@@ -1,7 +1,8 @@
 import type { T } from "@/lib/i18n/core";
 import { SubmitButton } from "@/components/client";
 import { UserBadge, Nick } from "@/components/Badge";
-import { DEAL_DISCOUNT, RARITY_NAME, RARITIES, bannerClass, itemId, type Item, type Crate, type Rarity } from "@/lib/engine/shop";
+import { Icon } from "@/components/Icon";
+import { DEAL_DISCOUNT, RARITY_NAME, RARITIES, bannerClass, itemId, iconOf, type Item, type Crate, type Rarity } from "@/lib/engine/shop";
 import { buyAction, equipAction, crateAction } from "@/app/actions/shop";
 
 /** The site's coin: a small minted disc instead of an emoji. */
@@ -65,7 +66,11 @@ export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item;
     <article className={`it kind-${item.kind} ${rarityClass(item.rarity)}${large ? " it-large" : ""}${owned ? " is-owned" : ""}`}>
       <div className="it-art">
         {item.kind === "banner" && <span className={`it-banner ${bannerClass(item.key)}`} aria-hidden />}
-        {item.kind === "tag" && <span className="it-glyph" aria-hidden>{item.icon}</span>}
+        {item.kind === "tag" && (
+          <span className="it-glyph" aria-hidden>
+            <Icon name={iconOf("tag", item.key)} size={large ? 112 : 76} />
+          </span>
+        )}
         {item.kind === "color" && (
           <span className="it-bignick" aria-hidden>
             <Nick name={look.nick} color={item.key} />

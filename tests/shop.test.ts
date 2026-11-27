@@ -57,3 +57,13 @@ test("daily deals: same for a day, one per rarity, discounted; title progress is
   const f = { goals: 40 } as never;
   assert.deepEqual(titleProgress(sniper, f), [25, 25]);
 });
+
+import { readFileSync } from "node:fs";
+import { iconOf } from "../src/lib/engine/shop.ts";
+import { ACHIEVEMENTS } from "../src/lib/engine/achievements.ts";
+test("every tag, title and achievement has its own drawn icon in the sprite", () => {
+  const sprite = readFileSync(new URL("../public/icons.svg", import.meta.url), "utf8");
+  const ids = new Set([...sprite.matchAll(/<symbol id="([^"]+)"/g)].map((m) => m[1]));
+  const need = [...TAGS.map((t) => iconOf("tag", t.key)), ...TITLES.map((t) => iconOf("title", t.key)), ...ACHIEVEMENTS.map((a) => iconOf("ach", a.key))];
+  assert.deepEqual(need.filter((n) => !ids.has(n)), []);
+});

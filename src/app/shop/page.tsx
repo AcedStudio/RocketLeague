@@ -3,9 +3,10 @@ import { getUser } from "@/lib/auth";
 import { getT } from "@/lib/i18n/server";
 import { Flash, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
+import { Icon } from "@/components/Icon";
 import { Coin, Nameplate, ItemTile, CrateCard, rarityClass, type Owner, type Look } from "@/components/shop";
 import { wallet, earnedTitles, today } from "@/lib/shop";
-import { TAGS, COLORS, BANNERS, CRATES, ITEMS, RARITY_NAME, RARITIES, DAILY_BONUS, dailyDeals, featured, findItem, itemId, priceToday, type Item, type Rarity } from "@/lib/engine/shop";
+import { TAGS, COLORS, BANNERS, CRATES, ITEMS, RARITY_NAME, RARITIES, DAILY_BONUS, dailyDeals, featured, findItem, itemId, priceToday, iconOf, type Item, type Rarity } from "@/lib/engine/shop";
 import { XP } from "@/lib/engine/levels";
 import { dailyAction, equipAction } from "@/app/actions/shop";
 
@@ -252,7 +253,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
                   const [cur, target] = ti.progress;
                   return (
                     <div key={ti.key} className={`title-row ${rarityClass(ti.rarity)}${ti.has ? " is-owned" : " is-locked"}`}>
-                      <span className="title-icon" aria-hidden>{ti.icon}</span>
+                      <span className="title-icon" aria-hidden><Icon name={iconOf("title", ti.key)} size={40} /></span>
                       <div className="title-main">
                         <div className="title-top">
                           <b className="it-name">{ti.name}</b>

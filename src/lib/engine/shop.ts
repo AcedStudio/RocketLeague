@@ -32,6 +32,7 @@ export const TAGS: Item[] = [
   tag("dribble", "🪀", "Dribble God", 270, "rare"),
   tag("demo", "💥", "Demo King", 280, "rare"),
   tag("night", "🌙", "Night Hunter", 300, "rare"),
+  tag("clover", "🍀", "Lucky", 320, "rare"),
   tag("ninja", "🥷", "Ninja", 300, "rare"),
   tag("rocket", "🚀", "Rocketeer", 400, "epic"),
   tag("flip", "🌀", "Flip Reset", 450, "epic"),
@@ -41,7 +42,17 @@ export const TAGS: Item[] = [
   tag("phoenix", "🦅", "Phoenix", 650, "epic"),
   tag("dragon", "🐉", "Dragon", 680, "epic"),
   tag("gc", "🛡️", "Grand Champ", 700, "epic"),
+  tag("turbo", "⏱️", "Turbo", 420, "epic"),
+  tag("katana", "🗡️", "Katana", 480, "epic"),
+  tag("sakura", "🌸", "Sakura", 480, "epic"),
+  tag("viking", "🪓", "Viking", 520, "epic"),
+  tag("heart", "💗", "Heartbreaker", 540, "epic"),
+  tag("alien", "👽", "Alien", 560, "epic"),
+  tag("void", "🕳️", "Void Walker", 640, "epic"),
   tag("crown", "👑", "Arena King", 900, "legendary"),
+  tag("nova", "💥", "Supernova", 950, "legendary"),
+  tag("skull", "💀", "Skull Crusher", 1000, "legendary"),
+  tag("ai", "🤖", "Artificial Intelligence", 1300, "legendary"),
   tag("ghost", "👻", "Untouchable", 1100, "legendary"),
   tag("goat", "🐐", "GOAT", 1200, "legendary"),
   tag("godlike", "🔱", "Godlike", 1400, "legendary"),
@@ -211,6 +222,9 @@ export function badgeFor(equipped: string | null | undefined): { kind: "tag" | "
   }
   return null;
 }
+
+/** Sprite icon for a tag, title or achievement (see scripts/icons/build.py). */
+export const iconOf = (kind: "tag" | "title" | "ach", key: string) => `${kind === "tag" ? "t" : kind === "title" ? "ti" : "a"}-${key}`;
 
 /** CSS class for a stored name colour / banner key (unknown keys are ignored). */
 export const nameColorClass = (key: string | null | undefined) => (key && COLORS.some((c) => c.key === key) ? `nc nc-${key}` : "");

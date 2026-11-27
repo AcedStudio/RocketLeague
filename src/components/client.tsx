@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { makeT, LOCALES, LOCALE_SHORT, LOCALE_NAMES, type Dict, type Locale, type T } from "@/lib/i18n/core";
 import { setLocale } from "@/app/actions/locale";
@@ -121,16 +122,16 @@ export function MobileMenu({ links, authed, admin }: { links: { href: string; la
     return () => window.removeEventListener("keydown", esc);
   }, [open]);
   const extra = [
-    { href: "/shop", label: t("Магазин"), icon: "🛍️" },
-    authed ? { href: "/me", label: t("Мой кабинет"), icon: "🙂" } : { href: "/login", label: t("Войти"), icon: "🔑" },
-    ...(authed ? [] : [{ href: "/signup", label: t("Создать аккаунт"), icon: "✨" }]),
-    ...(admin ? [{ href: "/admin", label: t("Админ-панель"), icon: "🛠️" }] : []),
+    { href: "/shop", label: t("Магазин"), icon: "ui-shop" },
+    authed ? { href: "/me", label: t("Мой кабинет"), icon: "ui-user" } : { href: "/login", label: t("Войти"), icon: "ui-login" },
+    ...(authed ? [] : [{ href: "/signup", label: t("Создать аккаунт"), icon: "ui-signup" }]),
+    ...(admin ? [{ href: "/admin", label: t("Админ-панель"), icon: "ui-admin" }] : []),
   ];
   const tile = (l: { href: string; label: string; icon?: string }) => {
     const here = l.href === "/" ? path === "/" : path === l.href || path.startsWith(l.href + "/");
     return (
       <Link key={l.href} href={l.href} className="mnav-tile" aria-current={here ? "page" : undefined}>
-        <span className="mnav-ico" aria-hidden="true">{l.icon}</span>
+        <span className="mnav-ico" aria-hidden="true">{l.icon && <Icon name={l.icon} size={22} />}</span>
         <span>{l.label}</span>
       </Link>
     );
