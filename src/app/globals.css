@@ -1008,7 +1008,7 @@ html, body { overflow-x: clip; }
 /* Loadout */
 .loadout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); border: 1px solid var(--line-strong); border-radius: 16px; overflow: hidden; background: var(--surface); }
 .loadout-plate { display: grid; align-content: center; gap: 10px; padding: 18px 20px; background: linear-gradient(135deg, #0f2649, #0a1a33); border-right: 1px solid var(--line); }
-.loadout-slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.loadout-slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .slot { display: grid; align-content: center; gap: 4px; padding: 14px 16px; border-left: 1px solid var(--line); min-width: 0; }
 .slot:first-child { border-left: 0; }
 .slot-label { font: 600 0.68rem/1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
@@ -1289,3 +1289,16 @@ html, body { overflow-x: clip; }
 .tier-no { display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap; }
 .tier-col.milestone .tier-no::after { margin-left: 0; }
 .tier-col.milestone .rw { border-width: 1.5px; }
+
+/* ---------- avatars ---------- */
+.av { position: relative; flex: none; display: inline-grid; place-items: center; border-radius: 50%; isolation: isolate; }
+.av .ico { position: relative; z-index: 1; border-radius: 50%; box-shadow: 0 0 0 2px var(--rc), 0 2px 8px rgba(0, 0, 0, 0.45); }
+.av::before { content: ""; position: absolute; inset: -3px; border-radius: 50%; z-index: 0; background: var(--rc); opacity: 0.35; }
+.av.rar-epic::before, .av.rar-legendary::before { inset: -4px; opacity: 1; background: conic-gradient(from 0deg, var(--rc), transparent 30%, var(--rc) 50%, transparent 80%, var(--rc)); animation: rays-spin 3.5s linear infinite; }
+.av.rar-legendary::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; z-index: -1; background: radial-gradient(circle, color-mix(in srgb, var(--rc) 55%, transparent), transparent 65%); animation: aura-pulse 2.4s ease-in-out infinite; }
+.np-avatar { flex: none; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, #029FFC, #88EDFF); color: #04203d; font-weight: 800; font-family: var(--font-display); }
+.who { display: inline-flex; align-items: center; gap: 8px; }
+.name-row .av { margin-right: 4px; }
+.it-avatar .av .ico { box-shadow: 0 0 0 3px var(--rc), 0 10px 24px rgba(0, 0, 0, 0.55); }
+.user-menu > summary .av, .user-menu > summary .np-avatar { margin-right: 2px; }
+@media (prefers-reduced-motion: reduce) { .av::before, .av::after { animation: none !important; } }

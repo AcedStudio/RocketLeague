@@ -7,13 +7,14 @@ export type Rarity = "common" | "rare" | "epic" | "legendary";
 export const RARITIES: Rarity[] = ["common", "rare", "epic", "legendary"];
 export const RARITY_NAME: Record<Rarity, string> = { common: "Common", rare: "Rare", epic: "Epic", legendary: "Legendary" };
 
-export type ItemKind = "tag" | "color" | "banner";
+export type ItemKind = "tag" | "color" | "banner" | "avatar";
 export type Item = { kind: ItemKind; key: string; icon: string; name: string; price: number; rarity: Rarity; exclusive?: string };
 export type Tag = Item & { kind: "tag" };
 
 const tag = (key: string, icon: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "tag", key, icon, name, price, rarity });
 const color = (key: string, icon: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "color", key, icon, name, price, rarity });
 const banner = (key: string, icon: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "banner", key, icon, name, price, rarity });
+const avatar = (key: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "avatar", key, icon: "", name, price, rarity });
 /** Season Pass exclusives: never sold, never in crates or deals. */
 const pass = (i: Item, season: string): Item => ({ ...i, exclusive: season });
 
@@ -90,7 +91,25 @@ export const BANNERS: Item[] = [
   banner("supersonic", "☄️", "Supersonic", 1000, "legendary"),
 ];
 
+/** Round portraits shown instead of the initial letter. */
+export const AVATARS: Item[] = [
+  avatar("ball", "Kickoff", 120, "common"),
+  avatar("blaze", "Blaze", 150, "common"),
+  avatar("liftoff", "Liftoff", 280, "rare"),
+  avatar("volt", "Volt", 300, "rare"),
+  avatar("shadow", "Shadow", 320, "rare"),
+  avatar("phantom", "Phantom", 350, "rare"),
+  avatar("visitor", "Visitor", 550, "epic"),
+  avatar("berserker", "Berserker", 600, "epic"),
+  avatar("dragon", "Dragon Eye", 650, "epic"),
+  avatar("reaper", "Reaper", 700, "epic"),
+  avatar("monarch", "Monarch", 1100, "legendary"),
+  avatar("phoenix", "Phoenix Rising", 1200, "legendary"),
+  avatar("horizon", "Event Horizon", 1300, "legendary"),
+];
+
 export const PASS_ITEMS: Item[] = [
+  pass(avatar("ignition", "Ignition Core", 0, "epic"), "s1"),
   pass(tag("ignition", "", "Ignition", 0, "rare"), "s1"),
   pass(tag("overcharged", "", "Overcharged", 0, "epic"), "s1"),
   pass(tag("afterburner", "", "Afterburner", 0, "epic"), "s1"),
@@ -104,9 +123,9 @@ export const PASS_ITEMS: Item[] = [
 ];
 
 /** Everything that can be owned (shop + pass). */
-export const ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...PASS_ITEMS];
+export const ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...AVATARS, ...PASS_ITEMS];
 /** What the shop sells, crates drop and deals feature. */
-export const SHOP_ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS];
+export const SHOP_ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...AVATARS];
 export const itemId = (i: Pick<Item, "kind" | "key">) => `${i.kind}:${i.key}`;
 export const findItem = (id: string | null | undefined) => (id ? ITEMS.find((i) => itemId(i) === id) ?? null : null);
 
@@ -243,6 +262,9 @@ export function badgeFor(equipped: string | null | undefined): { kind: "tag" | "
 
 /** Sprite icon for a tag, title or achievement (see scripts/icons/build.py). */
 export const iconOf = (kind: "tag" | "title" | "ach", key: string) => `${kind === "tag" ? "t" : kind === "title" ? "ti" : "a"}-${key}`;
+
+/** A stored avatar key → its item (unknown keys are ignored). */
+export const avatarItem = (key: string | null | undefined) => (key ? ITEMS.find((i) => i.kind === "avatar" && i.key === key) ?? null : null);
 
 /** CSS class for a stored name colour / banner key (unknown keys are ignored). */
 export const nameColorClass = (key: string | null | undefined) => (key && ITEMS.some((c) => c.kind === "color" && c.key === key) ? `nc nc-${key}` : "");

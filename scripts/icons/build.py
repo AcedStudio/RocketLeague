@@ -756,6 +756,46 @@ for key, (pal, fn) in UI.items():
     acc = {"steel": "gold", "bone": "orange"}.get(pal, "gold")
     icon(f"ui-{key}", pal, parts, acc, aura=False, detail=det)
 
+# ---- Avatars: a round portrait plate with the glyph inside ------------------------
+def avatar(name, plate, glyph_fn, pal, acc=None):
+    """Circular plate (radial light from the top) with the glyph scaled into it."""
+    acc = acc or pal
+    grad(pal)
+    grad(acc)
+    l, m, d = PAL[plate]
+    pid = f"pl-{name}"
+    defs.append((pid, f'<radialGradient id="{pid}" cx=".5" cy=".28" r=".8"><stop offset="0" stop-color="{m}"/><stop offset=".55" stop-color="{d}"/><stop offset="1" stop-color="#050b18"/></radialGradient>'))
+    parts, det = glyph_fn()
+    body = [f'<circle cx="32" cy="32" r="32" fill="url(#{pid})"/>',
+            '<ellipse cx="32" cy="14" rx="20" ry="9" fill="#fff" opacity=".10"/>',
+            '<g transform="translate(32 34) scale(.66) translate(-32 -32)">']
+    body += [render_part(p, pal, acc, True) for p in parts]
+    body += [render_part(p, pal, acc, False) for p in parts]
+    body += [render_part(p, pal, acc, False) for p in det]
+    body.append("</g>")
+    symbols.append(f'<symbol id="av-{name}" viewBox="0 0 64 64">{"".join(body)}</symbol>')
+    names.append(f"av-{name}")
+
+
+AVATARS = {
+    "ball": ("sky", lambda: ([C(32, 32, 25, "silver")], g_ball()[1]), "silver", None),
+    "blaze": ("red", g_flame, "fire", "gold"),
+    "liftoff": ("sky", g_rocket, "silver", "red"),
+    "volt": ("purple", g_bolt, "gold", None),
+    "shadow": ("void", g_shuriken, "steel", None),
+    "phantom": ("void", g_ghost, "silver", None),
+    "visitor": ("green", g_alien, "lime", None),
+    "berserker": ("orange", g_viking, "steel", "gold"),
+    "dragon": ("green", g_eye, "lime", None),
+    "reaper": ("void", g_skull, "bone", "red"),
+    "monarch": ("purple", g_crown, "gold", "red"),
+    "phoenix": ("orange", g_phoenix, "fire", "gold"),
+    "horizon": ("void", g_void, "void", None),
+    "ignition": ("red", g_ignition, "fire", "sky"),
+}
+for key, (plate, fn, pal, acc) in AVATARS.items():
+    avatar(key, plate, fn, pal, acc)
+
 sprite = '<svg xmlns="http://www.w3.org/2000/svg"><defs>' + "".join(d[1] for d in defs) + "</defs>" + "".join(symbols) + "</svg>"
 with open(OUT, "w") as f:
     f.write(sprite)

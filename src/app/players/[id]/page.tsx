@@ -16,7 +16,7 @@ import { duelRecord } from "@/lib/duels";
 import { playerLevel } from "@/lib/levels";
 import { allDerbies } from "@/lib/derby";
 import { playerSeasons } from "@/lib/wrapped";
-import { UserBadge, Nick } from "@/components/Badge";
+import { UserBadge, Nick, Avatar } from "@/components/Badge";
 import { bannerClass, iconOf } from "@/lib/engine/shop";
 import { Icon } from "@/components/Icon";
 import { getUser } from "@/lib/auth";
@@ -43,8 +43,8 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   const t = await getT();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const u = await one<{ id: string; rl_nickname: string; platform: string; created_at: Date; equipped_badge: string | null; name_color: string | null; banner: string | null }>(
-    "select id, rl_nickname, platform, created_at, equipped_badge, name_color, banner from users where id = $1",
+  const u = await one<{ id: string; rl_nickname: string; platform: string; created_at: Date; equipped_badge: string | null; name_color: string | null; banner: string | null; avatar: string | null }>(
+    "select id, rl_nickname, platform, created_at, equipped_badge, name_color, banner, avatar from users where id = $1",
     [id],
   );
   if (!u) notFound();
@@ -98,6 +98,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     <div className="wrap section stack-lg">
       <div className={`profile-head ${bannerClass(u.banner)}`}>
         <div className="name-row">
+          <Avatar name={u.rl_nickname} avatar={u.avatar} size={64} />
           <h1><Nick name={u.rl_nickname} color={u.name_color} /></h1>
           <UserBadge value={u.equipped_badge} t={t} />
           <span className="level-badge" title={t("Уровень игрока")}>

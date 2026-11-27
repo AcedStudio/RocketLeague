@@ -7,19 +7,20 @@ import { achievementFacts } from "./achievements";
 import { streakOf, streakBonus } from "./engine/pass.ts";
 import { ITEMS, CRATES, TITLES, DAILY_BONUS, balance, coinsFromXp, findItem, itemId, rollCrate, priceToday, titleProgress, type Item, type ItemKind, type TitleFacts } from "./engine/shop.ts";
 
-export type Wallet = { balance: number; earned: number; bonuses: number; spent: number; owned: Set<string>; equipped: string | null; nameColor: string | null; banner: string | null; dailyClaimed: boolean };
+export type Wallet = { balance: number; earned: number; bonuses: number; spent: number; owned: Set<string>; equipped: string | null; nameColor: string | null; banner: string | null; avatar: string | null; dailyClaimed: boolean };
 
 export const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" }); // YYYY-MM-DD
 
 export async function wallet(userId: string): Promise<Wallet> {
   const [lvl, extra, owned] = await Promise.all([
     playerLevel(userId),
-    one<{ bonuses: number; spent: number; equipped: string | null; name_color: string | null; banner: string | null; daily: boolean }>(
+    one<{ bonuses: number; spent: number; equipped: string | null; name_color: string | null; banner: string | null; avatar: string | null; daily: boolean }>(
       `select (select coalesce(sum(amount), 0)::int from coin_bonuses where user_id = $1) as bonuses,
               (select coalesce(sum(price), 0)::int from purchases where user_id = $1) as spent,
               (select equipped_badge from users where id = $1) as equipped,
               (select name_color from users where id = $1) as name_color,
               (select banner from users where id = $1) as banner,
+              (select avatar from users where id = $1) as avatar,
               exists (select 1 from coin_bonuses where user_id = $1 and reason = 'daily' and ref = $2) as daily`,
       [userId, today()],
     ),
@@ -36,6 +37,7 @@ export async function wallet(userId: string): Promise<Wallet> {
     equipped: extra?.equipped ?? null,
     nameColor: extra?.name_color ?? null,
     banner: extra?.banner ?? null,
+    avatar: extra?.avatar ?? null,
     dailyClaimed: !!extra?.daily,
   };
 }
@@ -90,7 +92,7 @@ export async function claimDaily(userId: string) {
   return { amount, streak };
 }
 
-const COLUMN: Record<ItemKind, string> = { tag: "equipped_badge", color: "name_color", banner: "banner" };
+const COLUMN: Record<ItemKind, string> = { tag: "equipped_badge", color: "name_color", banner: "banner", avatar: "avatar" };
 const slotValue = (i: Item) => (i.kind === "tag" ? itemId(i) : i.key);
 
 /** Buys any shop item (tag, name colour, banner) and puts it on right away. */
@@ -132,7 +134,7 @@ export async function openCrate(userId: string, key: string, rnd: () => number =
 /** Puts on (or takes off) an owned item: value is "tag:x" / "title:x" for the badge, "color:x" / "banner:x", or "SLOT:" to clear. */
 export async function equipItem(userId: string, value: string) {
   const [kind, key] = value.split(":");
-  if (kind === "color" || kind === "banner") {
+  if (kind === "color" || kind === "banner" || kind === "avatar") {
     if (key && !(await one("select 1 from purchases where user_id = $1 and item = $2", [userId, value]))) throw new FormError("Сначала купите этот предмет");
     await q(`update users set ${COLUMN[kind]} = $2 where id = $1`, [userId, key || null]);
     return;

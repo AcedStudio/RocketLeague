@@ -1,6 +1,6 @@
 import type { T } from "@/lib/i18n/core";
 import { SubmitButton } from "@/components/client";
-import { UserBadge, Nick } from "@/components/Badge";
+import { UserBadge, Nick, Avatar } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
 import { DEAL_DISCOUNT, RARITY_NAME, RARITIES, bannerClass, itemId, iconOf, type Item, type Crate, type Rarity } from "@/lib/engine/shop";
 import { buyAction, equipAction, crateAction } from "@/app/actions/shop";
@@ -33,13 +33,13 @@ export function Price({ value, was }: { value: number; was?: number }) {
   );
 }
 
-export type Look = { nick: string; badge: string | null; color: string | null; banner: string | null };
+export type Look = { nick: string; badge: string | null; color: string | null; banner: string | null; avatar?: string | null };
 
 /** A miniature profile nameplate — how the item looks on you. */
 export function Nameplate({ look, compact }: { look: Look; compact?: boolean }) {
   return (
     <div className={`np${compact ? " np-compact" : ""}`}>
-      <span className="np-avatar" aria-hidden>{look.nick.slice(0, 1).toUpperCase()}</span>
+      <Avatar name={look.nick} avatar={look.avatar} size={compact ? 22 : 30} />
       <span className="np-name">
         <Nick name={look.nick} color={look.color} />
       </span>
@@ -50,17 +50,18 @@ export function Nameplate({ look, compact }: { look: Look; compact?: boolean }) 
 
 export const rarityClass = (r: Rarity) => `rar rar-${r}`;
 
-const KIND_LABEL = { tag: "Тег", color: "Цвет ника", banner: "Баннер" } as const;
+const KIND_LABEL = { tag: "Тег", color: "Цвет ника", banner: "Баннер", avatar: "Аватар" } as const;
 
-export type Owner = { signedIn: boolean; balance: number; owned: Set<string>; equipped: { badge: string | null; color: string | null; banner: string | null } };
+export type Owner = { signedIn: boolean; balance: number; owned: Set<string>; equipped: { badge: string | null; color: string | null; banner: string | null; avatar: string | null } };
 
 /** A product tile: art on top (with the item applied to your nameplate), details and the action below. */
 export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item; price: number; me: Owner; look: Look; ret: string; t: T; large?: boolean }) {
   const id = itemId(item);
   const owned = me.owned.has(id);
-  const worn = item.kind === "tag" ? me.equipped.badge === id : item.kind === "color" ? me.equipped.color === item.key : me.equipped.banner === item.key;
+  const worn =
+    item.kind === "tag" ? me.equipped.badge === id : item.kind === "color" ? me.equipped.color === item.key : item.kind === "avatar" ? me.equipped.avatar === item.key : me.equipped.banner === item.key;
   const preview: Look =
-    item.kind === "tag" ? { ...look, badge: id } : item.kind === "color" ? { ...look, color: item.key } : { ...look, banner: item.key };
+    item.kind === "tag" ? { ...look, badge: id } : item.kind === "color" ? { ...look, color: item.key } : item.kind === "avatar" ? { ...look, avatar: item.key } : { ...look, banner: item.key };
   const afford = me.balance >= price;
   return (
     <article className={`it kind-${item.kind} ${rarityClass(item.rarity)}${large ? " it-large" : ""}${owned ? " is-owned" : ""}`}>
@@ -69,6 +70,11 @@ export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item;
         {item.kind === "tag" && (
           <span className="it-glyph" aria-hidden>
             <Icon name={iconOf("tag", item.key)} size={large ? 112 : 76} />
+          </span>
+        )}
+        {item.kind === "avatar" && (
+          <span className="it-glyph it-avatar" aria-hidden>
+            <Avatar name={look.nick} avatar={item.key} size={large ? 128 : 88} />
           </span>
         )}
         {item.kind === "color" && (

@@ -97,6 +97,8 @@ const dict: Dict = {
   "3 сухие победы": "3 clean-sheet wins",
   "5 побед подряд": "5 wins in a row",
   "Абстрактная арена с мячом и машиной": "Abstract arena with a ball and a car",
+  "Аватар": "Avatar",
+  "Аватары": "Avatars",
   "Админ-панель": "Admin panel",
   "Администратор": "Admin",
   "Администратор проверит заявку. Мы пришлём уведомление.": "An admin will review the entry. We'll notify you.",

@@ -759,6 +759,10 @@ async function main() {
     assert.equal(w2.balance, before - 120, "crate price charged once");
     assert.ok(w2.owned.has(`${drop.kind}:${drop.key}`) && drop.rarity === "common");
     assert.notEqual(`${drop.kind}:${drop.key}`, "tag:bolt");
+    await buyItem(buyer.id, "avatar:volt");
+    assert.equal((await wallet(buyer.id)).avatar, "volt", "a bought avatar is worn right away");
+    await equipItem(buyer.id, "avatar:");
+    assert.equal((await wallet(buyer.id)).avatar, null);
 
     // Referee desk: an assigned match shows up under "time to enter the score" once its time has passed.
     const rc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1, referee_only: true });

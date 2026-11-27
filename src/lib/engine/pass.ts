@@ -63,7 +63,7 @@ export const REWARDS: Record<string, TierRewards[]> = {
   s1: Array.from({ length: 30 }, (_, i) => {
     const t = i + 1;
     const free: Record<number, Reward> = {
-      5: item("tag:ignition"), 10: crate("rookie"), 15: item("tag:overcharged"), 20: item("banner:hyperspace"), 25: crate("elite"), 30: item("tag:s1"),
+      5: item("tag:ignition"), 10: item("avatar:ignition"), 15: item("tag:overcharged"), 20: item("banner:hyperspace"), 25: crate("elite"), 30: item("tag:s1"),
     };
     const elite: Record<number, Reward> = {
       1: item("color:ignite"), 6: crate("rookie"), 10: item("tag:afterburner"), 12: crate("elite"), 16: item("banner:ignition"),
