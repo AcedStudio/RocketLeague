@@ -35,7 +35,7 @@ export function collectKeys(root = new URL("../src", import.meta.url).pathname) 
   // Card frame names (src/lib/engine/levels.ts).
   for (const m of readFileSync(join(root, "lib/engine/levels.ts"), "utf8").matchAll(/name: "([^"]+)"/g)) keys.add(m[1]);
   // Shop tags and titles (src/lib/engine/shop.ts).
-  for (const m of readFileSync(join(root, "lib/engine/shop.ts"), "utf8").matchAll(/(?:name|desc): "([^"]+)"/g)) keys.add(m[1]);
+  for (const m of readFileSync(join(root, "lib/engine/shop.ts"), "utf8").matchAll(/desc: "([^"]+)"/g)) keys.add(m[1]); // item names stay English
   // Commentary headlines (src/lib/engine/commentary.ts).
   for (const m of readFileSync(join(root, "lib/engine/commentary.ts"), "utf8").matchAll(/text: "([^"]+)"/g)) keys.add(m[1]);
   return [...keys].sort();

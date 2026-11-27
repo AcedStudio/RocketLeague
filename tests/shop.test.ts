@@ -18,3 +18,30 @@ test("equipped badge parsing", () => {
   assert.equal(badgeFor("tag:nope"), null);
   assert.equal(badgeFor(null), null);
 });
+
+import { ITEMS, COLORS, BANNERS, CRATES, rollCrate, itemId, nameColorClass, bannerClass } from "../src/lib/engine/shop.ts";
+
+test("every item id is unique and every name is English (no Cyrillic)", () => {
+  assert.equal(new Set(ITEMS.map(itemId)).size, ITEMS.length);
+  for (const x of [...ITEMS, ...TITLES, ...CRATES]) assert.doesNotMatch(x.name, /[А-Яа-яЁё]/, x.name);
+  assert.ok(TAGS.length >= 25 && TITLES.length >= 25 && COLORS.length >= 10 && BANNERS.length >= 8);
+});
+test("crate drops respect odds and never repeat an owned item", () => {
+  const rookie = CRATES.find((c) => c.key === "rookie")!;
+  const low = rollCrate(rookie, new Set(), () => 0)!;
+  assert.equal(low.rarity, "common");
+  const high = rollCrate(rookie, new Set(), () => 0.99)!;
+  assert.equal(high.rarity, "rare");
+  // Own every common item → the rookie crate can only drop rares.
+  const owned = new Set(ITEMS.filter((i) => i.rarity === "common").map(itemId));
+  for (let i = 0; i < 20; i++) assert.equal(rollCrate(rookie, owned, Math.random)!.rarity, "rare");
+  // Own everything it could drop → nothing.
+  const all = new Set(ITEMS.filter((i) => i.rarity === "common" || i.rarity === "rare").map(itemId));
+  assert.equal(rollCrate(rookie, all), null);
+});
+test("cosmetic classes only for known keys", () => {
+  assert.equal(nameColorClass("gold"), "nc nc-gold");
+  assert.equal(nameColorClass("x\" onload"), "");
+  assert.equal(bannerClass("galaxy"), "bn bn-galaxy");
+  assert.equal(bannerClass(null), "");
+});

@@ -28,7 +28,7 @@ import { rivalryBetween } from "../src/lib/derby";
 import { playerSeason } from "../src/lib/wrapped";
 import { resetToTemp, resetLink, checkResetToken, consumeResetToken } from "../src/lib/password-reset";
 import { verifyPassword } from "../src/lib/crypto";
-import { wallet, claimDaily, buyTag, equipBadge, grantCoins, earnedTitles } from "../src/lib/shop";
+import { wallet, claimDaily, buyTag, buyItem, openCrate, equipItem, equipBadge, grantCoins, earnedTitles } from "../src/lib/shop";
 import { refereeDesk } from "../src/lib/referee-desk";
 
 let passed = 0;
@@ -740,6 +740,23 @@ async function main() {
     assert.ok(!(await earnedTitles(buyer.id)).find((x) => x.key === "rookie")!.has, "no matches yet → no rookie title");
     await equipBadge(buyer.id, "");
     assert.equal((await wallet(buyer.id)).equipped, null);
+
+    // Name colour + banner slots, and a crate that never drops what you own.
+    await grantCoins(admin.id, buyer.id, 2000, "test");
+    await buyItem(buyer.id, "color:gold");
+    await buyItem(buyer.id, "banner:stadium");
+    let w2 = await wallet(buyer.id);
+    assert.equal(w2.nameColor, "gold");
+    assert.equal(w2.banner, "stadium");
+    await rejects(equipItem(buyer.id, "color:holo"), /купите/);
+    await equipItem(buyer.id, "color:");
+    assert.equal((await wallet(buyer.id)).nameColor, null);
+    const before = (await wallet(buyer.id)).balance;
+    const drop = await openCrate(buyer.id, "rookie", () => 0);
+    w2 = await wallet(buyer.id);
+    assert.equal(w2.balance, before - 120, "crate price charged once");
+    assert.ok(w2.owned.has(`${drop.kind}:${drop.key}`) && drop.rarity === "common");
+    assert.notEqual(`${drop.kind}:${drop.key}`, "tag:bolt");
 
     // Referee desk: an assigned match shows up under "time to enter the score" once its time has passed.
     const rc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1, referee_only: true });

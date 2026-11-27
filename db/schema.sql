@@ -418,3 +418,5 @@ create table if not exists coin_bonuses (
   unique (user_id, reason, ref)
 );
 alter table users add column if not exists equipped_badge text;
+alter table users add column if not exists name_color text;
+alter table users add column if not exists banner text;
