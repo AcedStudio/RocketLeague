@@ -82,14 +82,14 @@ export async function recomputeAll(c: PoolClient): Promise<number> {
   return ms.length;
 }
 
-export type LeaderRow = { id: string; rl_nickname: string; platform: string; rating: number; games: number; wins: number; last_delta: number | null; equipped_badge?: string | null };
+export type LeaderRow = { id: string; rl_nickname: string; platform: string; rating: number; games: number; wins: number; last_delta: number | null; equipped_badge?: string | null; name_color?: string | null };
 
 export async function leaderboard(mode: Mode, search = "", limit = 100): Promise<LeaderRow[]> {
   return q<LeaderRow>(
     `with agg as (
        select r.user_id, ${START_RATING} + sum(r.delta)::int as rating, count(*)::int as games, count(*) filter (where r.delta > 0)::int as wins
          from rating_changes r where r.mode = $1 group by r.user_id)
-     select u.id, u.rl_nickname, u.platform, u.equipped_badge, a.rating, a.games, a.wins,
+     select u.id, u.rl_nickname, u.platform, u.equipped_badge, u.name_color, a.rating, a.games, a.wins,
             (select r.delta from rating_changes r where r.user_id = u.id and r.mode = $1 order by r.created_at desc, r.id desc limit 1) as last_delta
        from agg a join users u on u.id = a.user_id
       where $2 = '' or u.rl_nickname ilike $3

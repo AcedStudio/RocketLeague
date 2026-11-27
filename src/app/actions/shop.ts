@@ -2,7 +2,10 @@
 
 import { requireUser, requireAdmin } from "@/lib/auth";
 import { guard, ok, FormError } from "@/lib/forms";
-import { claimDaily, buyTag, equipBadge, grantCoins } from "@/lib/shop";
+import { claimDaily, buyItem, openCrate, equipItem, grantCoins } from "@/lib/shop";
+import { type Item } from "@/lib/engine/shop";
+
+const back = (fd: FormData) => `/shop${String(fd.get("hash") ?? "").replace(/[^#a-z-]/g, "")}`;
 
 export async function dailyAction() {
   const user = await requireUser("/shop");
@@ -12,23 +15,36 @@ export async function dailyAction() {
 
 export async function buyAction(fd: FormData) {
   const user = await requireUser("/shop");
-  await guard("/shop", () => buyTag(user.id, String(fd.get("tag") ?? "")));
-  ok("/shop", "Тег куплен и надет");
+  const id = String(fd.get("item") ?? (fd.get("tag") ? `tag:${fd.get("tag")}` : ""));
+  await guard(back(fd), async () => {
+    await buyItem(user.id, id);
+  });
+  ok(back(fd), "Куплено и надето ✨");
+}
+
+export async function crateAction(fd: FormData) {
+  const user = await requireUser("/shop");
+  let drop: Item | null = null;
+  await guard("/shop#crates", async () => {
+    drop = await openCrate(user.id, String(fd.get("crate") ?? ""));
+  });
+  const d = drop as Item | null;
+  ok(`/shop?drop=${encodeURIComponent(d ? `${d.kind}:${d.key}` : "")}#crates`, "Кейс открыт!");
 }
 
 export async function equipAction(fd: FormData) {
   const user = await requireUser("/shop");
-  await guard("/shop", () => equipBadge(user.id, String(fd.get("badge") ?? "")));
-  ok("/shop", "Готово");
+  await guard(back(fd), () => equipItem(user.id, String(fd.get("badge") ?? fd.get("value") ?? "")));
+  ok(back(fd), "Готово");
 }
 
 export async function grantAction(fd: FormData) {
   const admin = await requireAdmin();
-  const back = "/admin/users";
-  await guard(back, async () => {
+  const target = "/admin/users";
+  await guard(target, async () => {
     const id = String(fd.get("user_id") ?? "");
     if (!/^[0-9a-f-]{36}$/i.test(id)) throw new FormError("Игрок не найден");
     await grantCoins(admin.id, id, Number(fd.get("amount")), String(fd.get("note") ?? ""));
   });
-  ok(back, "Монеты начислены");
+  ok(target, "Монеты начислены");
 }

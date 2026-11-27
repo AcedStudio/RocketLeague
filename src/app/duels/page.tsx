@@ -4,7 +4,7 @@ import { getT } from "@/lib/i18n/server";
 import { fmtDateTime } from "@/lib/format";
 import { Flash, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
-import { UserBadge } from "@/components/Badge";
+import { UserBadge, Nick } from "@/components/Badge";
 import { myDuels, recentDuels, duelTable, type Duel } from "@/lib/duels";
 import { respondDuelAction, cancelDuelAction, reportDuelAction, confirmDuelAction } from "@/app/actions/duels";
 
@@ -168,7 +168,7 @@ export default async function Duels({ searchParams }: { searchParams: SP }) {
                   {table.map((r, i) => (
                     <tr key={r.user_id} className={r.user_id === user?.id ? "mine" : undefined}>
                       <td className="c num">{i + 1}</td>
-                      <td style={{ fontWeight: 600 }}><Link href={`/players/${r.user_id}`}>{r.nickname}</Link> <UserBadge value={r.badge} t={t} size="sm" /></td>
+                      <td style={{ fontWeight: 600 }}><Link href={`/players/${r.user_id}`}><Nick name={r.nickname} color={r.color} /></Link> <UserBadge value={r.badge} t={t} size="sm" /></td>
                       <td className="c num">{r.wins}</td>
                       <td className="c num">{r.losses}</td>
                     </tr>
