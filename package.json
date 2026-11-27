@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/i18n-build.mjs && (tsc --noEmit --pretty false || true) && DATABASE_URL=\"$QA_DATABASE_URL\" node scripts/migrate.mjs && DATABASE_URL=\"$QA_DATABASE_URL\" tsx --conditions=react-server tests/integration.ts && next build",
+    "build": "node scripts/i18n-build.mjs && (tsc --noEmit --pretty false || true) && DATABASE_URL=\"$QA_DATABASE_URL\" node scripts/migrate.mjs && node scripts/qa-build.mjs",
     "start": "next start",
     "migrate": "node scripts/migrate.mjs",
     "test": "node --test tests/engine.test.ts",
