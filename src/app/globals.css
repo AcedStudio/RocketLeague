@@ -1537,3 +1537,40 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
   .roster-row > :nth-child(n + 3) { grid-column: 1 / -1; }
   .crest-picker { grid-template-columns: 1fr; }
 }
+
+/* ======================= SEASON WRAPPED (stories) ======================= */
+.story { position: relative; width: min(440px, 94vw); aspect-ratio: 9 / 16; margin: 0 auto; border-radius: 28px; overflow: hidden; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55); user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.story-bars { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 5; display: flex; gap: 4px; }
+.story-bars span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.28); overflow: hidden; }
+.story-bars i { display: block; height: 100%; background: #fff; transition: width 100ms linear; }
+.story-stage { position: absolute; inset: 0; }
+.story-stage .wr-slide { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; box-shadow: none; animation: story-in 450ms var(--ease-out); }
+@keyframes story-in { from { opacity: 0; transform: scale(1.04); } }
+.story-tap { position: absolute; top: 0; bottom: 0; z-index: 4; width: 35%; border: 0; background: transparent; cursor: pointer; }
+.story-tap.prev { left: 0; }
+.story-tap.next { right: 0; width: 65%; }
+.story-paused { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); z-index: 6; padding: 4px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.5); font-size: 0.75rem; }
+.wr-slide { z-index: 0; }
+.wr-slide .btn, .wr-slide a { position: relative; z-index: 6; }
+.wr-share { position: relative; z-index: 6; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.wr-count { top: 26px !important; }
+.wr-kicker { font: 800 0.75rem/1 var(--font-display); letter-spacing: 0.35em; color: rgba(255, 255, 255, 0.75); animation: wr-up 700ms var(--ease-out) both 150ms; }
+.wr-reveal { animation: wr-up 800ms cubic-bezier(.2, 1.2, .4, 1) both 250ms; }
+.wr-slide > * { animation: wr-up 650ms var(--ease-out) both; }
+.wr-slide > *:nth-child(3) { animation-delay: 120ms; }
+.wr-slide > *:nth-child(4) { animation-delay: 240ms; }
+.wr-slide > *:nth-child(5) { animation-delay: 360ms; }
+.wr-slide > *:nth-child(6) { animation-delay: 480ms; }
+@keyframes wr-up { from { opacity: 0; transform: translateY(18px); } }
+.wr-title { font: 800 clamp(2rem, 9vw, 3rem)/1.05 var(--font-display); margin: 0; letter-spacing: -0.01em; }
+.wr-emblem { display: grid; place-items: center; filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.5)); animation: wr-pop 900ms cubic-bezier(.2, 1.5, .4, 1) both 100ms !important; }
+.wr-emblem .ico { animation: glyph-float 4s ease-in-out infinite 1s; }
+@keyframes wr-pop { from { opacity: 0; transform: scale(0.3) rotate(-20deg); } }
+.wr-line { display: inline-flex; align-items: center; gap: 6px; }
+.wr-stats div { justify-items: center; }
+.wr-orbs { position: absolute !important; inset: 0; z-index: -1; pointer-events: none; animation: none !important; }
+.wr-orbs i { position: absolute; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.16), transparent 65%); animation: orb-drift 9s ease-in-out infinite alternate; }
+.wr-orbs i:nth-child(1) { top: -60px; left: -60px; }
+.wr-orbs i:nth-child(2) { bottom: -80px; right: -60px; animation-duration: 11s; }
+.wr-orbs i:nth-child(3) { top: 40%; left: 30%; width: 140px; height: 140px; animation-duration: 7s; }
+@keyframes orb-drift { to { transform: translate(40px, 30px) scale(1.2); } }
