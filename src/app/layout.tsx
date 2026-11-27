@@ -38,12 +38,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       !!(await one("select 1 from matches where referee_user_id = $1 and status <> 'completed' limit 1", [user.id]).catch(() => null))
     : false;
   const LINKS = [
-    { href: "/competitions", label: t("Соревнования") },
-    { href: "/players", label: t("Игроки") },
-    { href: "/stats", label: t("Статистика") },
-    { href: "/hall", label: t("Зал славы") },
-    { href: "/duels", label: t("Дуэли") },
-    { href: "/rules", label: t("Правила") },
+    { href: "/competitions", label: t("Соревнования"), icon: "🏆" },
+    { href: "/players", label: t("Игроки"), icon: "👥" },
+    { href: "/stats", label: t("Статистика"), icon: "📊" },
+    { href: "/hall", label: t("Зал славы"), icon: "🏛️" },
+    { href: "/duels", label: t("Дуэли"), icon: "⚔️" },
+    { href: "/rules", label: t("Правила"), icon: "📜" },
   ];
   const unread = user && dbConfigured()
     ? (await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and read_at is null", [user.id]))?.n ?? 0
