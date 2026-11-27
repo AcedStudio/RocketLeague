@@ -466,3 +466,44 @@ export function ScrollToMark({ target }: { target: string }) {
   }, [target]);
   return null;
 }
+
+
+/** Re-fetches the server page every few seconds and shows how fresh the data is. */
+export function AutoRefresh({ seconds = 20, label }: { seconds?: number; label: string }) {
+  const router = useRouter();
+  const [ago, setAgo] = useState(0);
+  useEffect(() => {
+    const tick = setInterval(() => setAgo((a) => a + 1), 1000);
+    const pull = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        router.refresh();
+        setAgo(0);
+      }
+    }, seconds * 1000);
+    return () => {
+      clearInterval(tick);
+      clearInterval(pull);
+    };
+  }, [router, seconds]);
+  return (
+    <span className="live-fresh" suppressHydrationWarning>
+      <i className="live-dot" aria-hidden /> {label.replace("{n}", String(ago))}
+    </span>
+  );
+}
+
+/** "in 2 h 10 min" ticking down to a moment. */
+export function TimeTo({ iso, soon, now: nowLabel, units }: { iso: string; soon: string; now: string; units: [string, string] }) {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  if (now === null) return <span className="num">…</span>;
+  const mins = Math.round((new Date(iso).getTime() - now) / 60_000);
+  if (mins <= 0) return <span>{nowLabel}</span>;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return <span className="num">{soon.replace("{t}", h ? `${h} ${units[0]} ${m} ${units[1]}` : `${m} ${units[1]}`)}</span>;
+}

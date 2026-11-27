@@ -30,6 +30,7 @@ import { resetToTemp, resetLink, checkResetToken, consumeResetToken } from "../s
 import { verifyPassword } from "../src/lib/crypto";
 import { wallet, claimDaily, buyTag, buyItem, openCrate, equipItem, equipBadge, grantCoins, earnedTitles } from "../src/lib/shop";
 import { refereeDesk } from "../src/lib/referee-desk";
+import { liveBoard, liveFeed, liveState } from "../src/lib/live";
 import { passState, questsState, claimQuest, claimTier, buyElite } from "../src/lib/pass";
 import { currentSeason } from "../src/lib/engine/pass";
 
@@ -817,6 +818,21 @@ async function main() {
     const before = (await wallet(p.id)).balance;
     await claimTier(p.id, 2, "free");
     assert.ok((await wallet(p.id)).balance > before, "coin reward paid");
+  });
+
+  await step("live board: running competitions show their current round; states and feed", async () => {
+    const board = await liveBoard();
+    for (const b of board) {
+      assert.ok(b.matches.length > 0 && b.done <= b.total);
+      const keys = new Set(b.matches.map((m) => `${m.stage}:${m.round}`));
+      assert.equal(keys.size, 1, "one round at a time");
+    }
+    const feed = await liveFeed(5);
+    assert.ok(Array.isArray(feed));
+    const base = { status: "upcoming", time_confirmed: true } as never as Parameters<typeof liveState>[0];
+    assert.equal(liveState({ ...base, scheduled_at: new Date(Date.now() - 600_000) }), "live");
+    assert.equal(liveState({ ...base, scheduled_at: new Date(Date.now() + 600_000) }), "soon");
+    assert.equal(liveState({ ...base, status: "completed", scheduled_at: null }), "final");
   });
 
   console.log(`\n${passed} integration checks passed`);
