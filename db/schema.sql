@@ -435,3 +435,20 @@ create table if not exists pass_xp (
   unique (user_id, reason, ref)
 );
 create index if not exists pass_xp_user on pass_xp (user_id, season);
+
+-- Coin predictions on matches. Stakes and payouts are coin_bonuses rows (reason 'bet' / 'bet-win', ref = match id).
+create table if not exists bets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  match_id uuid not null references matches(id) on delete cascade,
+  pick text not null check (pick in ('home', 'away')),
+  stake int not null,
+  odds numeric(5, 2) not null,
+  created_at timestamptz not null default now(),
+  settled_at timestamptz,
+  won boolean,
+  payout int not null default 0,
+  unique (user_id, match_id)
+);
+create index if not exists bets_match on bets (match_id);
+create index if not exists bets_open on bets (match_id) where settled_at is null;
