@@ -44,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/players", label: t("Игроки"), icon: "ui-players" },
     { href: "/stats", label: t("Статистика"), icon: "ui-stats" },
     { href: "/hall", label: t("Зал славы"), icon: "ui-hall" },
+    { href: "/live", label: t("Эфир"), icon: "ui-live" },
     { href: "/pass", label: t("Пропуск"), icon: "ui-pass" },
     { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
     { href: "/rules", label: t("Правила"), icon: "ui-rules" },
