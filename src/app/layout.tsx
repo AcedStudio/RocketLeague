@@ -33,6 +33,10 @@ export const viewport: Viewport = { themeColor: "#081A32", width: "device-width"
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [user, settings, t] = await Promise.all([getUser(), getSettings(), getT()]);
+  const judging = user
+    ? isAdmin(user.role) ||
+      !!(await one("select 1 from matches where referee_user_id = $1 and status <> 'completed' limit 1", [user.id]).catch(() => null))
+    : false;
   const LINKS = [
     { href: "/competitions", label: t("Соревнования") },
     { href: "/players", label: t("Игроки") },
@@ -92,6 +96,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Link href="/me">{t("Профиль")}</Link>
                       <Link href={`/players/${user.id}`}>{t("Моя карточка")}</Link>
                       <Link href="/duels">⚔️ {t("Мои дуэли")}</Link>
+                      <Link href="/shop">🛍️ {t("Магазин")}</Link>
+                      {judging && <Link href="/referee">⚖️ {t("Кабинет судьи")}</Link>}
                       {isReferee(user.role) && <Link href="/admin">{isAdmin(user.role) ? t("Админка") : t("Судейская")}</Link>}
                       <form action={logout}>
                         <button type="submit">{t("Выйти")}</button>

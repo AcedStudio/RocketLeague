@@ -28,6 +28,8 @@ import { rivalryBetween } from "../src/lib/derby";
 import { playerSeason } from "../src/lib/wrapped";
 import { resetToTemp, resetLink, checkResetToken, consumeResetToken } from "../src/lib/password-reset";
 import { verifyPassword } from "../src/lib/crypto";
+import { wallet, claimDaily, buyTag, equipBadge, grantCoins, earnedTitles } from "../src/lib/shop";
+import { refereeDesk } from "../src/lib/referee-desk";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -710,6 +712,45 @@ async function main() {
     await rejects(resetToTemp(plainAdmin, plainAdmin.id), /в профиле/);
     const boss = await mkUser("boss", "superadmin");
     assert.ok((await resetToTemp(boss, otherAdmin.id)).password, "the super admin can reset an admin");
+  });
+
+  await step("economy: daily bonus once, can't overspend, buy + equip, titles must be earned; referee desk", async () => {
+    const buyer = await mkUser("buyer");
+    const w0 = await wallet(buyer.id);
+    assert.equal(w0.balance, 0, "a new player starts with no coins");
+    await claimDaily(buyer.id);
+    await rejects(claimDaily(buyer.id), /уже получен/);
+    assert.equal((await wallet(buyer.id)).balance, 10);
+    await rejects(buyTag(buyer.id, "goat"), /Не хватает монет/);
+    await grantCoins(admin.id, buyer.id, 500, "test");
+    await buyTag(buyer.id, "bolt");
+    const w1 = await wallet(buyer.id);
+    assert.equal(w1.balance, 10 + 500 - 200);
+    assert.equal(w1.equipped, "tag:bolt", "a bought tag is worn right away");
+    await rejects(buyTag(buyer.id, "bolt"), /уже ваш/);
+    await rejects(equipBadge(buyer.id, "tag:goat"), /купите/);
+    await rejects(equipBadge(buyer.id, "title:champion"), /не заработан/);
+    assert.ok(!(await earnedTitles(buyer.id)).find((x) => x.key === "rookie")!.has, "no matches yet → no rookie title");
+    await equipBadge(buyer.id, "");
+    assert.equal((await wallet(buyer.id)).equipped, null);
+
+    // Referee desk: an assigned match shows up under "time to enter the score" once its time has passed.
+    const rc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1, referee_only: true });
+    for (const p of players.slice(0, 4)) await registerSolo(rc, p);
+    await close(rc);
+    await runDraw(rc, admin);
+    await publishDraw(rc, admin);
+    const m = (await getMatches(rc)).find((x) => !x.is_bye && x.home_entry_id && x.away_entry_id)!;
+    const judge = players[10];
+    await q("update matches set referee_user_id = $2, scheduled_at = now() + interval '2 hours', time_confirmed = true where id = $1", [m.id, judge.id]);
+    let desk = await refereeDesk(judge.id);
+    assert.ok(desk.upcoming.some((x) => x.id === m.id), "scheduled → upcoming");
+    await q("update matches set scheduled_at = now() - interval '10 minutes' where id = $1", [m.id]);
+    desk = await refereeDesk(judge.id);
+    assert.ok(desk.score.some((x) => x.id === m.id), "time passed → enter the score");
+    await refereeResult(m.id, judge, { games: [{ home: 3, away: 1 }] }, "");
+    desk = await refereeDesk(judge.id);
+    assert.ok(![...desk.score, ...desk.upcoming, ...desk.waiting].some((x) => x.id === m.id), "done → gone from the desk");
   });
 
   console.log(`\n${passed} integration checks passed`);

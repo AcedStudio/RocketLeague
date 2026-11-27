@@ -10,6 +10,7 @@ import { GamesInput, SubmitButton, LocalTime, ShotPicker } from "@/components/cl
 import { reportAction, respondAction, refereeResultAction, matchStatusAction, scheduleAction, matchRefereeAction, uploadShotsAction, deleteShotAction } from "@/app/actions/match";
 import { listMatchFiles, MAX_FILES_PER_MATCH } from "@/lib/files";
 import { MatchJourney } from "@/components/MatchJourney";
+import { RefereeForm } from "@/components/RefereeForm";
 import { matchOfRound } from "@/lib/motw";
 import { entryRatings } from "@/lib/rating";
 import { winChance } from "@/lib/engine/odds.ts";
@@ -178,6 +179,24 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
 
       <MatchJourney m={m} comp={comp} role={assignedRef || (staff && !side) ? "referee" : side ? "player" : "viewer"} t={t} />
 
+      {ref && m.home_entry_id && m.away_entry_id && !m.is_bye && (!done ? (
+        <section className="panel stack ref-panel" id="referee">
+          <div className="row between">
+            <h3>⚖️ {assignedRef ? t("Вы судья этого матча") : t("Судейская панель")}</h3>
+            {assignedRef && <Link className="small" href="/referee">{t("Все мои матчи")} →</Link>}
+          </div>
+          {m.status === "under_review" && <div className="notice small">{t("Спор: сравните отчёты и скриншоты ниже и установите официальный результат.")}</div>}
+          <RefereeForm t={t} matchId={m.id} bestOf={m.best_of} homeName={m.home_name ?? ""} awayName={m.away_name ?? ""} initial={m.games ?? undefined} />
+        </section>
+      ) : staff ? (
+        <details className="panel ref-panel" id="referee">
+          <summary><b>✏️ {t("Исправить результат")}</b></summary>
+          <div style={{ marginTop: 12 }}>
+            <RefereeForm t={t} matchId={m.id} bestOf={m.best_of} homeName={m.home_name ?? ""} awayName={m.away_name ?? ""} initial={m.games ?? undefined} />
+          </div>
+        </details>
+      ) : null)}
+
       <div className="split">
         <div className="stack-lg">
           <ScheduleBox m={m} comp={comp} side={side} />
@@ -290,30 +309,9 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
             </section>
           )}
 
-          {ref && m.home_entry_id && m.away_entry_id && !m.is_bye && (
-            <section className="panel stack" style={{ borderColor: "rgba(217,173,80,.4)" }}>
-              <h3>{t("Судейская панель")}</h3>
-              {assignedRef && !staff && <p className="small muted" style={{ margin: 0 }}>{t("Вы назначены судьёй этого матча. Впишите итоговый счёт после игры — он сразу станет официальным.")}</p>}
-              {m.status === "under_review" && <div className="notice small">{t("Спор: сравните отчёты ниже и установите официальный результат.")}</div>}
-              <form action={refereeResultAction} className="stack">
-                <input type="hidden" name="match_id" value={m.id} />
-                <GamesInput bestOf={m.best_of} homeName={m.home_name ?? ""} awayName={m.away_name ?? ""} initial={m.games ?? undefined} />
-                <label className="field">
-                  <span>{t("Техническая победа")}</span>
-                  <select className="input" name="forfeit" defaultValue="">
-                    <option value="">{t("Нет, использовать счёт")}</option>
-                    <option value="home">{t("Победа:")} {m.home_name}</option>
-                    <option value="away">{t("Победа:")} {m.away_name}</option>
-                  </select>
-                </label>
-                <label className="field">
-                  <span>{t("Решение / комментарий")}</span>
-                  <input className="input" name="note" maxLength={500} />
-                </label>
-                <SubmitButton className="btn btn-gold" confirm={t("Утвердить результат? Таблица и сетка обновятся.")}>
-                  {t("Утвердить результат")}
-                </SubmitButton>
-              </form>
+          {staff && m.home_entry_id && m.away_entry_id && !m.is_bye && (
+            <details className="panel stack">
+              <summary><b>⚙️ {t("Управление матчем (админ)")}</b></summary>
               {staff && !done && (
                 <form action={matchStatusAction} className="row">
                   <input type="hidden" name="match_id" value={m.id} />
@@ -346,7 +344,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
                   <SubmitButton className="btn btn-ghost">{t("Назначить судью")}</SubmitButton>
                 </form>
               )}
-            </section>
+            </details>
           )}
         </div>
 

@@ -177,6 +177,19 @@ export function GamesInput({ bestOf, homeName, awayName, initial }: { bestOf: nu
             onChange={(e) => setGames(games.map((x, j) => (j === i ? { ...x, away: e.target.value.replace(/\D/g, "") } : x)))} />
         </div>
       ))}
+      {(() => {
+        const winner = bestOf === 1
+          ? games[0] && games[0].home !== "" && games[0].away !== "" && games[0].home !== games[0].away
+            ? Number(games[0].home) > Number(games[0].away) ? homeName : awayName
+            : null
+          : decided ? (wins.h > wins.a ? homeName : awayName) : null;
+        const draw = bestOf === 1 && games[0] && games[0].home !== "" && games[0].home === games[0].away;
+        return winner ? (
+          <p className="games-winner">🏆 {t("Победитель: {name}", { name: winner })}</p>
+        ) : draw ? (
+          <p className="games-winner warn">{t("Ничьих не бывает — впишите счёт после овертайма")}</p>
+        ) : null;
+      })()}
       <div className="row between">
         <span className="small muted">
           {bestOf === 1

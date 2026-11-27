@@ -7,6 +7,7 @@ import { Flash, pick, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
 import { getT } from "@/lib/i18n/server";
 import { ResetPassword } from "@/components/ResetPassword";
+import { grantAction } from "@/app/actions/shop";
 
 export default async function AdminUsers({ searchParams }: { searchParams: SP }) {
   const t = await getT();
@@ -29,7 +30,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: SP })
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>{t("Игрок")}</th><th>Email</th><th>{t("Контакт")}</th><th>{t("Роль")}</th><th>{t("Пароль")}</th></tr>
+            <tr><th>{t("Игрок")}</th><th>Email</th><th>{t("Контакт")}</th><th>{t("Роль")}</th><th>{t("Пароль")}</th><th>🪙</th></tr>
           </thead>
           <tbody>
             {users.map((u) => (
@@ -55,6 +56,17 @@ export default async function AdminUsers({ searchParams }: { searchParams: SP })
                 </td>
                 <td>
                   {u.id !== me.id && (me.role === "superadmin" || u.role === "participant" || u.role === "referee") ? <ResetPassword userId={u.id} /> : <span className="faint small">—</span>}
+                </td>
+                <td>
+                  <details className="grant">
+                    <summary className="btn btn-ghost btn-sm">{t("Начислить")}</summary>
+                    <form action={grantAction} className="grant-form">
+                      <input type="hidden" name="user_id" value={u.id} />
+                      <input className="input num" name="amount" type="number" min={-5000} max={5000} step={1} required placeholder="100" />
+                      <input className="input" name="note" maxLength={80} placeholder={t("За что")} />
+                      <SubmitButton className="btn btn-sm">OK</SubmitButton>
+                    </form>
+                  </details>
                 </td>
               </tr>
             ))}
