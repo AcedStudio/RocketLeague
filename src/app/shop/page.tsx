@@ -8,7 +8,7 @@ import { Coin, Nameplate, ItemTile, CrateCard, rarityClass, type Owner, type Loo
 import { wallet, earnedTitles, today } from "@/lib/shop";
 import { streakNow } from "@/lib/pass";
 import { streakBonus } from "@/lib/engine/pass";
-import { TAGS, AVATARS, COLORS, BANNERS, CRATES, SHOP_ITEMS, RARITY_NAME, RARITIES, dailyDeals, featured, findItem, itemId, priceToday, iconOf, type Item, type Rarity } from "@/lib/engine/shop";
+import { TAGS, AVATARS, FINISHERS, COLORS, BANNERS, CRATES, SHOP_ITEMS, RARITY_NAME, RARITIES, dailyDeals, featured, findItem, itemId, priceToday, iconOf, type Item, type Rarity } from "@/lib/engine/shop";
 import { XP } from "@/lib/engine/levels";
 import { dailyAction, equipAction } from "@/app/actions/shop";
 
@@ -17,7 +17,7 @@ export async function generateMetadata() {
   return { title: t("Магазин") };
 }
 
-const TABS = ["featured", "tags", "avatars", "colors", "banners", "crates", "titles"] as const;
+const TABS = ["featured", "tags", "avatars", "finishers", "colors", "banners", "crates", "titles"] as const;
 type Tab = (typeof TABS)[number];
 
 /** Monday of the current week in Tashkent, for the weekly featured items. */
@@ -52,7 +52,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
     signedIn: !!user,
     balance: w?.balance ?? 0,
     owned: w?.owned ?? new Set(),
-    equipped: { badge: w?.equipped ?? null, color: w?.nameColor ?? null, banner: w?.banner ?? null, avatar: w?.avatar ?? null },
+    equipped: { badge: w?.equipped ?? null, color: w?.nameColor ?? null, banner: w?.banner ?? null, avatar: w?.avatar ?? null, finisher: w?.finisher ?? null },
   };
   const look: Look = { nick: user?.rl_nickname ?? "Player", badge: me.equipped.badge, color: me.equipped.color, banner: me.equipped.banner, avatar: me.equipped.avatar };
   const ownedCount = SHOP_ITEMS.filter((i) => me.owned.has(itemId(i))).length;
@@ -70,12 +70,13 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
   const ret = href({}).replace("/shop", "") || "";
   const tile = (i: Item, large?: boolean) => <ItemTile key={itemId(i)} item={i} price={priceToday(i, day)} me={me} look={look} ret={ret} t={t} large={large} />;
 
-  const catalog: Record<"tags" | "avatars" | "colors" | "banners", Item[]> = { tags: TAGS, avatars: AVATARS, colors: COLORS, banners: BANNERS };
+  const catalog: Record<"tags" | "avatars" | "finishers" | "colors" | "banners", Item[]> = { tags: TAGS, avatars: AVATARS, finishers: FINISHERS, colors: COLORS, banners: BANNERS };
   const list = tab in catalog ? catalog[tab as keyof typeof catalog].filter((i) => (!rarity || i.rarity === rarity) && (!hideOwned || !me.owned.has(itemId(i)))) : [];
   const tabLabel: Record<Tab, string> = {
     featured: t("Витрина"),
     tags: t("Теги"),
     avatars: t("Аватары"),
+    finishers: t("Эффекты победы"),
     colors: t("Цвет ника"),
     banners: t("Баннеры"),
     crates: t("Кейсы"),
@@ -83,6 +84,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
   };
   const count: Partial<Record<Tab, string>> = {
     tags: `${TAGS.filter((i) => me.owned.has(itemId(i))).length}/${TAGS.length}`,
+    finishers: `${FINISHERS.filter((i) => me.owned.has(itemId(i))).length}/${FINISHERS.length}`,
     avatars: `${AVATARS.filter((i) => me.owned.has(itemId(i))).length}/${AVATARS.length}`,
     colors: `${COLORS.filter((i) => me.owned.has(itemId(i))).length}/${COLORS.length}`,
     banners: `${BANNERS.filter((i) => me.owned.has(itemId(i))).length}/${BANNERS.length}`,
@@ -147,6 +149,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
               [
                 ["badge", t("Тег / титул"), findItem(me.equipped.badge)?.name ?? titles?.find((x) => `title:${x.key}` === me.equipped.badge)?.name],
                 ["avatar", t("Аватар"), findItem(me.equipped.avatar ? `avatar:${me.equipped.avatar}` : null)?.name],
+                ["finisher", t("Эффект победы"), findItem(me.equipped.finisher ? `finisher:${me.equipped.finisher}` : null)?.name],
                 ["color", t("Цвет ника"), findItem(me.equipped.color ? `color:${me.equipped.color}` : null)?.name],
                 ["banner", t("Баннер"), findItem(me.equipped.banner ? `banner:${me.equipped.banner}` : null)?.name],
               ] as const
@@ -212,7 +215,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
         </>
       )}
 
-      {(tab === "tags" || tab === "avatars" || tab === "colors" || tab === "banners") && (
+      {(tab === "tags" || tab === "avatars" || tab === "finishers" || tab === "colors" || tab === "banners") && (
         <section className="stack">
           <div className="filters">
             <div className="chips">

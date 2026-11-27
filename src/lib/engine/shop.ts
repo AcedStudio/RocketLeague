@@ -7,7 +7,7 @@ export type Rarity = "common" | "rare" | "epic" | "legendary";
 export const RARITIES: Rarity[] = ["common", "rare", "epic", "legendary"];
 export const RARITY_NAME: Record<Rarity, string> = { common: "Common", rare: "Rare", epic: "Epic", legendary: "Legendary" };
 
-export type ItemKind = "tag" | "color" | "banner" | "avatar";
+export type ItemKind = "tag" | "color" | "banner" | "avatar" | "finisher";
 export type Item = { kind: ItemKind; key: string; icon: string; name: string; price: number; rarity: Rarity; exclusive?: string };
 export type Tag = Item & { kind: "tag" };
 
@@ -91,6 +91,19 @@ export const BANNERS: Item[] = [
   banner("supersonic", "☄️", "Supersonic", 1000, "legendary"),
 ];
 
+const finisher = (key: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "finisher", key, icon: "", name, price, rarity });
+/** Victory effects: play on the match card when the owner wins. */
+export const FINISHERS: Item[] = [
+  finisher("confetti", "Confetti Pop", 150, "common"),
+  finisher("sparks", "Spark Shower", 180, "common"),
+  finisher("shockwave", "Shockwave", 320, "rare"),
+  finisher("lightning", "Thunderstrike", 380, "rare"),
+  finisher("inferno", "Inferno", 650, "epic"),
+  finisher("frost", "Deep Freeze", 650, "epic"),
+  finisher("galaxy", "Big Bang", 1200, "legendary"),
+  finisher("crown", "Coronation", 1300, "legendary"),
+];
+
 /** Round portraits shown instead of the initial letter. */
 export const AVATARS: Item[] = [
   avatar("ball", "Kickoff", 120, "common"),
@@ -109,6 +122,7 @@ export const AVATARS: Item[] = [
 ];
 
 export const PASS_ITEMS: Item[] = [
+  pass(finisher("ignition", "Ignition Burst", 0, "epic"), "s1"),
   pass(avatar("ignition", "Ignition Core", 0, "epic"), "s1"),
   pass(tag("ignition", "", "Ignition", 0, "rare"), "s1"),
   pass(tag("overcharged", "", "Overcharged", 0, "epic"), "s1"),
@@ -123,9 +137,9 @@ export const PASS_ITEMS: Item[] = [
 ];
 
 /** Everything that can be owned (shop + pass). */
-export const ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...AVATARS, ...PASS_ITEMS];
+export const ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...AVATARS, ...FINISHERS, ...PASS_ITEMS];
 /** What the shop sells, crates drop and deals feature. */
-export const SHOP_ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...AVATARS];
+export const SHOP_ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...AVATARS, ...FINISHERS];
 export const itemId = (i: Pick<Item, "kind" | "key">) => `${i.kind}:${i.key}`;
 export const findItem = (id: string | null | undefined) => (id ? ITEMS.find((i) => itemId(i) === id) ?? null : null);
 
@@ -262,6 +276,9 @@ export function badgeFor(equipped: string | null | undefined): { kind: "tag" | "
 
 /** Sprite icon for a tag, title or achievement (see scripts/icons/build.py). */
 export const iconOf = (kind: "tag" | "title" | "ach", key: string) => `${kind === "tag" ? "t" : kind === "title" ? "ti" : "a"}-${key}`;
+
+/** A stored finisher key → its item. */
+export const finisherItem = (key: string | null | undefined) => (key ? ITEMS.find((i) => i.kind === "finisher" && i.key === key) ?? null : null);
 
 /** A stored avatar key → its item (unknown keys are ignored). */
 export const avatarItem = (key: string | null | undefined) => (key ? ITEMS.find((i) => i.kind === "avatar" && i.key === key) ?? null : null);

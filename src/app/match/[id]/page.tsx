@@ -23,6 +23,9 @@ import { Delta } from "@/components/rating";
 import { ScheduleBox } from "@/components/ScheduleBox";
 import { sweep } from "@/lib/scheduling";
 import { after } from "next/server";
+import { Finisher } from "@/components/Finisher";
+import { Icon } from "@/components/Icon";
+import { finisherItem } from "@/lib/engine/shop";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +99,15 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
   const canShoot = !!user && (staff || assignedRef || !!side) && !!m.home_entry_id && !!m.away_entry_id && !m.is_bye;
   const shotsLeft = MAX_FILES_PER_MATCH - shots.length;
   const entryName = (eid: string) => (eid === m.home_entry_id ? m.home_name : m.away_name);
+  // The winner's victory effect (a 2v2 team uses its captain's, else any member's).
+  const fxRow = done && m.winner_entry_id && !m.forfeit
+    ? (await q<{ finisher: string }>(
+        `select u.finisher from entry_members em join users u on u.id = em.user_id
+          where em.entry_id = $1 and em.active and u.finisher is not null order by em.is_captain desc limit 1`,
+        [m.winner_entry_id],
+      ))[0]
+    : null;
+  const fx = finisherItem(fxRow?.finisher);
 
   const team = (e: typeof home, name: string | null, win: boolean) => (
     <div className="stack" style={{ gap: 6, alignItems: "center", textAlign: "center", minWidth: 0 }}>
@@ -114,14 +126,15 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       </div>
       <Flash sp={sp} />
 
-      <section className="panel stack" style={{ padding: "clamp(20px, 4vw, 40px)" }}>
+      <section className="panel stack" style={{ padding: "clamp(20px, 4vw, 40px)", position: "relative", overflow: "hidden" }}>
+        {fx && <Finisher kind={fx.key} side={homeWin ? "home" : awayWin ? "away" : "center"} replay label={fx.name} />}
         <div className="row between small muted">
           <span>
             {t("Матч #{n}", { n: m.number })} · {stageLabel(t, m, rounds)} · {m.best_of === 1 ? t("одна игра") : `Bo${m.best_of}`}
           </span>
           <span className="row" style={{ gap: 8 }}>
-            {rivalry?.derby && <span className="badge derby plain">⚡ {t("Дерби")}</span>}
-            {motw?.match.id === m.id && <span className="badge gold plain">🔥 {t("Матч тура")}</span>}
+            {rivalry?.derby && <span className="badge derby plain"><Icon name="t-bolt" size={14} /> {t("Дерби")}</span>}
+            {motw?.match.id === m.id && <span className="badge gold plain"><Icon name="t-fire" size={14} /> {t("Матч тура")}</span>}
             <MatchStatusBadge status={m.status} />
           </span>
         </div>
@@ -134,9 +147,9 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         </div>
         <p className="row" style={{ justifyContent: "center", margin: 0 }}>
           {m.referee_name ? (
-            <span className="badge gold plain">⚖ {t("Судья: {name}", { name: m.referee_name })}</span>
+            <span className="badge gold plain"><Icon name="ui-referee" size={14} /> {t("Судья: {name}", { name: m.referee_name })}</span>
           ) : (
-            !m.is_bye && <span className="badge dim plain">⚖ {t("Судья ещё не назначен")}</span>
+            !m.is_bye && <span className="badge dim plain"><Icon name="ui-referee" size={14} /> {t("Судья ещё не назначен")}</span>
           )}
         </p>
         {rivalry && rivalry.meetings > (done ? 1 : 0) && (
