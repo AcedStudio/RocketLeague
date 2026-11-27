@@ -1,3 +1,4 @@
+import { settleBets } from "./bets";
 import "server-only";
 import { rateMatch } from "./rating";
 import type { PoolClient } from "@neondatabase/serverless";
@@ -489,6 +490,7 @@ export async function applyResult(c: PoolClient, matchId: string, result: Offici
   await q("update match_reports set status = 'superseded' where match_id = $1 and status = 'pending'", [m.id], c);
   await matchEvent(c, m.id, actorId, note, noteParams);
   await rateMatch(c, m.id);
+  await settleBets(c, m.id);
 
   if (m.next_match_id && m.next_side) await placeIntoSlot(c, m.next_match_id, m.next_side, winner);
   if (m.loser_next_match_id && m.loser_next_side) await placeIntoSlot(c, m.loser_next_match_id, m.loser_next_side, loser);

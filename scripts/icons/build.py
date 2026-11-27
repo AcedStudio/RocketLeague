@@ -633,6 +633,10 @@ def u_live():
     return [C(32, 32, 8, "red"), S("M20 20A17 17 0 0 0 20 44", 5), S("M44 20A17 17 0 0 1 44 44", 5), S("M12 12A28 28 0 0 0 12 52", 5), S("M52 12A28 28 0 0 1 52 52", 5)], [C(30, 30, 2.5, "light")]
 
 
+def u_orb():
+    return [P("M14 58L20 46H44L50 58Z", "gold"), C(32, 28, 22, "purple")], [E(25, 20, 7, 4, "light", rot=-30), star(38, 32, 6, 2.4, 4, role="soft"), C(26, 36, 1.8, "soft")]
+
+
 def u_bell():
     return [P("M32 6C44 6 50 16 50 28V40L56 48H8L14 40V28C14 16 20 6 32 6Z"), C(32, 53, 6, "acc")], []
 
@@ -737,7 +741,7 @@ ACH = {
 UI = {
     "user": ("sky", u_user), "card": ("sky", u_id), "duels": ("steel", lambda: g_crossed_swords(False)), "shop": ("sky", u_bag), "referee": ("gold", g_scales),
     "admin": ("steel", u_gear), "logout": ("steel", u_door), "competitions": ("gold", u_trophy), "players": ("sky", u_users), "stats": ("sky", g_chart),
-    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "fx": ("gold", lambda: g_burst()),
+    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "fx": ("gold", lambda: g_burst()),
 }
 
 for key, (pal, fn, acc, tier) in TAGS.items():

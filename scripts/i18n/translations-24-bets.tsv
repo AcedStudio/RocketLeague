@@ -1,0 +1,33 @@
+Ваш прогноз: {team} · ставка {stake}	Prognozingiz: {team} · tikilgan {stake}	Your pick: {team} · stake {stake}
+Войдите, чтобы сделать прогноз	Prognoz qilish uchun kiring	Sign in to make a prediction
+Вы ещё не делали прогнозов.	Siz hali prognoz qilmagansiz.	You haven't made any predictions yet.
+Вы уже сделали прогноз на этот матч	Bu o‘yinga allaqachon prognoz qilgansiz	You've already predicted this match
+Выигрыш = ставка × коэффициент. Приём прогнозов закрывается в момент начала матча.	Yutuq = tikilgan × koeffitsiyent. Prognozlar o‘yin boshlanganda yopiladi.	Payout = stake × odds. Predictions close when the match starts.
+Лучшие прогнозисты	Eng yaxshi prognozchilar	Top predictors
+Матч уже начался — прогнозы закрыты	O‘yin boshlandi — prognozlar yopildi	The match has started — predictions are closed
+Можно сделать прогноз	Prognoz qilish mumkin	Open for predictions
+Мои прогнозы	Mening prognozlarim	My predictions
+На {team}	{team} ga	On {team}
+На свой матч прогноз сделать нельзя	O‘z o‘yiningizga prognoz qilib bo‘lmaydi	You can't predict your own match
+На этот матч прогнозы не принимаются	Bu o‘yinga prognozlar qabul qilinmaydi	This match doesn't take predictions
+Прогноз на монеты	Tangalarga prognoz	Coin prediction
+Прогноз не сыграл	Prognoz o‘tmadi	Prediction lost
+Прогноз не сыграл: −{n} монет	Prognoz o‘tmadi: −{n} tanga	Prediction lost: −{n} coins
+Прогноз принят	Prognoz qabul qilindi	Prediction placed
+Прогноз сыграл: +{n} монет	Prognoz o‘tdi: +{n} tanga	Prediction won: +{n} coins
+Прогнозов	Prognozlar	Predictions
+Прогнозов: {n} · в банке {c}	Prognozlar: {n} · bankda {c}	Predictions: {n} · {c} in the pot
+Прогнозы	Prognozlar	Predictions
+Прогнозы на этот матч закрыты	Bu o‘yinga prognozlar yopilgan	Predictions for this match are closed
+Распределение прогнозов	Prognozlar taqsimoti	How people picked
+Сейчас нет матчей, открытых для прогноза.	Hozir prognoz uchun ochiq o‘yinlar yo‘q.	No matches are open for predictions right now.
+Ставка	Tikish	Stake
+Ставка от {min} до {max} монет	Tikish {min} dan {max} tangagacha	Stake from {min} to {max} coins
+Ставьте монеты на матчи других игроков. Чем неожиданнее исход, тем выше коэффициент. Выигрыш начисляется сам, как только результат утверждён.	Boshqa o‘yinchilarning o‘yinlariga tanga tiking. Natija qanchalik kutilmagan bo‘lsa, koeffitsiyent shuncha yuqori. Natija tasdiqlanishi bilan yutuq o‘zi tushadi.	Put coins on other players' matches. The bigger the upset, the higher the odds. Winnings land automatically once the result is confirmed.
+Судья матча не может делать прогноз	O‘yin hakami prognoz qila olmaydi	The match referee can't predict
+Таблица появится после первых рассчитанных прогнозов.	Jadval birinchi hisoblangan prognozlardan keyin paydo bo‘ladi.	The table appears after the first settled predictions.
+Точность	Aniqlik	Accuracy
+Угадай победителя — забери монеты	G‘olibni top — tangalarni ol	Call the winner — take the coins
+выигрыш {win}	yutuq {win}	payout {win}
+коэффициенты	koeffitsiyentlar	odds
+на {team}	{team} ga	on {team}

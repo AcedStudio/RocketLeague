@@ -7,6 +7,7 @@ import { applyResult } from "./tournament";
 import { runTourPolls } from "./awards";
 import { announceMatchesOfRound } from "./motw";
 import { sweepDuels } from "./duels";
+import { sweepBets } from "./bets";
 
 // Players agree on a match time themselves: one side proposes, the other accepts.
 // At the agreed time both sides check in; whoever doesn't show up within the
@@ -293,5 +294,6 @@ export async function sweep(force = false): Promise<{ reminded: number; forfeits
   await runTourPolls().catch((e) => console.error("[polls]", e));
   await announceMatchesOfRound().catch((e) => console.error("[motw]", e));
   await sweepDuels().catch((e) => console.error("[duels]", e));
+  await sweepBets().catch((e) => console.error("[bets]", e));
   return out;
 }
