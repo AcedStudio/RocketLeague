@@ -1,23 +1,24 @@
-import { tierOf, PROVISIONAL_GAMES } from "@/lib/engine/elo";
+import { PROVISIONAL_GAMES } from "@/lib/engine/elo";
+import { rankOf, divisionLabel, PLACEMENT_GAMES } from "@/lib/engine/ranks";
+import { Icon } from "@/components/Icon";
 import { getT } from "@/lib/i18n/server";
 import type { ModeRating } from "@/lib/rating";
 
-const CALIBRATION_GAMES = 5;
-
-export async function TierBadge({ rating, games }: { rating: number; games: number }) {
+/** Rank emblem + "Gold III", or the placement counter. */
+export async function TierBadge({ rating, games, size = 22 }: { rating: number; games: number; size?: number }) {
   const t = await getT();
-  if (games < CALIBRATION_GAMES)
+  const r = rankOf(rating, games);
+  if (!r.placed)
     return (
-      <span className="tier calib" title={t("Ранг откроется после {n} матчей", { n: CALIBRATION_GAMES })}>
-        <i aria-hidden />
-        {t("Калибровка {n}/{total}", { n: games, total: CALIBRATION_GAMES })}
+      <span className="rank-chip calib" title={t("Ранг откроется после {n} матчей", { n: PLACEMENT_GAMES })}>
+        <Icon name="rk-unranked" size={size} />
+        {t("Калибровка {n}/{total}", { n: games, total: PLACEMENT_GAMES })}
       </span>
     );
-  const tier = tierOf(rating);
   return (
-    <span className="tier" style={{ ["--tier" as string]: tier.color }}>
-      <i aria-hidden />
-      {t(tier.name)}
+    <span className="rank-chip" style={{ ["--tier" as string]: r.tier.color }}>
+      <Icon name={`rk-${r.tier.key}`} size={size} />
+      {r.label}
     </span>
   );
 }
@@ -45,14 +46,26 @@ function Spark({ points }: { points: number[] }) {
 
 export async function RatingCard({ r, history }: { r: ModeRating; history: number[] }) {
   const t = await getT();
-  const tier = tierOf(r.rating);
+  const rank = rankOf(r.rating, r.games);
   return (
-    <div className="rating-card" style={{ ["--tier" as string]: r.games ? tier.color : "var(--ink-faint)" }}>
-      <div className="row" style={{ justifyContent: "space-between" }}>
-        <span className="muted" style={{ fontWeight: 600 }}>{t("Рейтинг {mode}", { mode: r.mode })}</span>
-        <TierBadge rating={r.rating} games={r.games} />
+    <div className={`rating-card rank-card${rank.placed ? ` rk-${rank.tier.key}` : ""}`} style={{ ["--tier" as string]: rank.placed ? rank.tier.color : "var(--ink-faint)" }}>
+      <div className="rank-head">
+        <span className="rank-emblem"><Icon name={rank.placed ? `rk-${rank.tier.key}` : "rk-unranked"} size={72} /></span>
+        <div className="rank-info">
+          <span className="muted small" style={{ fontWeight: 600 }}>{t("Рейтинг {mode}", { mode: r.mode })}</span>
+          <b className="rank-name">{rank.placed ? rank.tier.name : t("Калибровка")}</b>
+          <span className="rank-div">{rank.placed ? (rank.division ? t("Дивизион {d}", { d: divisionLabel(rank.division) }) : t("Вершина рейтинга")) : t("Осталось матчей: {n}", { n: rank.left })}</span>
+        </div>
+        <div className="big">{r.rating}</div>
       </div>
-      <div className="big">{r.rating}</div>
+      {rank.placed && rank.next && (
+        <div className="rank-next">
+          <span className="meter"><i style={{ width: `${Math.round(rank.progress * 100)}%` }} /></span>
+          <span className="small muted">
+            {t("Далее: {name} — с {at} ELO", { name: rank.next.division ? `${rank.next.tier.name} ${divisionLabel(rank.next.division)}` : rank.next.tier.name, at: rank.next.at })}
+          </span>
+        </div>
+      )}
       <Spark points={[1000, ...history]} />
       <dl>
         <div>

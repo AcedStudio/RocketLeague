@@ -760,6 +760,61 @@ for key, (pal, fn) in UI.items():
     acc = {"steel": "gold", "bone": "orange"}.get(pal, "gold")
     icon(f"ui-{key}", pal, parts, acc, aura=False, detail=det)
 
+# ---- Rank emblems ------------------------------------------------------------------
+WING_L = "M20 26C12 24 6 18 2 10C6 12 10 13 13 13C10 10 8 7 7 3C12 7 17 11 21 14Z"
+
+
+def wings(role="acc"):
+    return [P(WING_L, role), P(WING_L, role)[:1] + (P(WING_L, role)[1] + ' transform="translate(64 0) scale(-1 1)"',) + P(WING_L, role)[2:]]
+
+
+def shield_rank(n):
+    det = []
+    for i in range(n):
+        y = 22 + i * 9 if n > 1 else 28
+        det.append(S(f"M21 {y}L32 {y + 7}L43 {y}", 4.5, "light"))
+    return [P("M32 6L54 13V31C54 45 44 54 32 59C20 54 10 45 10 31V13Z")], det
+
+
+def rk_platinum():
+    hexa = [(32 + 26 * math.cos(math.radians(a)), 32 + 26 * math.sin(math.radians(a))) for a in range(-90, 270, 60)]
+    return [poly(hexa)], [poly([(32 + 17 * math.cos(math.radians(a)), 32 + 17 * math.sin(math.radians(a))) for a in range(-90, 270, 60)], "dark"), star(32, 33, 12, 5, 5, role="light")]
+
+
+def rk_diamond():
+    parts, det = g_diamond()
+    return wings("ice") + [P("M20 14H44L54 26L32 54L10 26Z")], [S("M10 26H54", 1.6, "soft"), S("M20 14L26 26L32 54L38 26L44 14", 1.6, "soft"), P("M20 14H44L38 26H26Z", "light")]
+
+
+def rk_champion():
+    return wings("acc") + [P("M32 6L50 13V30C50 43 42 52 32 57C22 52 14 43 14 30V13Z")], [star(32, 30, 11, 4.6, 5, role="light"), S("M22 44L32 50L42 44", 3.5, "light")]
+
+
+def rk_gc():
+    return wings("gold") + [P("M32 10L50 17V32C50 45 42 53 32 58C22 53 14 45 14 32V17Z"), P("M20 8L26 13L32 4L38 13L44 8L42 17H22Z", "gold")], [
+        star(32, 34, 10, 4.2, 5, role="light"), S("M23 46L32 51L41 46", 3, "light")]
+
+
+def rk_ssl():
+    return wings("ice") + [E(32, 34, 27, 9, "sky", rot=-18), star(32, 32, 22, 9, 5)], [star(32, 32, 10, 4.2, 5, role="light"), S("M7 40Q32 26 57 28", 2, "light")]
+
+
+RANK_ICONS = {
+    "bronze": ("orange", lambda: shield_rank(1), None, 0),
+    "silver": ("silver", lambda: shield_rank(2), None, 0),
+    "gold": ("gold", lambda: shield_rank(3), None, 1),
+    "plat": ("teal", rk_platinum, None, 1),
+    "diamond": ("ice", rk_diamond, "ice", 2),
+    "champ": ("purple", rk_champion, "purple", 2),
+    "gc": ("red", rk_gc, "gold", 3),
+    "ssl": ("silver", rk_ssl, "sky", 4),
+    "unranked": ("steel", lambda: ([P("M32 6L54 13V31C54 45 44 54 32 59C20 54 10 45 10 31V13Z")], [T(32, 40, "?", 22, "light")]), None, 0),
+}
+for key, (pal, fn, acc, sp) in RANK_ICONS.items():
+    parts, det = fn()
+    icon(f"rk-{key}", pal, parts, acc, sparkles=sp, detail=det)
+
+
 # ---- Avatars: a round portrait plate with the glyph inside ------------------------
 def avatar(name, plate, glyph_fn, pal, acc=None):
     """Circular plate (radial light from the top) with the glyph scaled into it."""
