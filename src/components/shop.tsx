@@ -63,7 +63,8 @@ export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item;
   const afford = me.balance >= price;
   return (
     <article className={`it kind-${item.kind} ${rarityClass(item.rarity)}${large ? " it-large" : ""}${owned ? " is-owned" : ""}`}>
-      <div className={`it-art${item.kind === "banner" ? ` ${bannerClass(item.key)}` : ""}`}>
+      <div className="it-art">
+        {item.kind === "banner" && <span className={`it-banner ${bannerClass(item.key)}`} aria-hidden />}
         {item.kind === "tag" && <span className="it-glyph" aria-hidden>{item.icon}</span>}
         {item.kind === "color" && (
           <span className="it-bignick" aria-hidden>
