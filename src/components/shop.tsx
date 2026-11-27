@@ -1,7 +1,7 @@
 import type { T } from "@/lib/i18n/core";
 import { SubmitButton } from "@/components/client";
 import { UserBadge, Nick } from "@/components/Badge";
-import { RARITY_NAME, RARITIES, bannerClass, itemId, type Item, type Crate, type Rarity } from "@/lib/engine/shop";
+import { DEAL_DISCOUNT, RARITY_NAME, RARITIES, bannerClass, itemId, type Item, type Crate, type Rarity } from "@/lib/engine/shop";
 import { buyAction, equipAction, crateAction } from "@/app/actions/shop";
 
 /** The site's coin: a small minted disc instead of an emoji. */
@@ -73,7 +73,7 @@ export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item;
         )}
         <Nameplate look={{ ...preview, banner: null }} compact />
         {worn && <span className="it-flag">{t("Надет")}</span>}
-        {price < item.price && !owned && <span className="it-flag deal">−{Math.round((1 - price / item.price) * 100)}%</span>}
+        {price < item.price && !owned && <span className="it-flag deal">−{Math.round(DEAL_DISCOUNT * 100)}%</span>}
       </div>
       <div className="it-body">
         <div className="it-meta">
