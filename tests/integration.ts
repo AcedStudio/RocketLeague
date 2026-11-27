@@ -83,6 +83,14 @@ async function playAll(compId: string, users: Map<string, User>, stage?: string,
 
 async function main() {
   await q(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"));
+  // Start from an empty database — but only on the qa branch, which carries a qa_marker table.
+  // Production never has that table, so a misconfigured URL can't wipe real data.
+  const marker = await one<{ ok: boolean }>("select to_regclass('public.qa_marker') is not null as ok");
+  if (marker?.ok) {
+    const tables = await q<{ t: string }>("select quote_ident(tablename) as t from pg_tables where schemaname = 'public' and tablename <> 'qa_marker'");
+    await q(`truncate ${tables.map((r) => r.t).join(", ")} restart identity cascade`);
+    console.log(`[qa] cleaned ${tables.length} tables`);
+  }
   // The qa database holds thousands of old test users: skip the one-time silent backfill there.
   await q("insert into settings (key, value) values ('achievements_backfill', 'test') on conflict (key) do nothing");
   const admin = await mkUser("admin", "admin");
