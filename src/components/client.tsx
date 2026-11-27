@@ -109,9 +109,32 @@ export function Countdown({ to }: { to: string }) {
   );
 }
 
-export function MobileMenu({ links, authed, admin }: { links: { href: string; label: string }[]; authed: boolean; admin: boolean }) {
+export function MobileMenu({ links, authed, admin }: { links: { href: string; label: string; icon?: string }[]; authed: boolean; admin: boolean }) {
   const [open, setOpen] = useState(false);
   const t = useT();
+  const path = usePathname();
+  useEffect(() => setOpen(false), [path]);
+  useEffect(() => {
+    if (!open) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [open]);
+  const extra = [
+    { href: "/shop", label: t("Магазин"), icon: "🛍️" },
+    authed ? { href: "/me", label: t("Мой кабинет"), icon: "🙂" } : { href: "/login", label: t("Войти"), icon: "🔑" },
+    ...(authed ? [] : [{ href: "/signup", label: t("Создать аккаунт"), icon: "✨" }]),
+    ...(admin ? [{ href: "/admin", label: t("Админ-панель"), icon: "🛠️" }] : []),
+  ];
+  const tile = (l: { href: string; label: string; icon?: string }) => {
+    const here = l.href === "/" ? path === "/" : path === l.href || path.startsWith(l.href + "/");
+    return (
+      <Link key={l.href} href={l.href} className="mnav-tile" aria-current={here ? "page" : undefined}>
+        <span className="mnav-ico" aria-hidden="true">{l.icon}</span>
+        <span>{l.label}</span>
+      </Link>
+    );
+  };
   return (
     <>
       <button className="icon-btn menu-btn" aria-expanded={open} aria-controls="mobile-nav" aria-label={t("Меню")} onClick={() => setOpen(!open)}>
@@ -119,16 +142,12 @@ export function MobileMenu({ links, authed, admin }: { links: { href: string; la
           {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
         </svg>
       </button>
-      <nav id="mobile-nav" className="mobile-nav" data-open={open} style={{ position: "absolute", left: 0, right: 0, top: 64, background: "var(--canvas)" }} onClick={() => setOpen(false)}>
-        {links.map((l) => (
-          <Link key={l.href} href={l.href}>
-            {l.label}
-          </Link>
-        ))}
-        {authed ? <Link href="/me">{t("Мой кабинет")}</Link> : <Link href="/login">{t("Войти")}</Link>}
-        {!authed && <Link href="/signup">{t("Создать аккаунт")}</Link>}
-        {admin && <Link href="/admin">{t("Админ-панель")}</Link>}
-        <div style={{ padding: "12px 0" }} onClick={(e) => e.stopPropagation()}>
+      {open && <div className="mnav-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
+      <nav id="mobile-nav" className="mobile-nav" data-open={open} onClick={() => setOpen(false)}>
+        <div className="mnav-grid">{links.map(tile)}</div>
+        <div className="mnav-grid mnav-sub">{extra.map(tile)}</div>
+        <div className="mnav-lang" onClick={(e) => e.stopPropagation()}>
+          <span className="small faint">{t("Язык")}</span>
           <LangSwitch />
         </div>
       </nav>
