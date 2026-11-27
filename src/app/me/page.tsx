@@ -78,7 +78,10 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
         <div className="stack-lg">
           {judging.length > 0 && (
             <section className="stack">
-              <h2 style={{ fontSize: "1.3rem" }}>⚖ {t("Матчи, которые я сужу")}</h2>
+              <div className="row between">
+                <h2 style={{ fontSize: "1.3rem" }}>⚖ {t("Матчи, которые я сужу")}</h2>
+                <Link className="btn btn-sm" href="/referee">{t("Кабинет судьи")} →</Link>
+              </div>
               <div className="list">
                 {judging.map((m) => (
                   <Link key={m.id} href={`/match/${m.id}`} className="list-row">

@@ -49,7 +49,7 @@ export async function respondAction(fd: FormData) {
 
 export async function refereeResultAction(fd: FormData) {
   const id = matchId(fd);
-  const path = `/match/${id}`;
+  const path = fd.get("back") === "/referee" ? "/referee" : `/match/${id}`;
   const user = await requireUser(path);
   await guard(path, async () => {
     // Staff, or the player assigned as this match's referee.
@@ -63,7 +63,7 @@ export async function refereeResultAction(fd: FormData) {
       await refereeResult(id, user, { games: games(fd) }, note);
     }
   });
-  ok(path, "Результат утверждён");
+  ok(fd.get("back") === "/referee" ? "/referee" : path, "Результат утверждён — таблица обновлена");
 }
 
 export async function matchStatusAction(fd: FormData) {

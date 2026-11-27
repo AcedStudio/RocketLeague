@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UserBadge } from "@/components/Badge";
 import { q, dbConfigured } from "@/lib/db";
 import { PLATFORM_LABELS } from "@/lib/format";
 import { pick, SetupNotice, type SP } from "@/components/ui";
@@ -72,7 +73,7 @@ export default async function Players({ searchParams }: { searchParams: SP }) {
                 <tr key={r.id}>
                   <td className={`c num${!search && i < 3 ? " rank-top" : ""}`}>{search ? "·" : i + 1}</td>
                   <td style={{ fontWeight: 600 }}>
-                    <Link href={`/players/${r.id}`}>{r.rl_nickname}</Link>
+                    <Link href={`/players/${r.id}`}>{r.rl_nickname}</Link> <UserBadge value={r.equipped_badge} t={t} size="sm" />
                     <div className="faint small">{PLATFORM_LABELS[r.platform]}</div>
                   </td>
                   <td className="hide-s">

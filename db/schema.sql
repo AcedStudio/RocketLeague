@@ -399,3 +399,22 @@ alter table users add column if not exists card_frame text not null default 'non
 
 -- Admin password resets: a temporary password forces a change at the next sign-in.
 alter table users add column if not exists must_change_password boolean not null default false;
+
+-- Economy: bought tags, coin bonuses (daily, admin gifts) and the badge shown next to a player's name.
+create table if not exists purchases (
+  user_id uuid not null references users(id) on delete cascade,
+  item text not null,
+  price int not null check (price >= 0),
+  created_at timestamptz not null default now(),
+  primary key (user_id, item)
+);
+create table if not exists coin_bonuses (
+  id bigserial primary key,
+  user_id uuid not null references users(id) on delete cascade,
+  amount int not null,
+  reason text not null,
+  ref text not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, reason, ref)
+);
+alter table users add column if not exists equipped_badge text;

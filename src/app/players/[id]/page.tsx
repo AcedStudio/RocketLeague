@@ -16,6 +16,7 @@ import { duelRecord } from "@/lib/duels";
 import { playerLevel } from "@/lib/levels";
 import { allDerbies } from "@/lib/derby";
 import { playerSeasons } from "@/lib/wrapped";
+import { UserBadge } from "@/components/Badge";
 import { getUser } from "@/lib/auth";
 import { challengeAction } from "@/app/actions/duels";
 import { SubmitButton } from "@/components/client";
@@ -40,8 +41,8 @@ export default async function Player({ params }: { params: Promise<{ id: string 
   const t = await getT();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const u = await one<{ id: string; rl_nickname: string; platform: string; created_at: Date }>(
-    "select id, rl_nickname, platform, created_at from users where id = $1",
+  const u = await one<{ id: string; rl_nickname: string; platform: string; created_at: Date; equipped_badge: string | null }>(
+    "select id, rl_nickname, platform, created_at, equipped_badge from users where id = $1",
     [id],
   );
   if (!u) notFound();
@@ -96,6 +97,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
       <div>
         <div className="name-row">
           <h1>{u.rl_nickname}</h1>
+          <UserBadge value={u.equipped_badge} t={t} />
           <span className="level-badge" title={t("Уровень игрока")}>
             <small>{t("Ур.")}</small>
             <b className="num">{lvl.level}</b>
