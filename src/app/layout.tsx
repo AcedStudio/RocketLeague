@@ -44,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/players", label: t("Игроки"), icon: "ui-players" },
     { href: "/stats", label: t("Статистика"), icon: "ui-stats" },
     { href: "/hall", label: t("Зал славы"), icon: "ui-hall" },
+    { href: "/clubs", label: t("Клубы"), icon: "ui-clubs" },
     { href: "/live", label: t("Эфир"), icon: "ui-live" },
     { href: "/pass", label: t("Пропуск"), icon: "ui-pass" },
     { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
@@ -73,7 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span>{settings.site_name}</span>
             </Link>
             <nav className="nav" aria-label={t("Основная навигация")}>
-              {LINKS.map((l) => (
+              {LINKS.filter((l) => l.href !== "/rules").map((l) => (
                 <Link key={l.href} href={l.href}>
                   {l.label}
                 </Link>
@@ -141,6 +142,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <InstallApp />
               {settings.discord_url && <a href={settings.discord_url} rel="noopener noreferrer" target="_blank">Discord</a>}
               {settings.contact_email && <a href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a>}
+              <Link href="/rules">{t("Правила")}</Link>
               <Link href="/faq">{t("Контакты")}</Link>
             </span>
           </div>

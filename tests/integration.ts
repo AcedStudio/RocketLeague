@@ -32,6 +32,7 @@ import { wallet, claimDaily, buyTag, buyItem, openCrate, equipItem, equipBadge, 
 import { refereeDesk } from "../src/lib/referee-desk";
 import { liveBoard, liveFeed, liveState } from "../src/lib/live";
 import { placeBet, betPanel } from "../src/lib/bets";
+import { createClub, joinClub, leaveClub, clubOf, clubMembers, clubTable } from "../src/lib/clubs";
 import { passState, questsState, claimQuest, claimTier, buyElite } from "../src/lib/pass";
 import { currentSeason } from "../src/lib/engine/pass";
 
@@ -864,6 +865,26 @@ async function main() {
     await refereeResult(m.id, admin, { games: [{ home: 0, away: 2 }] }, "");
     assert.equal((await wallet(fan.id)).balance, 250);
     assert.ok((await wallet(hater.id)).balance > 250);
+  });
+
+  await step("clubs: create for coins, unique tag, join, one club per player, owner hand-over", async () => {
+    const founder = await mkUser("founder");
+    const mate = await mkUser("mate");
+    const crest = { motto: "", icon: "t-fire", color: "sky", shape: "shield" };
+    await rejects(createClub(founder.id, { name: "Rockets", tag: "RKT", ...crest }), /Не хватает монет/);
+    await grantCoins(admin.id, founder.id, 400, "test");
+    const club = await createClub(founder.id, { name: "Rockets", tag: "rkt", ...crest });
+    assert.equal(club.tag, "RKT");
+    assert.equal((await wallet(founder.id)).balance, 100);
+    await rejects(createClub(mate.id, { name: "Other", tag: "RKT", ...crest }), /монет|уже есть/);
+    await joinClub(mate.id, club.id);
+    await rejects(joinClub(mate.id, club.id), /уже состоите/);
+    assert.equal((await clubMembers(club.id)).length, 2);
+    assert.ok((await clubTable()).some((c) => c.id === club.id));
+    await leaveClub(founder.id);
+    assert.equal((await clubOf(mate.id))?.role, "owner", "ownership passes on");
+    await leaveClub(mate.id);
+    assert.equal(await clubOf(mate.id), null);
   });
 
   console.log(`\n${passed} integration checks passed`);

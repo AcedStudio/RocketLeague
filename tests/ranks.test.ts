@@ -20,3 +20,12 @@ test("rank-up only when the tier changes; placement counts as an event", () => {
   assert.equal(rankedUp(1060, 1040, 5), null);
   assert.equal(RANKS.length, 8);
 });
+
+import { cleanTag, validTag, validName, clubGoal } from "../src/lib/engine/clubs.ts";
+test("club tags and goals", () => {
+  assert.equal(cleanTag(" tk-r! "), "TKR");
+  assert.ok(validTag("TKR") && !validTag("T") && !validTag("TOOLONG"));
+  assert.ok(validName("Rockets") && !validName("ab"));
+  assert.equal(clubGoal(1), 10);
+  assert.equal(clubGoal(20), 60);
+});

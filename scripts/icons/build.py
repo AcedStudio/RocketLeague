@@ -741,7 +741,7 @@ ACH = {
 UI = {
     "user": ("sky", u_user), "card": ("sky", u_id), "duels": ("steel", lambda: g_crossed_swords(False)), "shop": ("sky", u_bag), "referee": ("gold", g_scales),
     "admin": ("steel", u_gear), "logout": ("steel", u_door), "competitions": ("gold", u_trophy), "players": ("sky", u_users), "stats": ("sky", g_chart),
-    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "fx": ("gold", lambda: g_burst()),
+    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "clubs": ("sky", g_team_shield), "fx": ("gold", lambda: g_burst()),
 }
 
 for key, (pal, fn, acc, tier) in TAGS.items():

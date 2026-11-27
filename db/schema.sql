@@ -452,3 +452,28 @@ create table if not exists bets (
 );
 create index if not exists bets_match on bets (match_id);
 create index if not exists bets_open on bets (match_id) where settled_at is null;
+
+-- Clubs: players band together under a tag and a crest; points come from members' season activity.
+create table if not exists clubs (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  tag text not null,
+  motto text not null default '',
+  crest_icon text not null,
+  crest_color text not null,
+  crest_shape text not null default 'shield',
+  open boolean not null default true,
+  invite_code text not null default encode(gen_random_bytes(6), 'hex'),
+  owner_id uuid references users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists clubs_tag on clubs (lower(tag));
+create unique index if not exists clubs_name on clubs (lower(name));
+create table if not exists club_members (
+  club_id uuid not null references clubs(id) on delete cascade,
+  user_id uuid not null references users(id) on delete cascade,
+  role text not null default 'member' check (role in ('owner', 'officer', 'member')),
+  joined_at timestamptz not null default now(),
+  primary key (club_id, user_id)
+);
+create unique index if not exists club_members_one on club_members (user_id);
