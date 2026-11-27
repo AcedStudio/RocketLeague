@@ -1,270 +1,329 @@
 import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import { getT } from "@/lib/i18n/server";
-import type { T } from "@/lib/i18n/core";
 import { Flash, type SP } from "@/components/ui";
 import { SubmitButton } from "@/components/client";
-import { UserBadge, Nick } from "@/components/Badge";
-import { wallet, earnedTitles, type Wallet } from "@/lib/shop";
-import { TAGS, COLORS, BANNERS, CRATES, ITEMS, RARITY_NAME, RARITIES, DAILY_BONUS, findItem, itemId, bannerClass, type Item } from "@/lib/engine/shop";
+import { Coin, Nameplate, ItemTile, CrateCard, rarityClass, type Owner, type Look } from "@/components/shop";
+import { wallet, earnedTitles, today } from "@/lib/shop";
+import { TAGS, COLORS, BANNERS, CRATES, ITEMS, RARITY_NAME, RARITIES, DAILY_BONUS, dailyDeals, featured, findItem, itemId, priceToday, type Item, type Rarity } from "@/lib/engine/shop";
 import { XP } from "@/lib/engine/levels";
-import { dailyAction, buyAction, equipAction, crateAction } from "@/app/actions/shop";
+import { dailyAction, equipAction } from "@/app/actions/shop";
 
 export async function generateMetadata() {
   const t = await getT();
   return { title: t("Магазин") };
 }
 
-/** What the item looks like on the site: the tag chip, the painted nickname or a mini banner. */
-function Preview({ item, nick }: { item: Item; nick: string }) {
-  if (item.kind === "tag") {
-    return (
-      <span className="shop-icon" aria-hidden>
-        {item.icon}
-      </span>
-    );
-  }
-  if (item.kind === "color") return <span className="shop-nick"><Nick name={nick} color={item.key} /></span>;
-  return <span className={`shop-banner ${bannerClass(item.key)}`} aria-hidden />;
+const TABS = ["featured", "tags", "colors", "banners", "crates", "titles"] as const;
+type Tab = (typeof TABS)[number];
+
+/** Monday of the current week in Tashkent, for the weekly featured items. */
+function weekKey(day: string) {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
 }
 
-function ItemCard({ item, w, signedIn, nick, hash, t }: { item: Item; w: Wallet | null; signedIn: boolean; nick: string; hash: string; t: T }) {
-  const id = itemId(item);
-  const owned = w?.owned.has(id);
-  const worn = item.kind === "tag" ? w?.equipped === id : item.kind === "color" ? w?.nameColor === item.key : w?.banner === item.key;
-  const afford = (w?.balance ?? 0) >= item.price;
-  return (
-    <article className={`shop-item kind-${item.kind} r-${item.rarity}${owned ? " owned" : ""}${worn ? " worn" : ""}`}>
-      <span className="shop-rarity">{RARITY_NAME[item.rarity]}</span>
-      <Preview item={item} nick={nick} />
-      <b className="shop-name">{item.kind === "tag" ? item.name : `${item.icon} ${item.name}`}</b>
-      {owned ? (
-        worn ? (
-          <span className="badge ok plain">✓ {t("Надет")}</span>
-        ) : (
-          <form action={equipAction}>
-            <input type="hidden" name="value" value={id} />
-            <input type="hidden" name="hash" value={hash} />
-            <SubmitButton className="btn btn-ghost btn-sm">{t("Надеть")}</SubmitButton>
-          </form>
-        )
-      ) : signedIn ? (
-        <form action={buyAction}>
-          <input type="hidden" name="item" value={id} />
-          <input type="hidden" name="hash" value={hash} />
-          <SubmitButton className={`btn btn-sm${afford ? "" : " btn-ghost"}`} disabled={!afford} confirm={t("Купить «{name}» за {price} монет?", { name: item.name, price: item.price })}>
-            🪙 {item.price}
-          </SubmitButton>
-        </form>
-      ) : (
-        <span className="price num">🪙 {item.price}</span>
-      )}
-    </article>
-  );
+/** Hours and minutes until midnight in Tashkent (UTC+5), when the deals change. */
+function untilReset() {
+  const now = new Date(Date.now() + 5 * 3600_000);
+  const mins = 24 * 60 - (now.getUTCHours() * 60 + now.getUTCMinutes());
+  return { h: Math.floor(mins / 60), m: mins % 60 };
 }
 
 export default async function Shop({ searchParams }: { searchParams: SP }) {
   const t = await getT();
   const sp = await searchParams;
+  const tab: Tab = TABS.includes(sp.tab as Tab) ? (sp.tab as Tab) : "featured";
+  const rarity = RARITIES.includes(sp.r as Rarity) ? (sp.r as Rarity) : null;
+  const hideOwned = sp.own === "hide";
   const user = await getUser();
   const [w, titles] = user ? await Promise.all([wallet(user.id), earnedTitles(user.id)]) : [null, null];
-  const nick = user?.rl_nickname ?? "Nickname";
+  const day = today();
+  const deals = dailyDeals(day);
+  const feat = featured(weekKey(day));
   const drop = findItem(typeof sp.drop === "string" ? sp.drop : null);
-  const ownedCount = w ? ITEMS.filter((i) => w.owned.has(itemId(i))).length : 0;
-  const titleCount = titles?.filter((x) => x.has).length ?? 0;
-  const section = (id: string, icon: string, title: string, note: string, items: Item[]) => (
-    <section id={id} className="stack shop-section">
-      <div className="shop-section-head">
-        <h2>{icon} {title}</h2>
-        <span className="small muted">{note}</span>
-      </div>
-      <div className={`shop-grid${id === "banners" ? " wide" : ""}`}>
-        {items.map((i) => (
-          <ItemCard key={i.key} item={i} w={w} signedIn={!!user} nick={nick} hash={`#${id}`} t={t} />
-        ))}
-      </div>
-    </section>
-  );
+  const reset = untilReset();
+
+  const me: Owner = {
+    signedIn: !!user,
+    balance: w?.balance ?? 0,
+    owned: w?.owned ?? new Set(),
+    equipped: { badge: w?.equipped ?? null, color: w?.nameColor ?? null, banner: w?.banner ?? null },
+  };
+  const look: Look = { nick: user?.rl_nickname ?? "Player", badge: me.equipped.badge, color: me.equipped.color, banner: me.equipped.banner };
+  const ownedCount = ITEMS.filter((i) => me.owned.has(itemId(i))).length;
+
+  const href = (p: { tab?: Tab; r?: Rarity | null; own?: boolean }) => {
+    const q = new URLSearchParams();
+    const nt = p.tab ?? tab;
+    if (nt !== "featured") q.set("tab", nt);
+    const nr = p.r === undefined ? rarity : p.r;
+    if (nr) q.set("r", nr);
+    if (p.own ?? hideOwned) q.set("own", "hide");
+    const s = q.toString();
+    return s ? `/shop?${s}` : "/shop";
+  };
+  const ret = href({}).replace("/shop", "") || "";
+  const tile = (i: Item, large?: boolean) => <ItemTile key={itemId(i)} item={i} price={priceToday(i, day)} me={me} look={look} ret={ret} t={t} large={large} />;
+
+  const catalog: Record<"tags" | "colors" | "banners", Item[]> = { tags: TAGS, colors: COLORS, banners: BANNERS };
+  const list = tab in catalog ? catalog[tab as keyof typeof catalog].filter((i) => (!rarity || i.rarity === rarity) && (!hideOwned || !me.owned.has(itemId(i)))) : [];
+  const tabLabel: Record<Tab, string> = {
+    featured: t("Витрина"),
+    tags: t("Теги"),
+    colors: t("Цвет ника"),
+    banners: t("Баннеры"),
+    crates: t("Кейсы"),
+    titles: t("Титулы"),
+  };
+  const count: Partial<Record<Tab, string>> = {
+    tags: `${TAGS.filter((i) => me.owned.has(itemId(i))).length}/${TAGS.length}`,
+    colors: `${COLORS.filter((i) => me.owned.has(itemId(i))).length}/${COLORS.length}`,
+    banners: `${BANNERS.filter((i) => me.owned.has(itemId(i))).length}/${BANNERS.length}`,
+    titles: titles ? `${titles.filter((x) => x.has).length}/${titles.length}` : undefined,
+  };
 
   return (
-    <div className="wrap section stack-lg">
+    <div className="wrap section stack-lg store">
       <Flash sp={sp} />
-      <div className="shop-hero">
-        <div className="stack-sm">
-          <h1>🛍️ {t("Магазин")}</h1>
-          <p className="muted" style={{ margin: 0, maxWidth: 560 }}>
-            {t("Играйте, судите и побеждайте — за это начисляются монеты 🪙. Тратьте их на теги, цвет ника, баннеры профиля и кейсы. Титулы не продаются — их можно только заработать.")}
-          </p>
+
+      <header className="store-head">
+        <div>
+          <p className="eyebrow">{t("Магазин")}</p>
+          <h1 className="store-title">{t("Предметы для вашего профиля")}</h1>
+          <p className="muted store-sub">{t("Монеты начисляются за матчи, победы и судейство. Титулы не продаются — их можно только заслужить.")}</p>
         </div>
         {user && w ? (
-          <div className="wallet">
-            <span className="small muted">{t("Ваш баланс")}</span>
-            <b className="num">🪙 {w.balance}</b>
+          <div className="balance">
+            <div>
+              <span className="balance-label">{t("Баланс")}</span>
+              <span className="balance-value num">
+                <Coin size={22} /> {w.balance.toLocaleString("ru-RU")}
+              </span>
+            </div>
             {w.dailyClaimed ? (
-              <span className="small faint">{t("Ежедневный бонус уже получен")}</span>
+              <span className="balance-note">{t("Бонус дня получен")}</span>
             ) : (
               <form action={dailyAction}>
-                <SubmitButton className="btn btn-gold btn-sm">🎁 {t("Забрать +{n} сегодня", { n: DAILY_BONUS })}</SubmitButton>
+                <SubmitButton className="btn btn-sm btn-gold">{t("Бонус дня +{n}", { n: DAILY_BONUS })}</SubmitButton>
               </form>
             )}
           </div>
         ) : (
           <Link className="btn" href="/login?next=/shop">{t("Войдите, чтобы покупать")}</Link>
         )}
-      </div>
+      </header>
 
       {drop && (
-        <div className={`drop-reveal r-${drop.rarity}`} role="status">
-          <span className="drop-rays" aria-hidden />
-          <span className="small muted">{t("Из кейса выпало:")}</span>
-          <Preview item={drop} nick={nick} />
-          <b className="drop-name">{drop.kind === "tag" ? `${drop.icon} ${drop.name}` : drop.name}</b>
-          <span className="shop-rarity static">{RARITY_NAME[drop.rarity]}</span>
-          <form action={equipAction}>
-            <input type="hidden" name="value" value={itemId(drop)} />
-            <input type="hidden" name="hash" value="#look" />
-            <SubmitButton className="btn btn-gold btn-sm">✨ {t("Надеть")}</SubmitButton>
-          </form>
+        <div className={`reveal ${rarityClass(drop.rarity)}`} role="status">
+          <div className="reveal-text">
+            <span className="eyebrow">{t("Из кейса выпало")}</span>
+            <b className="reveal-name">{drop.name}</b>
+            <span className="it-rarity">{RARITY_NAME[drop.rarity]}</span>
+            <form action={equipAction}>
+              <input type="hidden" name="value" value={itemId(drop)} />
+              <input type="hidden" name="ret" value="?tab=crates" />
+              <SubmitButton className="btn btn-sm btn-gold">{t("Надеть сейчас")}</SubmitButton>
+            </form>
+          </div>
+          <div className="reveal-art">{tileFor(drop)}</div>
         </div>
       )}
 
-      {user && w && (
-        <section id="look" className={`look-card ${bannerClass(w.banner)}`}>
-          <div className="look-main">
-            <span className="small look-label">{t("Так вас видят другие")}</span>
-            <div className="name-row">
-              <b className="look-nick"><Nick name={nick} color={w.nameColor} /></b>
-              <UserBadge value={w.equipped} />
-            </div>
+      {user && (
+        <section className="loadout">
+          <div className={`loadout-plate ${me.equipped.banner ? `bn bn-${me.equipped.banner}` : ""}`}>
+            <span className="eyebrow">{t("Так вас видят другие")}</span>
+            <Nameplate look={look} />
           </div>
-          <div className="look-slots">
+          <div className="loadout-slots">
             {(
               [
-                ["badge", "🏷️", t("Тег / титул"), w.equipped],
-                ["color", "🎨", t("Цвет ника"), w.nameColor],
-                ["banner", "🖼️", t("Баннер"), w.banner],
+                ["badge", t("Тег / титул"), findItem(me.equipped.badge)?.name ?? titles?.find((x) => `title:${x.key}` === me.equipped.badge)?.name],
+                ["color", t("Цвет ника"), findItem(me.equipped.color ? `color:${me.equipped.color}` : null)?.name],
+                ["banner", t("Баннер"), findItem(me.equipped.banner ? `banner:${me.equipped.banner}` : null)?.name],
               ] as const
-            ).map(([slot, icon, label, value]) => (
-              <div key={slot} className="look-slot">
-                <span className="small muted">{icon} {label}</span>
-                {value ? (
+            ).map(([slot, label, name]) => (
+              <div key={slot} className="slot">
+                <span className="slot-label">{label}</span>
+                <span className="slot-value">{name ?? <span className="faint">—</span>}</span>
+                {name && (
                   <form action={equipAction}>
                     <input type="hidden" name="value" value={`${slot}:`} />
-                    <input type="hidden" name="hash" value="#look" />
-                    <SubmitButton className="btn btn-ghost btn-sm">{t("Снять")}</SubmitButton>
+                    <input type="hidden" name="ret" value={ret} />
+                    <SubmitButton className="slot-clear">{t("Снять")}</SubmitButton>
                   </form>
-                ) : (
-                  <span className="small faint">{t("пусто")}</span>
                 )}
               </div>
             ))}
-          </div>
-          <div className="look-progress">
-            <span className="small">{t("Коллекция: {n} из {total}", { n: ownedCount, total: ITEMS.length })} · {t("титулов: {n} из {total}", { n: titleCount, total: titles?.length ?? 0 })}</span>
-            <span className="xp-bar"><i style={{ width: `${Math.round((ownedCount / ITEMS.length) * 100)}%` }} /></span>
+            <div className="slot slot-progress">
+              <span className="slot-label">{t("Коллекция")}</span>
+              <span className="slot-value num">{ownedCount} / {ITEMS.length}</span>
+              <span className="meter"><i style={{ width: `${Math.round((ownedCount / ITEMS.length) * 100)}%` }} /></span>
+            </div>
           </div>
         </section>
       )}
 
-      <nav className="shop-nav" aria-label={t("Разделы магазина")}>
-        <a href="#crates">📦 {t("Кейсы")}</a>
-        <a href="#tags">🏷️ {t("Теги")} <small>{TAGS.length}</small></a>
-        <a href="#colors">🎨 {t("Цвет ника")} <small>{COLORS.length}</small></a>
-        <a href="#banners">🖼️ {t("Баннеры")} <small>{BANNERS.length}</small></a>
-        <a href="#titles">🎖️ {t("Титулы")} <small>{titles?.length ?? ""}</small></a>
-        <a href="#earn">💡 {t("Как заработать")}</a>
+      <nav className="store-tabs" aria-label={t("Разделы магазина")}>
+        {TABS.map((k) => (
+          <Link key={k} href={href({ tab: k, r: null })} aria-current={tab === k ? "page" : undefined} scroll={false}>
+            {tabLabel[k]}
+            {count[k] && <small className="num">{count[k]}</small>}
+          </Link>
+        ))}
       </nav>
 
-      <section id="crates" className="stack shop-section">
-        <div className="shop-section-head">
-          <h2>📦 {t("Кейсы")}</h2>
-          <span className="small muted">{t("Случайный предмет, которого у вас ещё нет. В среднем дешевле, чем покупать напрямую.")}</span>
-        </div>
-        <div className="crate-grid">
-          {CRATES.map((c) => {
-            const afford = (w?.balance ?? 0) >= c.price;
-            return (
-              <article key={c.key} className={`crate crate-${c.key}`}>
-                <span className="crate-icon" aria-hidden>{c.icon}</span>
-                <b className="crate-name">{c.name}</b>
-                <ul className="crate-odds">
-                  {RARITIES.filter((r) => c.odds[r]).map((r) => (
-                    <li key={r} className={`r-${r}`}>
-                      <span>{RARITY_NAME[r]}</span>
-                      <b className="num">{c.odds[r]}%</b>
-                    </li>
-                  ))}
-                </ul>
-                {user ? (
-                  <form action={crateAction}>
-                    <input type="hidden" name="crate" value={c.key} />
-                    <SubmitButton className={`btn btn-sm${afford ? " btn-gold" : " btn-ghost"}`} disabled={!afford} confirm={t("Открыть «{name}» за {price} монет?", { name: c.name, price: c.price })}>
-                      {t("Открыть")} · 🪙 {c.price}
-                    </SubmitButton>
-                  </form>
-                ) : (
-                  <span className="price num">🪙 {c.price}</span>
-                )}
-              </article>
-            );
-          })}
-        </div>
-      </section>
+      {tab === "featured" && (
+        <>
+          <section className="stack">
+            <div className="store-section-head">
+              <h2>{t("Сегодня в магазине")}</h2>
+              <span className="timer">
+                {t("Скидка {p}% · обновится через {h} ч {m} мин", { p: 25, h: reset.h, m: reset.m })}
+              </span>
+            </div>
+            <div className="it-grid">{deals.map((d) => tile(d.item))}</div>
+          </section>
+          <section className="stack">
+            <div className="store-section-head">
+              <h2>{t("Предметы недели")}</h2>
+            </div>
+            <div className="it-grid it-grid-2">{feat.map((i) => tile(i, true))}</div>
+          </section>
+          <section className="stack">
+            <div className="store-section-head">
+              <h2>{t("Кейсы")}</h2>
+              <Link className="small" href={href({ tab: "crates" })}>{t("Все кейсы →")}</Link>
+            </div>
+            <div className="it-grid">
+              {CRATES.map((c) => (
+                <CrateCard key={c.key} crate={c} me={me} left={crateLeft(c.odds, me.owned)} t={t} />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
 
-      {section("tags", "🏷️", t("Теги"), t("Значок рядом с ником — в рейтинге, профиле и дуэлях."), TAGS)}
-      {section("colors", "🎨", t("Цвет ника"), t("Ваш ник окрашивается в рейтинге, профиле и дуэлях."), COLORS)}
-      {section("banners", "🖼️", t("Баннеры"), t("Фон шапки вашего профиля."), BANNERS)}
+      {(tab === "tags" || tab === "colors" || tab === "banners") && (
+        <section className="stack">
+          <div className="filters">
+            <div className="chips">
+              <Link href={href({ r: null })} aria-current={!rarity ? "true" : undefined}>{t("Все")}</Link>
+              {RARITIES.map((r) => (
+                <Link key={r} href={href({ r })} className={`rar-${r}`} aria-current={rarity === r ? "true" : undefined}>
+                  <i className="dot" /> {RARITY_NAME[r]}
+                </Link>
+              ))}
+            </div>
+            {user && (
+              <Link className="toggle" href={href({ own: !hideOwned })} aria-pressed={hideOwned}>
+                <span className="toggle-box" aria-hidden /> {t("Скрыть купленное")}
+              </Link>
+            )}
+          </div>
+          {list.length ? <div className={`it-grid${tab === "banners" ? " it-grid-wide" : ""}`}>{list.map((i) => tile(i))}</div> : <div className="empty">{t("Здесь пусто — попробуйте другой фильтр.")}</div>}
+        </section>
+      )}
 
-      <section id="titles" className="stack shop-section">
-        <div className="shop-section-head">
-          <h2>🎖️ {t("Титулы")}</h2>
-          <span className="small muted">{t("Не продаются — только заслужить. Титул можно показывать вместо тега.")}</span>
-        </div>
-        <div className="shop-grid">
-          {(titles ?? []).map((ti) => {
-            const key = `title:${ti.key}`;
-            const worn = w?.equipped === key;
-            return (
-              <article key={ti.key} className={`shop-item r-${ti.rarity}${ti.has ? " owned" : " locked"}${worn ? " worn" : ""}`}>
-                <span className="shop-rarity">{RARITY_NAME[ti.rarity]}</span>
-                <span className="shop-icon" aria-hidden>{ti.icon}</span>
-                <b className="shop-name">{ti.name}</b>
-                <small className="muted">{t(ti.desc)}</small>
-                {ti.has ? (
-                  worn ? (
-                    <span className="badge ok plain">✓ {t("Надет")}</span>
-                  ) : (
-                    <form action={equipAction}>
-                      <input type="hidden" name="value" value={key} />
-                      <input type="hidden" name="hash" value="#titles" />
-                      <SubmitButton className="btn btn-ghost btn-sm">{t("Надеть")}</SubmitButton>
-                    </form>
-                  )
-                ) : (
-                  <span className="small faint">🔒 {t("не заработан")}</span>
-                )}
-              </article>
-            );
-          })}
-          {!titles && <div className="empty">{t("Войдите, чтобы увидеть свои титулы")}</div>}
-        </div>
-      </section>
+      {tab === "crates" && (
+        <section className="stack">
+          <p className="muted" style={{ margin: 0 }}>{t("Из кейса выпадает случайный предмет, которого у вас ещё нет. Шансы по редкости указаны на карточке.")}</p>
+          <div className="it-grid">
+            {CRATES.map((c) => (
+              <CrateCard key={c.key} crate={c} me={me} left={crateLeft(c.odds, me.owned)} t={t} />
+            ))}
+          </div>
+        </section>
+      )}
 
-      <section id="earn" className="panel stack-sm">
-        <h3>💡 {t("Как заработать монеты")}</h3>
-        <div className="earn-grid small">
-          <span>🎮 {t("Матч")} <b>+{XP.match / 2}</b></span>
-          <span>🏆 {t("Победа")} <b>+{Math.floor(XP.win / 2)}</b></span>
-          <span>🧱 {t("Сухая победа")} <b>+{XP.cleanSheet / 2}</b></span>
-          <span>⚖️ {t("Отсуженный матч")} <b>+{XP.refereed / 2}</b></span>
-          <span>🃏 {t("Команда тура")} <b>+{XP.teamOfRound / 2}</b></span>
-          <span>⭐ {t("Игрок тура")} <b>+{XP.playerOfRound / 2}</b></span>
-          <span>🏅 {t("Значок")} <b>+{Math.floor(XP.achievement / 2)}</b></span>
-          <span>⚔️ {t("Дуэль / победа в дуэли")} <b>+{XP.duel / 2} / +{XP.duelWin / 2}</b></span>
-          <span>👑 {t("Титул чемпиона")} <b>+{XP.title / 2}</b></span>
-          <span>🎁 {t("Ежедневный бонус")} <b>+{DAILY_BONUS}</b></span>
-        </div>
+      {tab === "titles" && (
+        <section className="stack">
+          {!titles ? (
+            <div className="empty">{t("Войдите, чтобы увидеть свои титулы")}</div>
+          ) : (
+            <div className="title-list">
+              {[...titles]
+                .sort((a, b) => Number(b.has) - Number(a.has) || RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity))
+                .map((ti) => {
+                  const key = `title:${ti.key}`;
+                  const worn = me.equipped.badge === key;
+                  const [cur, target] = ti.progress;
+                  return (
+                    <div key={ti.key} className={`title-row ${rarityClass(ti.rarity)}${ti.has ? " is-owned" : " is-locked"}`}>
+                      <span className="title-icon" aria-hidden>{ti.icon}</span>
+                      <div className="title-main">
+                        <div className="title-top">
+                          <b className="it-name">{ti.name}</b>
+                          <span className="it-rarity">{RARITY_NAME[ti.rarity]}</span>
+                        </div>
+                        <span className="small muted">{t(ti.desc)}</span>
+                        {!ti.has && (
+                          <span className="meter-row">
+                            <span className="meter"><i style={{ width: `${Math.round((cur / target) * 100)}%` }} /></span>
+                            <span className="small num faint">{cur} / {target}</span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="title-act">
+                        {ti.has ? (
+                          worn ? (
+                            <span className="it-owned">✓ {t("Надет")}</span>
+                          ) : (
+                            <form action={equipAction}>
+                              <input type="hidden" name="value" value={key} />
+                              <input type="hidden" name="ret" value="?tab=titles" />
+                              <SubmitButton className="btn btn-ghost btn-sm">{t("Надеть")}</SubmitButton>
+                            </form>
+                          )
+                        ) : (
+                          <span className="small faint">{t("Не получен")}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section className="earn">
+        <h3>{t("Как заработать монеты")}</h3>
+        <dl className="earn-list">
+          {(
+            [
+              [t("Матч"), XP.match / 2],
+              [t("Победа"), Math.floor(XP.win / 2)],
+              [t("Сухая победа"), XP.cleanSheet / 2],
+              [t("Отсуженный матч"), XP.refereed / 2],
+              [t("Команда тура"), XP.teamOfRound / 2],
+              [t("Игрок тура"), XP.playerOfRound / 2],
+              [t("Значок"), Math.floor(XP.achievement / 2)],
+              [t("Победа в дуэли"), XP.duelWin / 2],
+              [t("Титул чемпиона"), XP.title / 2],
+              [t("Ежедневный бонус"), DAILY_BONUS],
+            ] as const
+          ).map(([label, n]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd className="num">
+                +{n} <Coin size={13} />
+              </dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
   );
+
+  function tileFor(i: Item) {
+    return <ItemTile item={i} price={priceToday(i, day)} me={me} look={look} ret="?tab=crates" t={t} />;
+  }
 }
+
+function crateLeft(odds: Partial<Record<Rarity, number>>, owned: Set<string>) {
+  return ITEMS.filter((i) => odds[i.rarity] && !owned.has(itemId(i))).length;
+}
+

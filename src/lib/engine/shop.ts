@@ -109,38 +109,85 @@ export function rollCrate(crate: Crate, owned: Set<string>, rnd: () => number = 
 }
 
 export type TitleFacts = XpFacts & { level: number; longestStreak: number; goals: number; topDuellist: boolean; spent: number; owned: number };
-export type Title = { key: string; icon: string; name: string; desc: string; rarity: Rarity; earned: (f: TitleFacts) => boolean };
+type Metric = "matches" | "wins" | "duels" | "goals" | "cleanSheets" | "refereed" | "teamOfRound" | "playerOfRound" | "level" | "longestStreak" | "achievements" | "spent" | "owned" | "titles" | "topDuellist";
+export type Title = { key: string; icon: string; name: string; desc: string; rarity: Rarity; metric: Metric; target: number; earned: (f: TitleFacts) => boolean };
+
+const metricValue = (f: TitleFacts, m: Metric) => (m === "topDuellist" ? (f.topDuellist ? 1 : 0) : f[m]);
+const title = (key: string, icon: string, name: string, desc: string, rarity: Rarity, metric: Metric, target: number): Title => ({
+  key, icon, name, desc, rarity, metric, target, earned: (f) => metricValue(f, metric) >= target,
+});
+/** How far a player is towards a title: [current (capped), target]. */
+export const titleProgress = (t: Title, f: TitleFacts): [number, number] => [Math.min(metricValue(f, t.metric), t.target), t.target];
 
 /** Titles can't be bought — they are earned. Descriptions are i18n keys; names stay English. */
 export const TITLES: Title[] = [
-  { key: "rookie", icon: "🎮", name: "Rookie", desc: "Сыграйте первый матч", rarity: "common", earned: (f) => f.matches >= 1 },
-  { key: "firstwin", icon: "🎉", name: "First Blood", desc: "Одержите первую победу", rarity: "common", earned: (f) => f.wins >= 1 },
-  { key: "grinder", icon: "⛏️", name: "Grinder", desc: "Сыграйте 10 матчей", rarity: "common", earned: (f) => f.matches >= 10 },
-  { key: "duelist", icon: "🤺", name: "Duelist", desc: "Сыграйте 5 дуэлей", rarity: "common", earned: (f) => f.duels >= 5 },
-  { key: "sniper", icon: "🎯", name: "Sniper", desc: "Забейте 25 голов", rarity: "rare", earned: (f) => f.goals >= 25 },
-  { key: "wall", icon: "🧱", name: "The Wall", desc: "3 сухие победы", rarity: "rare", earned: (f) => f.cleanSheets >= 3 },
-  { key: "judge", icon: "⚖️", name: "Arbiter", desc: "Отсудите 3 матча", rarity: "rare", earned: (f) => f.refereed >= 3 },
-  { key: "inform", icon: "🃏", name: "In-Form", desc: "Попадите в команду тура", rarity: "rare", earned: (f) => f.teamOfRound >= 1 },
-  { key: "winner", icon: "🥇", name: "Winner", desc: "Одержите 10 побед", rarity: "rare", earned: (f) => f.wins >= 10 },
-  { key: "rising", icon: "📈", name: "Rising Star", desc: "Достигните 5 уровня", rarity: "rare", earned: (f) => f.level >= 5 },
-  { key: "star", icon: "⭐", name: "Star of the Round", desc: "Станьте игроком тура", rarity: "epic", earned: (f) => f.playerOfRound >= 1 },
-  { key: "unstoppable", icon: "☄️", name: "Unstoppable", desc: "5 побед подряд", rarity: "epic", earned: (f) => f.longestStreak >= 5 },
-  { key: "duelking", icon: "⚔️", name: "Duel King", desc: "Займите 1-е место среди дуэлянтов", rarity: "epic", earned: (f) => f.topDuellist },
-  { key: "veteran", icon: "🏟️", name: "Veteran", desc: "Сыграйте 30 матчей", rarity: "epic", earned: (f) => f.matches >= 30 },
-  { key: "machine", icon: "🤖", name: "Goal Machine", desc: "Забейте 75 голов", rarity: "epic", earned: (f) => f.goals >= 75 },
-  { key: "fortress", icon: "🏰", name: "Fortress", desc: "10 сухих побед", rarity: "epic", earned: (f) => f.cleanSheets >= 10 },
-  { key: "headref", icon: "📋", name: "Head Referee", desc: "Отсудите 10 матчей", rarity: "epic", earned: (f) => f.refereed >= 10 },
-  { key: "regular", icon: "🗂️", name: "Team of the Season", desc: "Попадите в команду тура 3 раза", rarity: "epic", earned: (f) => f.teamOfRound >= 3 },
-  { key: "conqueror", icon: "🗡️", name: "Conqueror", desc: "Одержите 25 побед", rarity: "epic", earned: (f) => f.wins >= 25 },
-  { key: "hunter", icon: "🏅", name: "Badge Hunter", desc: "Соберите 8 значков", rarity: "epic", earned: (f) => f.achievements >= 8 },
-  { key: "spender", icon: "💰", name: "Big Spender", desc: "Потратьте 1000 монет в магазине", rarity: "epic", earned: (f) => f.spent >= 1000 },
-  { key: "collector", icon: "🧳", name: "Collector", desc: "Соберите 10 предметов из магазина", rarity: "epic", earned: (f) => f.owned >= 10 },
-  { key: "legend", icon: "🌟", name: "Legend", desc: "Достигните 10 уровня", rarity: "legendary", earned: (f) => f.level >= 10 },
-  { key: "superstar", icon: "💫", name: "Superstar", desc: "Станьте игроком тура 3 раза", rarity: "legendary", earned: (f) => f.playerOfRound >= 3 },
-  { key: "invincible", icon: "🛡️", name: "Invincible", desc: "10 побед подряд", rarity: "legendary", earned: (f) => f.longestStreak >= 10 },
-  { key: "champion", icon: "🏆", name: "Champion", desc: "Выиграйте соревнование", rarity: "legendary", earned: (f) => f.titles >= 1 },
-  { key: "dynasty", icon: "👑", name: "Dynasty", desc: "Выиграйте 3 соревнования", rarity: "legendary", earned: (f) => f.titles >= 3 },
+  title("rookie", "🎮", "Rookie", "Сыграйте первый матч", "common", "matches", 1),
+  title("firstwin", "🎉", "First Blood", "Одержите первую победу", "common", "wins", 1),
+  title("grinder", "⛏️", "Grinder", "Сыграйте 10 матчей", "common", "matches", 10),
+  title("duelist", "🤺", "Duelist", "Сыграйте 5 дуэлей", "common", "duels", 5),
+  title("sniper", "🎯", "Sniper", "Забейте 25 голов", "rare", "goals", 25),
+  title("wall", "🧱", "The Wall", "3 сухие победы", "rare", "cleanSheets", 3),
+  title("judge", "⚖️", "Arbiter", "Отсудите 3 матча", "rare", "refereed", 3),
+  title("inform", "🃏", "In-Form", "Попадите в команду тура", "rare", "teamOfRound", 1),
+  title("winner", "🥇", "Winner", "Одержите 10 побед", "rare", "wins", 10),
+  title("rising", "📈", "Rising Star", "Достигните 5 уровня", "rare", "level", 5),
+  title("star", "⭐", "Star of the Round", "Станьте игроком тура", "epic", "playerOfRound", 1),
+  title("unstoppable", "☄️", "Unstoppable", "5 побед подряд", "epic", "longestStreak", 5),
+  title("duelking", "⚔️", "Duel King", "Займите 1-е место среди дуэлянтов", "epic", "topDuellist", 1),
+  title("veteran", "🏟️", "Veteran", "Сыграйте 30 матчей", "epic", "matches", 30),
+  title("machine", "🤖", "Goal Machine", "Забейте 75 голов", "epic", "goals", 75),
+  title("fortress", "🏰", "Fortress", "10 сухих побед", "epic", "cleanSheets", 10),
+  title("headref", "📋", "Head Referee", "Отсудите 10 матчей", "epic", "refereed", 10),
+  title("regular", "🗂️", "Team of the Season", "Попадите в команду тура 3 раза", "epic", "teamOfRound", 3),
+  title("conqueror", "🗡️", "Conqueror", "Одержите 25 побед", "epic", "wins", 25),
+  title("hunter", "🏅", "Badge Hunter", "Соберите 8 значков", "epic", "achievements", 8),
+  title("spender", "💰", "Big Spender", "Потратьте 1000 монет в магазине", "epic", "spent", 1000),
+  title("collector", "🧳", "Collector", "Соберите 10 предметов из магазина", "epic", "owned", 10),
+  title("legend", "🌟", "Legend", "Достигните 10 уровня", "legendary", "level", 10),
+  title("superstar", "💫", "Superstar", "Станьте игроком тура 3 раза", "legendary", "playerOfRound", 3),
+  title("invincible", "🛡️", "Invincible", "10 побед подряд", "legendary", "longestStreak", 10),
+  title("champion", "🏆", "Champion", "Выиграйте соревнование", "legendary", "titles", 1),
+  title("dynasty", "👑", "Dynasty", "Выиграйте 3 соревнования", "legendary", "titles", 3),
 ];
+
+// ---------- Daily deals: four items a day at a discount, the same for everyone ----------
+export const DEAL_DISCOUNT = 0.25;
+
+function seeded(seed: string) {
+  let h = 2166136261;
+  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
+}
+export const dealPrice = (price: number) => Math.max(5, Math.round((price * (1 - DEAL_DISCOUNT)) / 5) * 5);
+
+/** One item of each rarity, picked from the date (YYYY-MM-DD), so the whole site sees the same deals. */
+export function dailyDeals(day: string): { item: Item; price: number }[] {
+  const rnd = seeded(`deals:${day}`);
+  return RARITIES.map((r) => {
+    const pool = ITEMS.filter((i) => i.rarity === r);
+    const item = pool[Math.floor(rnd() * pool.length)];
+    return { item, price: dealPrice(item.price) };
+  });
+}
+
+/** Two featured legendaries for the week (key = Monday's date). */
+export function featured(week: string): Item[] {
+  const rnd = seeded(`featured:${week}`);
+  const pool = ITEMS.filter((i) => i.rarity === "legendary" || i.rarity === "epic").sort((a, b) => b.price - a.price);
+  const a = pool[Math.floor(rnd() * pool.length)];
+  const rest = pool.filter((x) => x.kind !== a.kind);
+  return [a, rest[Math.floor(rnd() * rest.length)]];
+}
+
+/** Price a player pays today: the deal price if the item is in today's deals. */
+export function priceToday(item: Item, day: string) {
+  return dailyDeals(day).find((d) => itemId(d.item) === itemId(item))?.price ?? item.price;
+}
 
 /** Coins earned from activity: half of the experience points (rounded down). */
 export const coinsFromXp = (xp: number) => Math.floor(xp / 2);

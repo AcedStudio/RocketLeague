@@ -45,3 +45,15 @@ test("cosmetic classes only for known keys", () => {
   assert.equal(bannerClass("galaxy"), "bn bn-galaxy");
   assert.equal(bannerClass(null), "");
 });
+
+import { dailyDeals, priceToday, titleProgress, featured } from "../src/lib/engine/shop.ts";
+test("daily deals: same for a day, one per rarity, discounted; title progress is capped", () => {
+  const a = dailyDeals("2026-11-27"), b = dailyDeals("2026-11-27");
+  assert.deepEqual(a.map((d) => d.item.key), b.map((d) => d.item.key));
+  assert.deepEqual(a.map((d) => d.item.rarity), ["common", "rare", "epic", "legendary"]);
+  for (const d of a) assert.ok(d.price < d.item.price && priceToday(d.item, "2026-11-27") === d.price);
+  assert.equal(featured("2026-11-23").length, 2);
+  const sniper = TITLES.find((t) => t.key === "sniper")!;
+  const f = { goals: 40 } as never;
+  assert.deepEqual(titleProgress(sniper, f), [25, 25]);
+});
