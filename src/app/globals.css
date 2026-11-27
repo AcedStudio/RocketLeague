@@ -1574,3 +1574,39 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .wr-orbs i:nth-child(2) { bottom: -80px; right: -60px; animation-duration: 11s; }
 .wr-orbs i:nth-child(3) { top: 40%; left: 30%; width: 140px; height: 140px; animation-duration: 7s; }
 @keyframes orb-drift { to { transform: translate(40px, 30px) scale(1.2); } }
+
+/* ======================= ARENA BRACKET ======================= */
+.arena { position: relative; padding: 22px 18px 8px; border-radius: 20px; border: 1px solid var(--line); overflow: hidden;
+  background: radial-gradient(ellipse at 15% -10%, rgba(55, 190, 254, 0.25), transparent 45%), radial-gradient(ellipse at 85% -10%, rgba(242, 181, 58, 0.22), transparent 45%), repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 60px), linear-gradient(180deg, #0c2042, #081a32); }
+.arena .bracket { min-height: 380px; }
+.b-pair { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: space-around; gap: var(--s4); }
+.b-pair:not(.single)::after { content: ""; position: absolute; right: calc(var(--s8) / -2); top: 25%; bottom: 25%; border-right: 1px solid var(--line-strong); }
+.b-pair.lit::after { border-color: rgba(242, 181, 58, 0.85); box-shadow: 0 0 8px rgba(242, 181, 58, 0.6); }
+.b-match.path { border-color: rgba(242, 181, 58, 0.75); box-shadow: 0 0 0 1px rgba(242, 181, 58, 0.25), 0 0 18px rgba(242, 181, 58, 0.25); }
+.b-match.path::after, .b-match.path::before { border-color: rgba(242, 181, 58, 0.9) !important; box-shadow: 0 0 6px rgba(242, 181, 58, 0.7); }
+.b-slot.champ .n { color: var(--gold); }
+.b-stage { position: relative; justify-content: center; align-items: stretch; gap: 14px; }
+.b-stage::before { content: ""; position: absolute; left: 50%; top: -30px; width: 260px; height: 320px; transform: translateX(-50%); background: conic-gradient(from 160deg at 50% 0%, transparent 0 15deg, rgba(255, 236, 180, 0.18) 20deg 40deg, transparent 45deg); pointer-events: none; }
+.b-trophy { display: grid; place-items: center; filter: drop-shadow(0 12px 24px rgba(242, 181, 58, 0.45)); animation: glyph-float 4s ease-in-out infinite; }
+.b-final-match { transform: scale(1.06); }
+.b-champ { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: linear-gradient(90deg, rgba(242, 181, 58, 0.25), rgba(242, 181, 58, 0.08)); border: 1px solid rgba(242, 181, 58, 0.6); font: 800 1rem/1 var(--font-display); color: var(--gold); }
+
+/* ======================= HALL OF CHAMPIONS ======================= */
+.hall-title { display: flex; align-items: center; gap: 10px; font-size: 1.4rem; margin: 0; }
+.podium { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; align-items: end; }
+.pedestal { position: relative; display: grid; justify-items: center; gap: 10px; padding: 22px 16px 18px; border-radius: 18px 18px 8px 8px; border: 1px solid var(--line-strong); text-align: center; background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), var(--surface)); }
+.pedestal.p1 { border-color: rgba(242, 181, 58, 0.7); background: radial-gradient(ellipse at 50% 0%, rgba(242, 181, 58, 0.3), transparent 60%), var(--surface); box-shadow: 0 0 40px rgba(242, 181, 58, 0.18); padding-top: 34px; }
+.pedestal.p2 { border-color: rgba(201, 214, 232, 0.55); }
+.pedestal.p3 { border-color: rgba(208, 138, 78, 0.55); }
+.pedestal .pos { position: absolute; top: 10px; left: 14px; font: 800 1.1rem/1 var(--font-display); color: var(--ink-faint); }
+.pedestal.p1 .pos { color: var(--gold); }
+.pedestal .nick { font: 800 1.2rem/1.1 var(--font-display); }
+.cups { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; }
+.cups .ico { filter: drop-shadow(0 4px 8px rgba(242, 181, 58, 0.35)); }
+.pedestal .titles { font-size: 0.82rem; color: var(--ink-soft); }
+.timeline { position: relative; display: grid; gap: 10px; padding-left: 26px; }
+.timeline::before { content: ""; position: absolute; left: 10px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(180deg, var(--gold), rgba(242, 181, 58, 0.1)); }
+.tl-item { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.tl-item::before { content: ""; position: absolute; left: -21px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.tl-main { display: grid; gap: 2px; min-width: 0; }
+.tl-main b { color: var(--gold); }
