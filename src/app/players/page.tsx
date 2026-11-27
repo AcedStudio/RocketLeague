@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { UserBadge, Nick, Avatar } from "@/components/Badge";
+import { ClubTag } from "@/components/Crest";
 import { q, dbConfigured } from "@/lib/db";
 import { PLATFORM_LABELS } from "@/lib/format";
 import { pick, SetupNotice, type SP } from "@/components/ui";
@@ -73,7 +74,7 @@ export default async function Players({ searchParams }: { searchParams: SP }) {
                 <tr key={r.id}>
                   <td className={`c num${!search && i < 3 ? " rank-top" : ""}`}>{search ? "·" : i + 1}</td>
                   <td style={{ fontWeight: 600 }}>
-                    <Link href={`/players/${r.id}`} className="who"><Avatar name={r.rl_nickname} avatar={r.avatar} size={24} /> <Nick name={r.rl_nickname} color={r.name_color} /></Link> <UserBadge value={r.equipped_badge} t={t} size="sm" />
+                    <Link href={`/players/${r.id}`} className="who"><Avatar name={r.rl_nickname} avatar={r.avatar} size={24} /> <Nick name={r.rl_nickname} color={r.name_color} /></Link> <ClubTag tag={r.club_tag} /> <UserBadge value={r.equipped_badge} t={t} size="sm" />
                     <div className="faint small">{PLATFORM_LABELS[r.platform]}</div>
                   </td>
                   <td className="hide-s">

@@ -19,6 +19,8 @@ import { playerSeasons } from "@/lib/wrapped";
 import { UserBadge, Nick, Avatar } from "@/components/Badge";
 import { bannerClass, iconOf } from "@/lib/engine/shop";
 import { Icon } from "@/components/Icon";
+import { Crest } from "@/components/Crest";
+import { clubOf } from "@/lib/clubs";
 import { getUser } from "@/lib/auth";
 import { challengeAction } from "@/app/actions/duels";
 import { SubmitButton } from "@/components/client";
@@ -48,6 +50,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     [id],
   );
   if (!u) notFound();
+  const club = await clubOf(u.id);
 
   const [entries, matches, awards, ratings, h1, h2, card, achievements, rivals, informs, duels, viewer, lvl, derbyList, seasons] = await Promise.all([
     q<{ id: string; name: string; comp: string; slug: string; mode: string; status: string }>(
@@ -101,6 +104,12 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           <Avatar name={u.rl_nickname} avatar={u.avatar} size={64} />
           <h1><Nick name={u.rl_nickname} color={u.name_color} /></h1>
           <UserBadge value={u.equipped_badge} t={t} />
+          {club && (
+            <Link href={`/clubs/${club.tag}`} className="club-link" title={club.name}>
+              <Crest icon={club.crest_icon} color={club.crest_color} shape={club.crest_shape} size={30} />
+              <span className="club-tag">[{club.tag}]</span>
+            </Link>
+          )}
           <span className="level-badge" title={t("Уровень игрока")}>
             <small>{t("Ур.")}</small>
             <b className="num">{lvl.level}</b>

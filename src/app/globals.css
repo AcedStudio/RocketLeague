@@ -1482,3 +1482,58 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .live-feed h2 { display: flex; align-items: center; gap: 8px; }
 @media (max-width: 980px) { .bets-layout { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .bet-buttons, .bet-sides { grid-template-columns: 1fr; } .bet-stats { width: 100%; justify-content: space-between; } }
+
+/* ======================= CLUBS ======================= */
+.crest { position: relative; display: inline-grid; place-items: center; flex: none; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45)); }
+.crest-plate { position: absolute; inset: 0; background: radial-gradient(circle at 50% 25%, color-mix(in srgb, var(--c1) 85%, #fff), var(--c1) 40%, var(--c2)); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25); }
+.crest-plate::after { content: ""; position: absolute; inset: 6%; background: inherit; filter: brightness(0.75); clip-path: inherit; border-radius: inherit; opacity: 0.55; }
+.crest-shield .crest-plate { clip-path: polygon(50% 0, 100% 14%, 100% 52%, 86% 78%, 50% 100%, 14% 78%, 0 52%, 0 14%); }
+.crest-circle .crest-plate { border-radius: 50%; }
+.crest-hex .crest-plate { clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
+.crest-diamond .crest-plate { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.crest .ico { position: relative; z-index: 1; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55)); }
+.crest-diamond .ico { transform: scale(0.82); }
+.club-tag { font: 800 0.82em/1 var(--font-display); color: var(--accent-2, #88EDFF); letter-spacing: 0.04em; }
+.club-tag.big { font-size: 0.6em; vertical-align: middle; }
+.club-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.club-list { display: grid; gap: 8px; }
+.club-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) 70px 90px 110px; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+.club-row.top1 { border-color: rgba(242, 181, 58, 0.6); background: linear-gradient(90deg, rgba(242, 181, 58, 0.12), var(--surface) 40%); }
+.club-row.top2 { border-color: rgba(201, 214, 232, 0.45); }
+.club-row.top3 { border-color: rgba(208, 138, 78, 0.5); }
+.club-pos { font: 800 1.1rem/1 var(--font-display); text-align: center; color: var(--ink-faint); }
+.club-row.top1 .club-pos { color: var(--gold); }
+.club-id { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; min-width: 0; }
+.club-text { display: grid; gap: 2px; min-width: 0; }
+.club-text b, .club-text span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-points { font: 800 1.15rem/1 var(--font-display); text-align: right; }
+.club-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: center; padding: 28px 32px; border-radius: 20px; border: 1px solid var(--line-strong); background: radial-gradient(ellipse at 0% 50%, rgba(55, 190, 254, 0.2), transparent 55%), linear-gradient(135deg, #0d2244, #0a1730); }
+.club-hero-text { display: grid; gap: 10px; }
+.club-motto { margin: 0; font-style: italic; color: var(--ink-soft); }
+.club-roster { display: grid; gap: 8px; }
+.roster-row { display: grid; grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr) 90px 110px 80px; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.roster-name { display: grid; gap: 2px; min-width: 0; }
+.quest.is-goal { border-color: rgba(55, 190, 254, 0.4); }
+.crest-picker { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 20px; align-items: start; }
+.crest-preview { display: grid; place-items: center; height: 160px; border-radius: 16px; border: 1px solid var(--line); background: radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent 70%); }
+.crest-options { display: grid; gap: 12px; }
+.crest-options fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+.crest-options legend { font-size: 0.8rem; color: var(--ink-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.pick-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick { position: relative; cursor: pointer; }
+.pick input { position: absolute; opacity: 0; pointer-events: none; }
+.pick > span { display: grid; place-items: center; min-width: 44px; height: 44px; padding: 4px; border-radius: 10px; border: 1px solid var(--line); background: rgba(4, 12, 26, 0.4); }
+.pick input:checked + span { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(242, 181, 58, 0.35); }
+.pick .swatch { width: 44px; border-radius: 50%; }
+.invite { padding: 2px 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); word-break: break-all; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+@media (max-width: 760px) {
+  .club-row { grid-template-columns: 26px minmax(0, 1fr) auto; }
+  .club-members { display: none; }
+  .club-row form, .club-row > span:last-child { grid-column: 2 / -1; justify-self: start; }
+  .club-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 22px; }
+  .club-hero .pass-facts, .club-hero .row { justify-content: center; }
+  .roster-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .roster-row > :nth-child(n + 3) { grid-column: 1 / -1; }
+  .crest-picker { grid-template-columns: 1fr; }
+}
