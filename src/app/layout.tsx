@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { Unbounded, Onest } from "next/font/google";
 import "./globals.css";
 import { getUser, isAdmin, isReferee } from "@/lib/auth";
@@ -38,12 +39,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       !!(await one("select 1 from matches where referee_user_id = $1 and status <> 'completed' limit 1", [user.id]).catch(() => null))
     : false;
   const LINKS = [
-    { href: "/competitions", label: t("Соревнования"), icon: "🏆" },
-    { href: "/players", label: t("Игроки"), icon: "👥" },
-    { href: "/stats", label: t("Статистика"), icon: "📊" },
-    { href: "/hall", label: t("Зал славы"), icon: "🏛️" },
-    { href: "/duels", label: t("Дуэли"), icon: "⚔️" },
-    { href: "/rules", label: t("Правила"), icon: "📜" },
+    { href: "/competitions", label: t("Соревнования"), icon: "ui-competitions" },
+    { href: "/players", label: t("Игроки"), icon: "ui-players" },
+    { href: "/stats", label: t("Статистика"), icon: "ui-stats" },
+    { href: "/hall", label: t("Зал славы"), icon: "ui-hall" },
+    { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
+    { href: "/rules", label: t("Правила"), icon: "ui-rules" },
   ];
   const unread = user && dbConfigured()
     ? (await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and read_at is null", [user.id]))?.n ?? 0
@@ -93,14 +94,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     }
                   >
                     <div className="user-menu-list">
-                      <Link href="/me">{t("Профиль")}</Link>
-                      <Link href={`/players/${user.id}`}>{t("Моя карточка")}</Link>
-                      <Link href="/duels">⚔️ {t("Мои дуэли")}</Link>
-                      <Link href="/shop">🛍️ {t("Магазин")}</Link>
-                      {judging && <Link href="/referee">⚖️ {t("Кабинет судьи")}</Link>}
-                      {isReferee(user.role) && <Link href="/admin">{isAdmin(user.role) ? t("Админка") : t("Судейская")}</Link>}
+                      <Link href="/me"><Icon name="ui-user" /> {t("Профиль")}</Link>
+                      <Link href={`/players/${user.id}`}><Icon name="ui-card" /> {t("Моя карточка")}</Link>
+                      <Link href="/duels"><Icon name="ui-duels" /> {t("Мои дуэли")}</Link>
+                      <Link href="/shop"><Icon name="ui-shop" /> {t("Магазин")}</Link>
+                      {judging && <Link href="/referee"><Icon name="ui-referee" /> {t("Кабинет судьи")}</Link>}
+                      {isReferee(user.role) && <Link href="/admin"><Icon name="ui-admin" /> {isAdmin(user.role) ? t("Админка") : t("Судейская")}</Link>}
                       <form action={logout}>
-                        <button type="submit">{t("Выйти")}</button>
+                        <button type="submit"><Icon name="ui-logout" /> {t("Выйти")}</button>
                       </form>
                     </div>
                   </Dropdown>

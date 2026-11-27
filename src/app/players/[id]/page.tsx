@@ -17,7 +17,8 @@ import { playerLevel } from "@/lib/levels";
 import { allDerbies } from "@/lib/derby";
 import { playerSeasons } from "@/lib/wrapped";
 import { UserBadge, Nick } from "@/components/Badge";
-import { bannerClass } from "@/lib/engine/shop";
+import { bannerClass, iconOf } from "@/lib/engine/shop";
+import { Icon } from "@/components/Icon";
 import { getUser } from "@/lib/auth";
 import { challengeAction } from "@/app/actions/duels";
 import { SubmitButton } from "@/components/client";
@@ -196,7 +197,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
             const pct = Math.min(100, Math.round((a.value / a.def.target) * 100));
             return (
               <div key={a.def.key} className={`ach${a.done ? " done" : ""}`} title={t(a.def.desc, { n: a.def.target })}>
-                <span className="ach-icon" aria-hidden>{a.def.icon}</span>
+                <span className="ach-icon" aria-hidden><Icon name={iconOf("ach", a.def.key)} size={40} /></span>
                 <span className="ach-text">
                   <b>{t(a.def.name)}</b>
                   <small>{t(a.def.desc, { n: a.def.target })}</small>
