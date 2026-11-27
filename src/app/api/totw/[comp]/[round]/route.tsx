@@ -75,6 +75,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ comp: st
         </div>
       </div>
     ),
-    { width: W, height: H, emoji: "twemoji", fonts: font ? [{ name: "Unbounded", data: font, weight: 800, style: "normal" }] : undefined },
+    { width: W, height: H, emoji: "twemoji", headers: { "Cache-Control": "public, max-age=300, s-maxage=600, stale-while-revalidate=86400" }, fonts: font ? [{ name: "Unbounded", data: font, weight: 800, style: "normal" }] : undefined },
   );
 }

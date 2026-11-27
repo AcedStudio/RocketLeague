@@ -128,7 +128,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       height: H,
       emoji: "twemoji",
       fonts: font ? [{ name: "Unbounded", data: font, weight: 700, style: "normal" }] : undefined,
-      headers: { "Cache-Control": "public, max-age=120, s-maxage=120" },
+      headers: { "Cache-Control": "public, max-age=120, s-maxage=600, stale-while-revalidate=86400" },
     },
   );
 }

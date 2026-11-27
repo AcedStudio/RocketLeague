@@ -120,7 +120,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       height: 630,
       emoji: "twemoji",
       fonts: font ? [{ name: "Unbounded", data: font, weight: 800, style: "normal" }] : undefined,
-      headers: { "Cache-Control": "public, max-age=120, s-maxage=120" },
+      headers: { "Cache-Control": "public, max-age=120, s-maxage=600, stale-while-revalidate=86400" },
     },
   );
 }
