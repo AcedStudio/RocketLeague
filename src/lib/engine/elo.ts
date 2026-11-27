@@ -1,3 +1,4 @@
+import { RANKS } from "./ranks.ts";
 // Pure ELO maths. No I/O — the service layer feeds it ratings and stores the deltas.
 
 export const START_RATING = 1000;
@@ -44,16 +45,8 @@ export function rateSeries(winners: EloPlayer[], losers: EloPlayer[], multiplier
 export type Tier = { key: string; name: string; min: number; color: string };
 
 // Names stay Russian here: they are translation keys (see scripts/i18n).
-export const TIERS: Tier[] = [
-  { key: "ssl", name: "Суперсоник-легенда", min: 1600, color: "#f5f5ff" },
-  { key: "gc", name: "Гранд-чемпион", min: 1450, color: "#e0525e" },
-  { key: "champ", name: "Чемпион", min: 1300, color: "#a77cf2" },
-  { key: "diamond", name: "Алмаз", min: 1150, color: "#37befe" },
-  { key: "plat", name: "Платина", min: 1000, color: "#88edff" },
-  { key: "gold", name: "Золото", min: 850, color: "#d9ad50" },
-  { key: "silver", name: "Серебро", min: 700, color: "#b8c4d6" },
-  { key: "bronze", name: "Бронза", min: -Infinity, color: "#c0814f" },
-];
+/** Rating tiers — the same ladder as the site's ranks (engine/ranks.ts), highest first. Keys are Discord role keys. */
+export const TIERS: Tier[] = [...RANKS].reverse().map((r) => ({ key: r.key, name: r.name, min: r.min, color: r.color }));
 
 export function tierOf(rating: number): Tier {
   return TIERS.find((t) => rating >= t.min) ?? TIERS[TIERS.length - 1];

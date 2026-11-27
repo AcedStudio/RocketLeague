@@ -1369,3 +1369,20 @@ html, body { overflow-x: clip; }
 .it-score { position: relative; z-index: 1; font: 800 2.2rem/1 var(--font-display); letter-spacing: 0.04em; text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6); }
 .loadout-slots { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important; }
 .loadout-slots .slot:nth-child(n) { border-top: 0; }
+
+/* ---------- ranks ---------- */
+.rank-chip { display: inline-flex; align-items: center; gap: 6px; font: 700 0.84rem/1 var(--font-display); white-space: nowrap; color: var(--tier); }
+.rank-chip.calib { color: var(--ink-faint); font-family: var(--font-text); font-weight: 600; }
+.rank-chip .ico { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+.rank-card { position: relative; overflow: hidden; }
+.rank-card::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--tier) 22%, transparent), transparent 60%); }
+.rank-head { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.rank-emblem { display: grid; place-items: center; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)); }
+.rk-gc .rank-emblem, .rk-ssl .rank-emblem, .rk-champ .rank-emblem { animation: glyph-float 4s ease-in-out infinite; }
+.rk-ssl .rank-emblem::before { content: ""; position: absolute; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, rgba(136, 237, 255, 0.5), transparent 65%); animation: aura-pulse 2.4s ease-in-out infinite; z-index: -1; }
+.rank-info { display: grid; gap: 2px; min-width: 0; }
+.rank-name { font: 800 1.35rem/1.1 var(--font-display); color: var(--tier); }
+.rank-div { font-size: 0.85rem; color: var(--ink-soft); }
+.rank-head .big { font-size: 2rem !important; margin: 0 !important; }
+.rank-next { position: relative; display: grid; gap: 6px; margin: 4px 0 2px; }
+.rank-next .meter i { background: linear-gradient(90deg, color-mix(in srgb, var(--tier) 60%, #029FFC), var(--tier)); }

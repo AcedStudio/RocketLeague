@@ -43,8 +43,8 @@ test("margin: sweep 1.5x, close series 1x, Bo1 by goals", () => {
 
 test("expected score symmetric, tiers", () => {
   assert.ok(Math.abs(expectedScore(1100, 1000) + expectedScore(1000, 1100) - 1) < 1e-12);
-  assert.equal(tierOf(1000).key, "plat");
-  assert.equal(tierOf(999).key, "gold");
+  assert.equal(tierOf(1050).key, "plat");
+  assert.equal(tierOf(1049).key, "gold");
   assert.equal(tierOf(1700).key, "ssl");
   assert.equal(tierOf(200).key, "bronze");
 });

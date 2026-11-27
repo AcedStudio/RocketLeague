@@ -1,3 +1,5 @@
+import { rankedUp } from "./engine/ranks.ts";
+import { notify } from "./notify";
 import type { PoolClient } from "@neondatabase/serverless";
 import { q, one, type Queryable } from "./db";
 import { rateSeries, marginMultiplier, START_RATING, type EloPlayer } from "./engine/elo.ts";
@@ -65,6 +67,17 @@ export async function rateMatch(c: PoolClient, matchId: string, locked = false) 
       [matchId, userId, m.mode, winIds.includes(userId) ? winnerEntry : loserEntry, get(userId).rating, delta],
       c,
     );
+    // A new rank tier (or the first one after placement) is worth a notification. Not during a full replay.
+    if (!locked) {
+      const up = rankedUp(get(userId).rating, get(userId).rating + delta, get(userId).games);
+      if (up) {
+        await notify(c, [userId], up.kind === "up" ? "Новый ранг: {tier}" : "Калибровка пройдена: {tier}", "{mode} · {rating} ELO", `/players/${userId}`, {
+          tier: up.rank.placed ? up.rank.label : "",
+          mode: m.mode,
+          rating: get(userId).rating + delta,
+        });
+      }
+    }
   }
 }
 
