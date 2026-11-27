@@ -455,3 +455,14 @@ export function InstallApp() {
     </span>
   );
 }
+
+
+/** Scrolls a horizontal strip so that the marked child is in view (e.g. the current pass tier). */
+export function ScrollToMark({ target }: { target: string }) {
+  useEffect(() => {
+    const el = document.querySelector<HTMLElement>(target);
+    const box = el?.parentElement;
+    if (el && box) box.scrollLeft = Math.max(0, el.offsetLeft - box.clientWidth / 2 + el.clientWidth / 2);
+  }, [target]);
+  return null;
+}

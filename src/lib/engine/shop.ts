@@ -8,12 +8,14 @@ export const RARITIES: Rarity[] = ["common", "rare", "epic", "legendary"];
 export const RARITY_NAME: Record<Rarity, string> = { common: "Common", rare: "Rare", epic: "Epic", legendary: "Legendary" };
 
 export type ItemKind = "tag" | "color" | "banner";
-export type Item = { kind: ItemKind; key: string; icon: string; name: string; price: number; rarity: Rarity };
+export type Item = { kind: ItemKind; key: string; icon: string; name: string; price: number; rarity: Rarity; exclusive?: string };
 export type Tag = Item & { kind: "tag" };
 
 const tag = (key: string, icon: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "tag", key, icon, name, price, rarity });
 const color = (key: string, icon: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "color", key, icon, name, price, rarity });
 const banner = (key: string, icon: string, name: string, price: number, rarity: Rarity): Item => ({ kind: "banner", key, icon, name, price, rarity });
+/** Season Pass exclusives: never sold, never in crates or deals. */
+const pass = (i: Item, season: string): Item => ({ ...i, exclusive: season });
 
 /** Tags shown next to the nickname. Keys are stored in purchases — never rename a key. */
 export const TAGS: Item[] = [
@@ -88,7 +90,23 @@ export const BANNERS: Item[] = [
   banner("supersonic", "☄️", "Supersonic", 1000, "legendary"),
 ];
 
-export const ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS];
+export const PASS_ITEMS: Item[] = [
+  pass(tag("ignition", "", "Ignition", 0, "rare"), "s1"),
+  pass(tag("overcharged", "", "Overcharged", 0, "epic"), "s1"),
+  pass(tag("afterburner", "", "Afterburner", 0, "epic"), "s1"),
+  pass(tag("apex", "", "Apex Predator", 0, "legendary"), "s1"),
+  pass(tag("s1", "", "Season One", 0, "legendary"), "s1"),
+  pass(tag("supercharged", "", "Supercharged", 0, "legendary"), "s1"),
+  pass(color("ignite", "", "Ignite", 0, "epic"), "s1"),
+  pass(color("prism", "", "Prism", 0, "legendary"), "s1"),
+  pass(banner("hyperspace", "", "Hyperspace", 0, "epic"), "s1"),
+  pass(banner("ignition", "", "Ignition Arena", 0, "legendary"), "s1"),
+];
+
+/** Everything that can be owned (shop + pass). */
+export const ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS, ...PASS_ITEMS];
+/** What the shop sells, crates drop and deals feature. */
+export const SHOP_ITEMS: Item[] = [...TAGS, ...COLORS, ...BANNERS];
 export const itemId = (i: Pick<Item, "kind" | "key">) => `${i.kind}:${i.key}`;
 export const findItem = (id: string | null | undefined) => (id ? ITEMS.find((i) => itemId(i) === id) ?? null : null);
 
@@ -102,7 +120,7 @@ export const CRATES: Crate[] = [
 
 /** Picks the drop: first a rarity by the crate odds (only rarities that still have unowned items), then an item of it. */
 export function rollCrate(crate: Crate, owned: Set<string>, rnd: () => number = Math.random): Item | null {
-  const left = (r: Rarity) => ITEMS.filter((i) => i.rarity === r && !owned.has(itemId(i)));
+  const left = (r: Rarity) => SHOP_ITEMS.filter((i) => i.rarity === r && !owned.has(itemId(i)));
   const pool = (Object.entries(crate.odds) as [Rarity, number][]).filter(([r]) => left(r).length > 0);
   const total = pool.reduce((s, [, w]) => s + w, 0);
   if (!total) return null;
@@ -180,7 +198,7 @@ export const dealPrice = (price: number) => Math.max(5, Math.round((price * (1 -
 export function dailyDeals(day: string): { item: Item; price: number }[] {
   const rnd = seeded(`deals:${day}`);
   return RARITIES.map((r) => {
-    const pool = ITEMS.filter((i) => i.rarity === r);
+    const pool = SHOP_ITEMS.filter((i) => i.rarity === r);
     const item = pool[Math.floor(rnd() * pool.length)];
     return { item, price: dealPrice(item.price) };
   });
@@ -189,7 +207,7 @@ export function dailyDeals(day: string): { item: Item; price: number }[] {
 /** Two featured legendaries for the week (key = Monday's date). */
 export function featured(week: string): Item[] {
   const rnd = seeded(`featured:${week}`);
-  const pool = ITEMS.filter((i) => i.rarity === "legendary" || i.rarity === "epic").sort((a, b) => b.price - a.price);
+  const pool = SHOP_ITEMS.filter((i) => i.rarity === "legendary" || i.rarity === "epic").sort((a, b) => b.price - a.price);
   const a = pool[Math.floor(rnd() * pool.length)];
   const rest = pool.filter((x) => x.kind !== a.kind);
   return [a, rest[Math.floor(rnd() * rest.length)]];
@@ -213,7 +231,7 @@ export function badgeFor(equipped: string | null | undefined): { kind: "tag" | "
   if (!equipped) return null;
   const [kind, key] = equipped.split(":");
   if (kind === "tag") {
-    const item = TAGS.find((x) => x.key === key);
+    const item = TAGS.find((x) => x.key === key) ?? PASS_ITEMS.find((x) => x.kind === "tag" && x.key === key);
     return item ? { kind, item } : null;
   }
   if (kind === "title") {
@@ -227,5 +245,5 @@ export function badgeFor(equipped: string | null | undefined): { kind: "tag" | "
 export const iconOf = (kind: "tag" | "title" | "ach", key: string) => `${kind === "tag" ? "t" : kind === "title" ? "ti" : "a"}-${key}`;
 
 /** CSS class for a stored name colour / banner key (unknown keys are ignored). */
-export const nameColorClass = (key: string | null | undefined) => (key && COLORS.some((c) => c.key === key) ? `nc nc-${key}` : "");
-export const bannerClass = (key: string | null | undefined) => (key && BANNERS.some((b) => b.key === key) ? `bn bn-${key}` : "");
+export const nameColorClass = (key: string | null | undefined) => (key && ITEMS.some((c) => c.kind === "color" && c.key === key) ? `nc nc-${key}` : "");
+export const bannerClass = (key: string | null | undefined) => (key && ITEMS.some((b) => b.kind === "banner" && b.key === key) ? `bn bn-${key}` : "");

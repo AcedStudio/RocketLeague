@@ -11,10 +11,14 @@ const back = (fd: FormData) => {
   return /^\?[a-z0-9=&-]{0,80}$/.test(ret) ? `/shop${ret}` : "/shop";
 };
 
-export async function dailyAction() {
-  const user = await requireUser("/shop");
-  await guard("/shop", () => claimDaily(user.id));
-  ok("/shop", "Бонус получен: +10 🪙");
+export async function dailyAction(fd?: FormData) {
+  const raw = String(fd?.get("back") ?? "");
+  const to = raw === "/pass#quests" ? raw : "/shop";
+  const user = await requireUser(to);
+  await guard(to, async () => {
+    await claimDaily(user.id);
+  });
+  ok(to, "Бонус дня получен");
 }
 
 export async function buyAction(fd: FormData) {
