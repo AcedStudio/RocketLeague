@@ -1281,3 +1281,11 @@ html, body { overflow-x: clip; }
   .track-scroll { grid-auto-columns: 112px; }
   .rw, .rw-empty { min-height: 150px; }
 }
+/* Pass polish: locked rewards keep their colours; the lock sits in the corner. */
+.rw.is-locked { filter: none; }
+.rw.is-locked .rw-art { opacity: 0.8; }
+.rw.is-locked .rw-state { position: absolute; top: 8px; right: 8px; margin: 0; opacity: 0.9; }
+.rw.is-claimed .rw-state { position: absolute; top: 8px; right: 8px; margin: 0; }
+.tier-no { display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap; }
+.tier-col.milestone .tier-no::after { margin-left: 0; }
+.tier-col.milestone .rw { border-width: 1.5px; }
