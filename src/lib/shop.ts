@@ -4,11 +4,11 @@ import { FormError } from "./errors";
 import { logAction } from "./notify";
 import { playerLevel } from "./levels";
 import { achievementFacts } from "./achievements";
-import { ITEMS, CRATES, TITLES, DAILY_BONUS, balance, coinsFromXp, findItem, itemId, rollCrate, type Item, type ItemKind, type TitleFacts } from "./engine/shop.ts";
+import { ITEMS, CRATES, TITLES, DAILY_BONUS, balance, coinsFromXp, findItem, itemId, rollCrate, priceToday, titleProgress, type Item, type ItemKind, type TitleFacts } from "./engine/shop.ts";
 
 export type Wallet = { balance: number; earned: number; bonuses: number; spent: number; owned: Set<string>; equipped: string | null; nameColor: string | null; banner: string | null; dailyClaimed: boolean };
 
-const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" }); // YYYY-MM-DD
+export const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" }); // YYYY-MM-DD
 
 export async function wallet(userId: string): Promise<Wallet> {
   const [lvl, extra, owned] = await Promise.all([
@@ -70,7 +70,7 @@ export async function titleFacts(userId: string): Promise<TitleFacts> {
 
 export async function earnedTitles(userId: string) {
   const f = await titleFacts(userId);
-  return TITLES.map((t) => ({ ...t, has: t.earned(f) }));
+  return TITLES.map((t) => ({ ...t, has: t.earned(f), progress: titleProgress(t, f) }));
 }
 
 export async function claimDaily(userId: string) {
@@ -92,8 +92,9 @@ export async function buyItem(userId: string, id: string) {
     await q("select id from users where id = $1 for update", [userId], c); // one purchase at a time per player
     if (await one("select 1 from purchases where user_id = $1 and item = $2", [userId, id], c)) throw new FormError("Этот предмет уже ваш");
     const w = await wallet(userId);
-    if (w.balance < item.price) throw new FormError("Не хватает монет: нужно {price}, у вас {have}", { price: item.price, have: w.balance });
-    await q("insert into purchases (user_id, item, price) values ($1, $2, $3)", [userId, id, item.price], c);
+    const price = priceToday(item, today());
+    if (w.balance < price) throw new FormError("Не хватает монет: нужно {price}, у вас {have}", { price, have: w.balance });
+    await q("insert into purchases (user_id, item, price) values ($1, $2, $3)", [userId, id, price], c);
     await q(`update users set ${COLUMN[item.kind]} = $2 where id = $1`, [userId, slotValue(item)], c);
     return item;
   });

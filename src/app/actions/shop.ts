@@ -5,7 +5,11 @@ import { guard, ok, FormError } from "@/lib/forms";
 import { claimDaily, buyItem, openCrate, equipItem, grantCoins } from "@/lib/shop";
 import { type Item } from "@/lib/engine/shop";
 
-const back = (fd: FormData) => `/shop${String(fd.get("hash") ?? "").replace(/[^#a-z-]/g, "")}`;
+/** Where to come back to: the same tab and filters (only a plain query string is accepted). */
+const back = (fd: FormData) => {
+  const ret = String(fd.get("ret") ?? "");
+  return /^\?[a-z0-9=&-]{0,80}$/.test(ret) ? `/shop${ret}` : "/shop";
+};
 
 export async function dailyAction() {
   const user = await requireUser("/shop");
@@ -25,11 +29,11 @@ export async function buyAction(fd: FormData) {
 export async function crateAction(fd: FormData) {
   const user = await requireUser("/shop");
   let drop: Item | null = null;
-  await guard("/shop#crates", async () => {
+  await guard("/shop?tab=crates", async () => {
     drop = await openCrate(user.id, String(fd.get("crate") ?? ""));
   });
   const d = drop as Item | null;
-  ok(`/shop?drop=${encodeURIComponent(d ? `${d.kind}:${d.key}` : "")}#crates`, "Кейс открыт!");
+  ok(`/shop?tab=crates&drop=${encodeURIComponent(d ? `${d.kind}:${d.key}` : "")}`, "Кейс открыт!");
 }
 
 export async function equipAction(fd: FormData) {
