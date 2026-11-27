@@ -19,7 +19,12 @@ export function isLocale(v: unknown): v is Locale {
 
 export function interpolate(template: string, params?: Params): string {
   if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (m, k: string) => (params[k] === undefined || params[k] === null ? m : String(params[k])));
+  // A value that already ends with a full stop ("2 декабря 2026 г.") swallows the template's own one.
+  return template.replace(/\{(\w+)\}(\.?)/g, (m, k: string, dot: string) => {
+    if (params[k] === undefined || params[k] === null) return m;
+    const v = String(params[k]);
+    return dot && v.endsWith(".") ? v : v + dot;
+  });
 }
 
 export function translate(dict: Dict | null | undefined, key: string, params?: Params): string {

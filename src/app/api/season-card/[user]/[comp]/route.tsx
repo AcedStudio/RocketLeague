@@ -65,6 +65,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ user: st
         <div style={{ display: "flex", fontSize: 24, color: "rgba(255,255,255,0.55)" }}>rlchamp.uz</div>
       </div>
     ),
-    { width: 1080, height: 1350, fonts: font ? [{ name: "Unbounded", data: font, weight: 800, style: "normal" }] : undefined },
+    { width: 1080, height: 1350, headers: { "Cache-Control": "public, max-age=300, s-maxage=600, stale-while-revalidate=86400" }, fonts: font ? [{ name: "Unbounded", data: font, weight: 800, style: "normal" }] : undefined },
   );
 }

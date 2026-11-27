@@ -33,9 +33,10 @@ import { refereeDesk } from "../src/lib/referee-desk";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
+  const t0 = Date.now();
   await fn();
   passed++;
-  console.log(`ok  ${name}`);
+  console.log(`ok  ${name} (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
 };
 const rejects = async (p: Promise<unknown>, re: RegExp) => {
   try {
@@ -84,6 +85,11 @@ async function playAll(compId: string, users: Map<string, User>, stage?: string,
 }
 
 async function main() {
+  {
+    const t0 = Date.now();
+    for (let i = 0; i < 10; i++) await q("select 1");
+    console.log(`[qa] database round trip ≈ ${Math.round((Date.now() - t0) / 10)}ms`);
+  }
   await q(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"));
   // Start from an empty database — but only on the qa branch, which carries a qa_marker table.
   // Production never has that table, so a misconfigured URL can't wipe real data.
@@ -549,17 +555,18 @@ async function main() {
     const m = (await getMatches(ac)).find((x) => !x.is_bye && x.home_entry_id && x.away_entry_id)!;
     const home = users.get((await membersOf(m.home_entry_id!))[0])!;
     const before = new Set((await q<{ key: string }>("select key from user_achievements where user_id = $1", [home.id])).map((r) => r.key));
+    const since = (await one<{ t: Date }>("select clock_timestamp() as t"))!.t;
     await refereeResult(m.id, admin, { games: [{ home: 6, away: 0 }] }, "");
     const got = new Set((await q<{ key: string }>("select key from user_achievements where user_id = $1", [home.id])).map((r) => r.key));
     for (const k of ["first_win", "clean_sheet", "rout"]) assert.ok(got.has(k), k);
     const fresh = [...got].filter((k) => !before.has(k));
-    const notes = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🏅%' and created_at > now() - interval '5 minutes'", [home.id]);
+    const notes = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🏅%' and created_at > $2", [home.id, since]);
     assert.equal(notes!.n, fresh.length, "one notification per new badge");
     // A correction to a loss doesn't take earned badges away.
     await refereeResult(m.id, admin, { games: [{ home: 0, away: 1 }] }, "");
     const list = await playerAchievements(home.id);
     assert.ok(list.find((a) => a.def.key === "clean_sheet")!.done);
-    const again = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🏅%' and created_at > now() - interval '5 minutes'", [home.id]);
+    const again = await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and title like '🏅%' and created_at > $2", [home.id, since]);
     assert.equal(again!.n, notes!.n, "nothing announced twice");
   });
 

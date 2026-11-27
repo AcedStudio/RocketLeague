@@ -917,3 +917,35 @@ main h1 { text-shadow: 0 0 40px rgba(55, 190, 254, 0.18); }
 .grant-form { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-width: 240px; }
 .grant-form .input { min-height: 34px; }
 .grant-form .num { width: 90px; }
+
+/* ---------- mobile polish (QA pass) ---------- */
+.brand { min-width: 0; }
+.brand span, .brand-name { overflow: hidden; text-overflow: ellipsis; }
+html, body { overflow-x: clip; }
+@media (max-width: 520px) {
+  .topbar .wrap { gap: var(--s2); height: 58px; }
+  .brand { font-size: 0.98rem; gap: 8px; }
+  .top-actions { gap: 6px; }
+  .top-actions .btn { padding: 0 12px; height: 38px; font-size: 0.9rem; }
+  .icon-btn, .bell { width: 38px; height: 38px; }
+  .hero-card { padding: var(--s5); }
+  .hero-facts { grid-template-columns: 1fr 1fr; gap: var(--s4); }
+  .hero-facts > div:nth-child(3) { grid-column: 1 / -1; }
+  .hero-facts dd { font-size: 1.12rem; line-height: 1.25; }
+  .hero-actions .row { flex-wrap: wrap; }
+  .hero-actions .row > .btn { flex: 1 1 100%; }
+  .btn-lg { height: 48px; font-size: 1rem; }
+  h1 { word-break: break-word; }
+}
+@media (max-width: 360px) {
+  .brand-name, .brand span { display: none; }
+}
+/* Generated images: a shimmering placeholder of the right shape while the picture is drawn. */
+.match-card-preview { aspect-ratio: 1200 / 630; background: linear-gradient(100deg, var(--surface-2) 30%, rgba(136, 237, 255, 0.07) 50%, var(--surface-2) 70%) 0 0 / 300% 100%; animation: img-shimmer 1.4s linear infinite; }
+.match-card-preview img { aspect-ratio: 1200 / 630; }
+@keyframes img-shimmer { to { background-position: -150% 0; } }
+/* Match journey: labels wrap neatly on narrow screens. */
+@media (max-width: 520px) {
+  .journey-steps li { min-width: 0; padding: 0 1px; }
+  .journey-label { font-size: 0.66rem !important; line-height: 1.2; overflow-wrap: anywhere; hyphens: auto; }
+}
