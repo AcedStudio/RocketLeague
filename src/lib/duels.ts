@@ -146,16 +146,16 @@ export async function recentDuels(limit = 12) {
   return q<Duel>(`${SELECT} where d.status = 'completed' order by d.completed_at desc limit $1`, [limit]);
 }
 
-export type DuelRow = { user_id: string; nickname: string; badge: string | null; color: string | null; played: number; wins: number; losses: number };
+export type DuelRow = { user_id: string; nickname: string; badge: string | null; color: string | null; avatar: string | null; played: number; wins: number; losses: number };
 
 export async function duelTable(limit = 20) {
   return q<DuelRow>(
-    `select u.id as user_id, u.rl_nickname as nickname, u.equipped_badge as badge, u.name_color as color, count(*)::int as played,
+    `select u.id as user_id, u.rl_nickname as nickname, u.equipped_badge as badge, u.name_color as color, u.avatar, count(*)::int as played,
             count(*) filter (where d.winner_id = u.id)::int as wins,
             count(*) filter (where d.winner_id <> u.id)::int as losses
        from duels d join users u on u.id in (d.challenger_id, d.opponent_id)
       where d.status = 'completed'
-      group by u.id, u.rl_nickname, u.equipped_badge, u.name_color
+      group by u.id, u.rl_nickname, u.equipped_badge, u.name_color, u.avatar
       order by wins desc, losses asc, u.rl_nickname limit $1`,
     [limit],
   );

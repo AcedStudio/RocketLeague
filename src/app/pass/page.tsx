@@ -5,7 +5,7 @@ import type { T } from "@/lib/i18n/core";
 import { Flash, type SP } from "@/components/ui";
 import { SubmitButton, ScrollToMark } from "@/components/client";
 import { Icon } from "@/components/Icon";
-import { Nick } from "@/components/Badge";
+import { Nick, Avatar } from "@/components/Badge";
 import { Coin, rarityClass } from "@/components/shop";
 import { passState, questsState, checkinDays, type QuestState } from "@/lib/pass";
 import { TIER_XP, PASS_XP, tashkentDay, streakOf, streakBonus, rewardRef, type Reward } from "@/lib/engine/pass";
@@ -49,10 +49,11 @@ function RewardArt({ reward, nick, t }: { reward: Reward; nick: string; t: T }) 
     <>
       <span className={`rw-art ${item.kind === "banner" ? bannerClass(item.key) : ""}`}>
         {item.kind === "tag" && <Icon name={iconOf("tag", item.key)} size={50} />}
+        {item.kind === "avatar" && <Avatar name={nick} avatar={item.key} size={56} />}
         {item.kind === "color" && <b className="rw-nick"><Nick name={nick.slice(0, 7)} color={item.key} /></b>}
       </span>
       <span className="rw-name">{item.name}</span>
-      <span className="rw-kind">{t(item.kind === "tag" ? "Тег" : item.kind === "color" ? "Цвет ника" : "Баннер")}</span>
+      <span className="rw-kind">{t(item.kind === "tag" ? "Тег" : item.kind === "color" ? "Цвет ника" : item.kind === "avatar" ? "Аватар" : "Баннер")}</span>
     </>
   );
 }

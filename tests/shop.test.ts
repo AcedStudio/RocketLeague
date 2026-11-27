@@ -67,3 +67,11 @@ test("every tag, title and achievement has its own drawn icon in the sprite", ()
   const need = [...TAGS.map((t) => iconOf("tag", t.key)), ...TITLES.map((t) => iconOf("title", t.key)), ...ACHIEVEMENTS.map((a) => iconOf("ach", a.key))];
   assert.deepEqual(need.filter((n) => !ids.has(n)), []);
 });
+
+import { AVATARS, avatarItem } from "../src/lib/engine/shop.ts";
+test("every avatar has its portrait in the sprite", () => {
+  const sprite = readFileSync(new URL("../public/icons.svg", import.meta.url), "utf8");
+  for (const a of [...AVATARS, ...ITEMS.filter((i) => i.kind === "avatar")]) assert.ok(sprite.includes(`id="av-${a.key}"`), a.key);
+  assert.equal(avatarItem("phoenix")?.rarity, "legendary");
+  assert.equal(avatarItem("nope"), null);
+});

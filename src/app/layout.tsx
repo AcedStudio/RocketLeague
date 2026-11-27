@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { Avatar } from "@/components/Badge";
 import { Unbounded, Onest } from "next/font/google";
 import "./globals.css";
 import { getUser, isAdmin, isReferee } from "@/lib/auth";
@@ -47,9 +48,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
     { href: "/rules", label: t("Правила"), icon: "ui-rules" },
   ];
-  const unread = user && dbConfigured()
-    ? (await one<{ n: number }>("select count(*)::int as n from notifications where user_id = $1 and read_at is null", [user.id]))?.n ?? 0
-    : 0;
+  const me = user && dbConfigured()
+    ? await one<{ n: number; avatar: string | null }>(
+        "select (select count(*)::int from notifications where user_id = $1 and read_at is null) as n, (select avatar from users where id = $1) as avatar",
+        [user.id],
+      )
+    : null;
+  const unread = me?.n ?? 0;
 
   return (
     <html lang={t.locale} className={`${display.variable} ${text.variable}`}>
@@ -89,7 +94,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     className="user-menu hide-m"
                     summary={
                       <summary className="btn btn-ghost btn-sm">
-                        <span className="user-dot" aria-hidden>{user.rl_nickname.slice(0, 1).toUpperCase()}</span>
+                        <Avatar name={user.rl_nickname} avatar={me?.avatar} size={24} />
                         {user.rl_nickname}
                       </summary>
                     }
