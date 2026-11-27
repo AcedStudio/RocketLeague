@@ -4,6 +4,7 @@ import { FormError } from "./errors";
 import { logAction } from "./notify";
 import { playerLevel } from "./levels";
 import { achievementFacts } from "./achievements";
+import { streakOf, streakBonus } from "./engine/pass.ts";
 import { ITEMS, CRATES, TITLES, DAILY_BONUS, balance, coinsFromXp, findItem, itemId, rollCrate, priceToday, titleProgress, type Item, type ItemKind, type TitleFacts } from "./engine/shop.ts";
 
 export type Wallet = { balance: number; earned: number; bonuses: number; spent: number; owned: Set<string>; equipped: string | null; nameColor: string | null; banner: string | null; dailyClaimed: boolean };
@@ -73,12 +74,20 @@ export async function earnedTitles(userId: string) {
   return TITLES.map((t) => ({ ...t, has: t.earned(f), progress: titleProgress(t, f) }));
 }
 
+/** Daily check-in: the bonus grows with the streak (10, 15 … 40 on day 7+). Returns the amount and the streak. */
 export async function claimDaily(userId: string) {
+  const day = today();
+  const days = new Set((await q<{ ref: string }>("select ref from coin_bonuses where user_id = $1 and reason = 'daily' order by ref desc limit 60", [userId])).map((r) => r.ref));
+  if (days.has(day)) throw new FormError("Сегодняшний бонус уже получен — заходите завтра");
+  days.add(day);
+  const streak = streakOf(days, day);
+  const amount = streakBonus(streak);
   const row = await one<{ id: number }>(
     "insert into coin_bonuses (user_id, amount, reason, ref) values ($1, $2, 'daily', $3) on conflict do nothing returning id",
-    [userId, DAILY_BONUS, today()],
+    [userId, amount, day],
   );
   if (!row) throw new FormError("Сегодняшний бонус уже получен — заходите завтра");
+  return { amount, streak };
 }
 
 const COLUMN: Record<ItemKind, string> = { tag: "equipped_badge", color: "name_color", banner: "banner" };
@@ -88,6 +97,7 @@ const slotValue = (i: Item) => (i.kind === "tag" ? itemId(i) : i.key);
 export async function buyItem(userId: string, id: string) {
   const item = findItem(id);
   if (!item) throw new FormError("Такого предмета нет");
+  if (item.exclusive) throw new FormError("Этот предмет можно получить только в боевом пропуске");
   return tx(async (c) => {
     await q("select id from users where id = $1 for update", [userId], c); // one purchase at a time per player
     if (await one("select 1 from purchases where user_id = $1 and item = $2", [userId, id], c)) throw new FormError("Этот предмет уже ваш");

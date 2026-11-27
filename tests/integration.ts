@@ -30,6 +30,8 @@ import { resetToTemp, resetLink, checkResetToken, consumeResetToken } from "../s
 import { verifyPassword } from "../src/lib/crypto";
 import { wallet, claimDaily, buyTag, buyItem, openCrate, equipItem, equipBadge, grantCoins, earnedTitles } from "../src/lib/shop";
 import { refereeDesk } from "../src/lib/referee-desk";
+import { passState, questsState, claimQuest, claimTier, buyElite } from "../src/lib/pass";
+import { currentSeason } from "../src/lib/engine/pass";
 
 let passed = 0;
 const step = async (name: string, fn: () => Promise<void>) => {
@@ -775,6 +777,40 @@ async function main() {
     await refereeResult(m.id, judge, { games: [{ home: 3, away: 1 }] }, "");
     desk = await refereeDesk(judge.id);
     assert.ok(![...desk.score, ...desk.upcoming, ...desk.waiting].some((x) => x.id === m.id), "done → gone from the desk");
+  });
+
+  await step("season pass: check-in quest, quest XP, tiers unlock rewards, Elite track", async () => {
+    const season = currentSeason();
+    if (!season) return; // outside a season there is nothing to check
+    const p = await mkUser("passer");
+    let qs = await questsState(p.id);
+    const checkin = qs.daily[0];
+    assert.equal(checkin.key, "checkin");
+    assert.equal(checkin.done, false);
+    await rejects(claimQuest(p.id, checkin.ref), /не выполнено/);
+    await claimDaily(p.id);
+    qs = await questsState(p.id);
+    assert.ok(qs.daily[0].done);
+    await claimQuest(p.id, checkin.ref);
+    await rejects(claimQuest(p.id, checkin.ref), /уже получена/);
+    let st = await passState(p.id);
+    assert.equal(st.xp, checkin.xp);
+    await rejects(claimTier(p.id, 5, "free"), /дойдите/);
+    await q("insert into pass_xp (user_id, season, amount, reason, ref) values ($1, $2, 1200, 'test', 'boost')", [p.id, season.key]);
+    st = await passState(p.id);
+    assert.ok(st.tier >= 6);
+    await claimTier(p.id, 5, "free");
+    assert.ok((await wallet(p.id)).owned.has("tag:ignition"), "exclusive tag granted");
+    await rejects(claimTier(p.id, 5, "free"), /уже получена/);
+    await rejects(claimTier(p.id, 1, "elite"), /Elite/);
+    await rejects(buyItem(p.id, "tag:ignition"), /пропуске/);
+    await grantCoins(admin.id, p.id, season.elitePrice, "test");
+    await buyElite(p.id);
+    await claimTier(p.id, 1, "elite");
+    assert.ok((await wallet(p.id)).owned.has("color:ignite"));
+    const before = (await wallet(p.id)).balance;
+    await claimTier(p.id, 2, "free");
+    assert.ok((await wallet(p.id)).balance > before, "coin reward paid");
   });
 
   console.log(`\n${passed} integration checks passed`);

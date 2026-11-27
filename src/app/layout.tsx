@@ -43,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/players", label: t("Игроки"), icon: "ui-players" },
     { href: "/stats", label: t("Статистика"), icon: "ui-stats" },
     { href: "/hall", label: t("Зал славы"), icon: "ui-hall" },
+    { href: "/pass", label: t("Пропуск"), icon: "ui-pass" },
     { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
     { href: "/rules", label: t("Правила"), icon: "ui-rules" },
   ];
@@ -97,6 +98,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Link href="/me"><Icon name="ui-user" /> {t("Профиль")}</Link>
                       <Link href={`/players/${user.id}`}><Icon name="ui-card" /> {t("Моя карточка")}</Link>
                       <Link href="/duels"><Icon name="ui-duels" /> {t("Мои дуэли")}</Link>
+                      <Link href="/pass"><Icon name="ui-pass" /> {t("Боевой пропуск")}</Link>
                       <Link href="/shop"><Icon name="ui-shop" /> {t("Магазин")}</Link>
                       {judging && <Link href="/referee"><Icon name="ui-referee" /> {t("Кабинет судьи")}</Link>}
                       {isReferee(user.role) && <Link href="/admin"><Icon name="ui-admin" /> {isAdmin(user.role) ? t("Админка") : t("Судейская")}</Link>}

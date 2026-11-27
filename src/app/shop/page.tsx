@@ -6,7 +6,9 @@ import { SubmitButton } from "@/components/client";
 import { Icon } from "@/components/Icon";
 import { Coin, Nameplate, ItemTile, CrateCard, rarityClass, type Owner, type Look } from "@/components/shop";
 import { wallet, earnedTitles, today } from "@/lib/shop";
-import { TAGS, COLORS, BANNERS, CRATES, ITEMS, RARITY_NAME, RARITIES, DAILY_BONUS, dailyDeals, featured, findItem, itemId, priceToday, iconOf, type Item, type Rarity } from "@/lib/engine/shop";
+import { streakNow } from "@/lib/pass";
+import { streakBonus } from "@/lib/engine/pass";
+import { TAGS, COLORS, BANNERS, CRATES, SHOP_ITEMS, RARITY_NAME, RARITIES, dailyDeals, featured, findItem, itemId, priceToday, iconOf, type Item, type Rarity } from "@/lib/engine/shop";
 import { XP } from "@/lib/engine/levels";
 import { dailyAction, equipAction } from "@/app/actions/shop";
 
@@ -39,7 +41,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
   const rarity = RARITIES.includes(sp.r as Rarity) ? (sp.r as Rarity) : null;
   const hideOwned = sp.own === "hide";
   const user = await getUser();
-  const [w, titles] = user ? await Promise.all([wallet(user.id), earnedTitles(user.id)]) : [null, null];
+  const [w, titles, streak] = user ? await Promise.all([wallet(user.id), earnedTitles(user.id), streakNow(user.id)]) : [null, null, 0];
   const day = today();
   const deals = dailyDeals(day);
   const feat = featured(weekKey(day));
@@ -53,7 +55,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
     equipped: { badge: w?.equipped ?? null, color: w?.nameColor ?? null, banner: w?.banner ?? null },
   };
   const look: Look = { nick: user?.rl_nickname ?? "Player", badge: me.equipped.badge, color: me.equipped.color, banner: me.equipped.banner };
-  const ownedCount = ITEMS.filter((i) => me.owned.has(itemId(i))).length;
+  const ownedCount = SHOP_ITEMS.filter((i) => me.owned.has(itemId(i))).length;
 
   const href = (p: { tab?: Tab; r?: Rarity | null; own?: boolean }) => {
     const q = new URLSearchParams();
@@ -107,7 +109,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
               <span className="balance-note">{t("Бонус дня получен")}</span>
             ) : (
               <form action={dailyAction}>
-                <SubmitButton className="btn btn-sm btn-gold">{t("Бонус дня +{n}", { n: DAILY_BONUS })}</SubmitButton>
+                <SubmitButton className="btn btn-sm btn-gold">{t("Бонус дня +{n}", { n: streakBonus(streak + 1) })}</SubmitButton>
               </form>
             )}
           </div>
@@ -160,8 +162,8 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
             ))}
             <div className="slot slot-progress">
               <span className="slot-label">{t("Коллекция")}</span>
-              <span className="slot-value num">{ownedCount} / {ITEMS.length}</span>
-              <span className="meter"><i style={{ width: `${Math.round((ownedCount / ITEMS.length) * 100)}%` }} /></span>
+              <span className="slot-value num">{ownedCount} / {SHOP_ITEMS.length}</span>
+              <span className="meter"><i style={{ width: `${Math.round((ownedCount / SHOP_ITEMS.length) * 100)}%` }} /></span>
             </div>
           </div>
         </section>
@@ -304,7 +306,7 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
               [t("Значок"), Math.floor(XP.achievement / 2)],
               [t("Победа в дуэли"), XP.duelWin / 2],
               [t("Титул чемпиона"), XP.title / 2],
-              [t("Ежедневный бонус"), DAILY_BONUS],
+              [t("Ежедневный бонус"), "10–40"],
             ] as const
           ).map(([label, n]) => (
             <div key={label}>
@@ -325,6 +327,6 @@ export default async function Shop({ searchParams }: { searchParams: SP }) {
 }
 
 function crateLeft(odds: Partial<Record<Rarity, number>>, owned: Set<string>) {
-  return ITEMS.filter((i) => odds[i.rarity] && !owned.has(itemId(i))).length;
+  return SHOP_ITEMS.filter((i) => odds[i.rarity] && !owned.has(itemId(i))).length;
 }
 

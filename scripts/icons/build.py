@@ -514,6 +514,72 @@ def g_laurel_star():
     return laurel(32, 34, 22, "acc") + [star(32, 30, 17, 7, 5)], []
 
 
+# ---- Season Pass / quests -------------------------------------------------------
+def g_ignition():
+    ring = S("M32 32m-24 0a24 24 0 1 0 48 0a24 24 0 1 0 -48 0", 5, "acc")
+    return [ring, P("M32 10C38 19 45 24 43 35C42 44 37 50 32 50C26 50 21 45 21 37C21 30 26 27 27 21C30 26 31 27 32 28C31 22 31 16 32 10Z")], [
+        P("M32 32C35 36 38 39 37 43C36 47 34 48 32 48C29 48 27 46 27 43C27 40 30 37 32 32Z", "gold")]
+
+
+def g_battery(bolt=True):
+    parts = [R(8, 16, 44, 32, 6), R(52, 26, 6, 12, 2, "acc")]
+    det = [R(13, 21, 34, 22, 3, "dark"), R(15, 23, 8, 18, 2, "green"), R(25, 23, 8, 18, 2, "green"), R(35, 23, 8, 18, 2, "green")]
+    if bolt:
+        det.append(P("M33 12L22 34H30L26 52L42 28H34Z", "gold"))
+    return parts, det
+
+
+def g_afterburner():
+    return [P("M4 26L22 20V44L4 38Z", "fire"), P("M20 18H44L58 28V36L44 46H20Z", "steel"), R(26, 14, 10, 6, 2, "acc"), R(26, 44, 10, 6, 2, "acc")], [
+        P("M2 28L14 32L2 36Z", "gold"), R(30, 26, 18, 12, 3, "dark"), R(32, 28, 14, 3, 1.5, "ice")]
+
+
+def g_apex():
+    return [P("M4 56L24 20L32 32L40 14L60 56Z"), star(40, 10, 8, 3.2, 5, role="acc")], [P("M40 14L34 26L40 23L46 30Z", "light"), P("M24 20L19 29L24 27L28 31Z", "light")]
+
+
+def g_s1():
+    return [P("M32 4L56 14V32C56 46 46 56 32 60C18 56 8 46 8 32V14Z")], [T(32, 42, "S1", 22, "light"), star(32, 12, 4, 1.6, 5, role="gold")]
+
+
+def g_supercharged():
+    return [C(32, 32, 26, "void"), P("M36 6L16 36H29L24 58L48 26H35Z")], [S("M32 32m-20 0a20 20 0 1 0 40 0", 2, "soft")]
+
+
+def g_ticket():
+    return [P("M6 16H58V27A5 5 0 0 0 58 37V48H6V37A5 5 0 0 0 6 27Z")], [S("M42 18V46", 2, "soft"), star(24, 32, 9, 3.8, 5, role="light"), R(46, 24, 8, 4, 2, "light"), R(46, 36, 8, 4, 2, "light")]
+
+
+def g_coins():
+    return [E(30, 46, 20, 7, "gold"), R(10, 38, 40, 8, 0, "gold"), E(30, 38, 20, 7, "gold"), R(14, 24, 40, 8, 0, "gold"), E(34, 24, 20, 7, "gold"), E(34, 16, 20, 7, "gold"), R(14, 16, 40, 8, 0, "gold")], [
+        E(34, 16, 14, 4.5, "soft"), T(34, 20, "C", 8, "orange")]
+
+
+def g_crate_icon():
+    return [R(8, 22, 48, 34, 5), R(4, 14, 56, 14, 4, "acc")], [R(28, 14, 8, 42, 1, "gold"), S("M12 36H52", 1.6, "soft")]
+
+
+def g_gift():
+    return [R(8, 26, 48, 30, 4), R(5, 18, 54, 12, 3, "acc"), S("M32 18C24 4 12 10 22 18", 4, "gold"), S("M32 18C40 4 52 10 42 18", 4, "gold")], [R(28, 18, 8, 38, 1, "gold")]
+
+
+def g_flame_cal():
+    return [R(8, 12, 48, 46, 6, "steel"), R(8, 12, 48, 12, 6, "red")], [R(16, 6, 5, 12, 2, "silver"), R(43, 6, 5, 12, 2, "silver"),
+        P("M32 28C36 34 42 37 41 45C40 51 36 54 32 54C27 54 23 51 23 45C23 40 27 38 28 33C30 36 31 37 32 37C31 34 31 31 32 28Z", "fire")]
+
+
+def g_lock():
+    return [S("M20 28V20C20 8 44 8 44 20V28", 6, "steel"), R(12, 26, 40, 32, 6)], [C(32, 40, 4, "dark"), R(30.5, 40, 3, 9, 1.5, "dark")]
+
+
+def g_check():
+    return [C(32, 32, 26)], [S("M20 33L28 41L45 23", 6, "light")]
+
+
+def g_match_flags():
+    return [R(8, 8, 5, 50, 2.5, "steel"), P("M13 10H40L34 19L40 28H13Z"), R(51, 8, 5, 50, 2.5, "steel"), P("M51 22H24L30 31L24 40H51Z", "acc")], []
+
+
 # UI glyphs (duotone, sky palette) ----------------------------------------------
 def u_user():
     return [C(32, 22, 13), P("M8 58C8 44 18 36 32 36C46 36 56 44 56 58Z")], []
@@ -605,6 +671,19 @@ TAGS = {
     "clover": ("green", g_clover, "lime", 1),
     "alien": ("lime", g_alien, None, 2),
     "ai": ("teal", g_brain_chip, "gold", 3),
+    # Season Pass exclusives
+    "ignition": ("fire", g_ignition, "sky", 1),
+    "overcharged": ("steel", g_battery, None, 2),
+    "afterburner": ("sky", g_afterburner, "gold", 2),
+    "apex": ("purple", g_apex, "gold", 3),
+    "s1": ("sky", g_s1, "gold", 3),
+    "supercharged": ("gold", g_supercharged, None, 3),
+}
+
+QUESTS = {
+    "gift": ("pink", g_gift, "gold"), "duel": ("steel", lambda: g_crossed_swords(False), "gold"), "win": ("gold", g_trophy, "gold"),
+    "goal": ("silver", lambda: ([C(32, 32, 25, "silver")], g_ball()[1]), None), "match": ("sky", g_match_flags, "red"),
+    "ref": ("silver", g_whistle, "red"), "shield": ("orange", g_bricks, None),
 }
 
 TITLES = {
@@ -650,7 +729,7 @@ ACH = {
 UI = {
     "user": ("sky", u_user), "card": ("sky", u_id), "duels": ("steel", lambda: g_crossed_swords(False)), "shop": ("sky", u_bag), "referee": ("gold", g_scales),
     "admin": ("steel", u_gear), "logout": ("steel", u_door), "competitions": ("gold", u_trophy), "players": ("sky", u_users), "stats": ("sky", g_chart),
-    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell),
+    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket),
 }
 
 for key, (pal, fn, acc, tier) in TAGS.items():
@@ -662,6 +741,16 @@ for key, (pal, fn, acc, tier) in TITLES.items():
 for key, (pal, fn, acc, tier) in ACH.items():
     parts, det = fn()
     icon(f"a-{key}", pal, parts, acc, sparkles=tier, detail=det)
+for key, (pal, fn, acc) in QUESTS.items():
+    parts, det = fn()
+    icon(f"q-{key}", pal, parts, acc, aura=False, detail=det)
+for key, (pal, fn, acc, sp) in {
+    "coins": ("gold", g_coins, "gold", 1), "crate-rookie": ("sky", g_crate_icon, "sky", 0), "crate-elite": ("purple", g_crate_icon, "purple", 1),
+    "crate-mythic": ("gold", g_crate_icon, "orange", 2), "pass": ("sky", g_ticket, "gold", 1), "streak": ("steel", g_flame_cal, "red", 0),
+    "lock": ("steel", g_lock, "gold", 0), "check": ("green", g_check, None, 0),
+}.items():
+    parts, det = fn()
+    icon(f"r-{key}", pal, parts, acc, aura=False, sparkles=sp, detail=det)
 for key, (pal, fn) in UI.items():
     parts, det = fn()
     acc = {"steel": "gold", "bone": "orange"}.get(pal, "gold")

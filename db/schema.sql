@@ -420,3 +420,16 @@ create table if not exists coin_bonuses (
 alter table users add column if not exists equipped_badge text;
 alter table users add column if not exists name_color text;
 alter table users add column if not exists banner text;
+
+-- Season Pass: XP from quests (activity XP is computed from matches/duels inside the season window).
+create table if not exists pass_xp (
+  id bigserial primary key,
+  user_id uuid not null references users(id) on delete cascade,
+  season text not null,
+  amount int not null,
+  reason text not null,
+  ref text not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, reason, ref)
+);
+create index if not exists pass_xp_user on pass_xp (user_id, season);
