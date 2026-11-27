@@ -108,7 +108,7 @@ export function ItemTile({ item, price, me, look, ret, t, large }: { item: Item;
 
 export function CrateCard({ crate, me, left, t }: { crate: Crate; me: Owner; left: number; t: T }) {
   const rar = RARITIES.filter((r) => crate.odds[r]);
-  const top = rar[rar.length - 1];
+  const top: Rarity = crate.key === "rookie" ? "rare" : crate.key === "elite" ? "epic" : "legendary";
   const afford = me.balance >= crate.price;
   return (
     <article className={`crate2 ${rarityClass(top)}`}>
