@@ -1754,3 +1754,26 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
   .cmp-row > span:nth-child(2) { min-width: 90px; }
 }
 .danger-ink { color: #FF6A7A; }
+
+/* ======================= REFEREE TRACK ======================= */
+.ref-hero { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px; border-radius: var(--r-lg); border: 1px solid rgba(255, 200, 61, 0.3); background: linear-gradient(135deg, rgba(255, 200, 61, 0.08), rgba(55, 190, 254, 0.04)); }
+.ref-kpis { display: grid; grid-template-columns: repeat(4, auto); gap: 18px; text-align: center; }
+.ref-kpis > div { display: grid; gap: 2px; }
+.ref-kpis b { font-size: 1.2rem; }
+.ref-kpis span { font-size: 0.7rem; color: var(--ink-faint); }
+.ref-track { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.ref-tier { display: grid; justify-items: center; gap: 6px; padding: 14px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); text-align: center; opacity: 0.55; filter: saturate(0.4); }
+.ref-tier.on { opacity: 1; filter: none; border-color: rgba(255, 200, 61, 0.5); box-shadow: 0 0 18px rgba(255, 200, 61, 0.12); }
+.ref-tier.done { border-color: rgba(91, 227, 140, 0.45); box-shadow: none; }
+.ref-tier b { font-size: 0.85rem; }
+.ref-reward { display: inline-flex; align-items: center; gap: 4px; }
+.list-row.me { outline: 1px solid rgba(55, 190, 254, 0.5); }
+@media (max-width: 820px) {
+  .ref-hero { grid-template-columns: auto minmax(0, 1fr); }
+  .ref-kpis { grid-column: 1 / -1; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .ref-track { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.desk-h .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.desk-h .dot.red { background: #FF5A6E; box-shadow: 0 0 8px rgba(255, 90, 110, 0.7); }
+.desk-h .dot.gold { background: #FFC83D; box-shadow: 0 0 8px rgba(255, 200, 61, 0.6); }
+.desk-h .dot.grey { background: #8B9BB4; }

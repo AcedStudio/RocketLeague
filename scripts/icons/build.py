@@ -550,6 +550,14 @@ def g_gradcap():
     return [P("M4 24L32 12L60 24L32 36Z"), P("M16 30V44C16 50 48 50 48 44V30L32 37Z", "acc"), S("M56 26V42", 3, "gold")], [C(56, 44, 3.5, "gold"), star(32, 24, 5, 2, 5, role="light")]
 
 
+def g_whistle():
+    return [P("M10 26H38C48 26 56 33 56 42C56 51 48 58 38 58C29 58 22 52 21 44H10C7 44 6 42 6 40V30C6 28 7 26 10 26Z"), R(30, 16, 8, 12, 2, "acc")], [C(38, 42, 7, "dark"), C(36, 40, 2.4, "light"), S("M44 8L40 16M54 14L46 20M30 6L32 14", 3, "acc")]
+
+
+def g_var():
+    return [R(6, 10, 52, 36, 6, "steel"), R(11, 15, 42, 26, 3, "dark"), R(26, 46, 12, 8, 1, "steel"), R(18, 54, 28, 5, 2.5, "steel")], [T(32, 34, "VAR", 13, "acc"), C(50, 19, 2.6, "red")]
+
+
 def g_compass():
     return [C(32, 32, 26, "gold"), C(32, 32, 20, "void")], [P("M32 12L38 32L32 52L26 32Z", "light"), P("M32 12L38 32H26Z", "red"), C(32, 32, 3.5, "gold"), S("M32 6V10M32 54V58M6 32H10M54 32H58", 2.4, "soft")]
 
@@ -720,6 +728,8 @@ TAGS = {
     "supercharged": ("gold", g_supercharged, None, 3),
     "rookieclass": ("sky", g_gradcap, "steel", 1),
     "pathfinder": ("gold", g_compass, "gold", 2),
+    "whistle": ("silver", g_whistle, "gold", 2),
+    "var": ("steel", g_var, "gold", 3),
 }
 
 QUESTS = {
@@ -891,6 +901,7 @@ AVATARS = {
     "horizon": ("void", g_void, "void", None),
     "ignition": ("red", g_ignition, "fire", "sky"),
     "pathfinder": ("gold", g_laurel_star, "gold", "green"),
+    "arbiter": ("steel", g_scales, "gold", "sky"),
 }
 for key, (plate, fn, pal, acc) in AVATARS.items():
     avatar(key, plate, fn, pal, acc)

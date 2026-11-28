@@ -36,6 +36,7 @@ import { vapid, saveSubscription, allowedEndpoint } from "../src/lib/push";
 import { notify } from "../src/lib/notify";
 import { handleUpdate, linkUrl } from "../src/lib/telegram";
 import { proProfile, headToHead, titleChances, findPlayer } from "../src/lib/prostats";
+import { refereeProfile, claimRefTier } from "../src/lib/referee-rank";
 import { commonSlots, cleanAvailability } from "../src/lib/engine/availability";
 import { onboardState, claimStep } from "../src/lib/onboarding";
 import { storyState, claimChapter } from "../src/lib/story";
@@ -976,6 +977,27 @@ async function main() {
     const nick = await one<{ rl_nickname: string }>("select rl_nickname from users where id = $1", [top!.user_id]);
     assert.equal(await findPlayer(nick!.rl_nickname.toUpperCase()), top!.user_id);
     assert.equal(await findPlayer("nobody-here-xyz"), null);
+  });
+
+  await step("referee recognition: the assigned referee is paid once, staff fix marks a correction, track rewards", async () => {
+    const m = await one<{ id: string; referee_user_id: string; competition_id: string }>(
+      `select id, referee_user_id, competition_id from matches
+        where referee_user_id is not null and status <> 'completed' and not is_bye and home_entry_id is not null and away_entry_id is not null
+          and (next_match_id is null) limit 1`,
+    );
+    if (!m) return;
+    const ref = (await one<User>("select id, rl_nickname, role, platform from users where id = $1", [m.referee_user_id]))!;
+    await q("update matches set scheduled_at = now() - interval '1 hour' where id = $1", [m.id]);
+    const before = await refereeProfile(ref.id);
+    await refereeResult(m.id, ref, { games: [{ home: 3, away: 0 }] }, "");
+    const after = await refereeProfile(ref.id);
+    assert.equal(after.count, before.count + 1);
+    assert.equal(after.earned - before.earned, 25, "fast result pays 25");
+    await refereeResult(m.id, admin, { games: [{ home: 3, away: 1 }] }, "исправление");
+    assert.equal((await refereeProfile(ref.id)).corrections, before.corrections + 1);
+    await claimRefTier(ref.id, "whistle");
+    await rejects(claimRefTier(ref.id, "whistle"), /уже получена/);
+    await rejects(claimRefTier(ref.id, "legend"), /ещё/);
   });
 
   console.log(`\n${passed} integration checks passed`);

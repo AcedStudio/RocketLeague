@@ -512,3 +512,13 @@ create table if not exists telegram_outbox (
   payload jsonb not null,
   created_at timestamptz not null default now()
 );
+
+-- Referee recognition: one row per match a referee scored (speed, later corrections by staff).
+create table if not exists referee_log (
+  match_id uuid primary key references matches(id) on delete cascade,
+  referee_id uuid not null references users(id) on delete cascade,
+  scored_at timestamptz not null default now(),
+  minutes int,
+  corrected boolean not null default false
+);
+create index if not exists referee_log_ref on referee_log (referee_id);

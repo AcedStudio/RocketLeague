@@ -18,6 +18,7 @@ import { enqueueChannel, enqueueParticipantRole, GOLD_COLOR } from "./discord";
 import { discordAfterResult, discordAfterFinish, eloLines } from "./discord-server";
 import { checkAchievements, matchPeople } from "./achievements";
 import { matchCommentary } from "./commentary";
+import { recordRefereeWork } from "./referee-rank";
 
 // ---------------------------------------------------------------- helpers
 
@@ -663,7 +664,13 @@ export async function respondToReport(reportId: string, user: User, accept: bool
 
 export async function refereeResult(matchId: string, actor: User, result: OfficialResult, note: string, noteParams: Params = {}) {
   return tx(async (c) => {
+    const before = await one<{ referee_user_id: string | null; status: string; scheduled_at: Date | null }>(
+      "select referee_user_id, status, scheduled_at from matches where id = $1",
+      [matchId],
+      c,
+    );
     await applyResult(c, matchId, result, actor.id, note || "Результат установлен судьёй {player}", note ? noteParams : { player: actor.rl_nickname });
+    if (before) await recordRefereeWork(c, matchId, actor.id, before);
     await logAction(c, actor.id, "match.result", `матч ${matchId}: ${note}`);
   });
 }
