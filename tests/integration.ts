@@ -35,6 +35,7 @@ import { placeBet, betPanel } from "../src/lib/bets";
 import { vapid, saveSubscription, allowedEndpoint } from "../src/lib/push";
 import { notify } from "../src/lib/notify";
 import { handleUpdate, linkUrl } from "../src/lib/telegram";
+import { proProfile, headToHead, titleChances, findPlayer } from "../src/lib/prostats";
 import { commonSlots, cleanAvailability } from "../src/lib/engine/availability";
 import { onboardState, claimStep } from "../src/lib/onboarding";
 import { storyState, claimChapter } from "../src/lib/story";
@@ -952,6 +953,29 @@ async function main() {
     await q("delete from telegram_outbox where chat_id = $1", [chat]);
     await handleUpdate({ message: { chat: { id: chat, type: "private" }, text: "/stop" } });
     assert.equal((await one<{ c: string | null }>("select telegram_chat_id::text as c from users where id = $1", [u.id]))!.c, null);
+  });
+
+  await step("pro stats: form, streaks and activity from real results; head-to-head is symmetric", async () => {
+    const top = await one<{ user_id: string }>("select user_id from rating_changes group by user_id order by count(*) desc limit 1");
+    assert.ok(top, "some rated player exists");
+    const p = await proProfile(top!.user_id);
+    assert.ok(p.stats.games > 0 && p.stats.games >= p.stats.wins);
+    assert.ok(p.activity.total >= p.stats.games, "every result is on the heatmap");
+    const opp = await one<{ user_id: string }>(
+      `select rb.user_id from rating_changes ra join rating_changes rb on rb.match_id = ra.match_id and rb.entry_id <> ra.entry_id
+        where ra.user_id = $1 limit 1`,
+      [top!.user_id],
+    );
+    if (opp) {
+      const ab = await headToHead(top!.user_id, opp.user_id);
+      const ba = await headToHead(opp.user_id, top!.user_id);
+      assert.ok(ab.aWins + ab.bWins > 0);
+      assert.deepEqual([ab.aWins, ab.bWins, ab.aGoals, ab.bGoals], [ba.bWins, ba.aWins, ba.bGoals, ba.aGoals]);
+    }
+    assert.ok(Array.isArray(await titleChances(top!.user_id)));
+    const nick = await one<{ rl_nickname: string }>("select rl_nickname from users where id = $1", [top!.user_id]);
+    assert.equal(await findPlayer(nick!.rl_nickname.toUpperCase()), top!.user_id);
+    assert.equal(await findPlayer("nobody-here-xyz"), null);
   });
 
   console.log(`\n${passed} integration checks passed`);
