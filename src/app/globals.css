@@ -1681,3 +1681,19 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .sp-btn { margin-top: 4px; padding: 5px 12px; border-radius: 999px; border: 1px solid currentColor; background: rgba(0, 0, 0, 0.18); color: inherit; font: 700 0.75rem/1 var(--font-text); cursor: pointer; }
 .fut-sp-ico { position: absolute; top: 40%; right: 8%; z-index: 2; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45)); }
 .fut-special { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 18px 40px rgba(0, 0, 0, 0.5); }
+
+/* ======================= AVAILABILITY ======================= */
+.avail-scroll { overflow-x: auto; }
+.avail-grid { border-collapse: separate; border-spacing: 3px; min-width: 560px; }
+.avail-grid th { font-size: 0.7rem; font-weight: 600; color: var(--ink-faint); padding: 0 2px; text-align: center; }
+.avail-grid tbody th { text-align: left; padding-right: 6px; font-size: 0.78rem; color: var(--ink-soft); }
+.avail-grid td { padding: 0; }
+.avail-cell { display: block; cursor: pointer; }
+.avail-cell input { position: absolute; opacity: 0; pointer-events: none; }
+.avail-cell span { display: block; width: 28px; height: 24px; border-radius: 5px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); transition: background 120ms; }
+.avail-cell:hover span { border-color: var(--accent); }
+.avail-cell input:checked + span { background: linear-gradient(180deg, #37BEFE, #0B5FD6); border-color: transparent; box-shadow: 0 0 8px rgba(55, 190, 254, 0.4); }
+.avail-cell input:focus-visible + span { outline: 2px solid var(--gold); }
+.smart-slots { display: grid; gap: 6px; padding: 12px; border-radius: 12px; border: 1px dashed rgba(55, 190, 254, 0.45); background: rgba(55, 190, 254, 0.06); }
+.slot-chip { padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(55, 190, 254, 0.6); background: rgba(55, 190, 254, 0.12); color: var(--ink); font: 700 0.82rem/1 var(--font-text); cursor: pointer; }
+.slot-chip:hover { background: rgba(55, 190, 254, 0.25); }

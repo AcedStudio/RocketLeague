@@ -4,6 +4,8 @@ import { fmtDateTime, toLocalInput } from "@/lib/format";
 import { checkinWindow, CHECKIN_OPENS_MIN, MAX_PENDING_PER_SIDE } from "@/lib/scheduling";
 import { proposeAction, proposalResponseAction, checkInAction } from "@/app/actions/schedule";
 import { SubmitButton, Countdown } from "@/components/client";
+import { commonSlots, hasAvailability, cleanAvailability } from "@/lib/engine/availability";
+import Link from "next/link";
 import type { Competition, Match } from "@/lib/data";
 
 type Proposal = { id: string; entry_id: string; at: Date; who: string | null };
@@ -35,6 +37,18 @@ export async function ScheduleBox({ m, comp, side }: { m: Match; comp: Competiti
     </form>
   );
   const sideName = (s: "home" | "away") => (s === "home" ? m.home_name : m.away_name);
+  // Smart suggestions: hours when every player of both sides is usually free, before the deadline.
+  const avail = side && !m.scheduled_at
+    ? await q<{ entry_id: string; availability: unknown }>(
+        "select em.entry_id, u.availability from entry_members em join users u on u.id = em.user_id where em.entry_id = any($1::uuid[]) and em.active",
+        [[m.home_entry_id, m.away_entry_id]],
+      )
+    : [];
+  const cleaned = avail.map((a) => ({ entry: a.entry_id, a: cleanAvailability(a.availability) }));
+  const missingMine = cleaned.some((x) => x.entry === myEntry && !hasAvailability(x.a));
+  const missingTheirs = cleaned.some((x) => x.entry !== myEntry && !hasAvailability(x.a));
+  const deadline = m.play_by ? new Date(m.play_by) : new Date(now + 7 * 86400_000);
+  const slots = side && !m.scheduled_at && !missingMine && !missingTheirs ? commonSlots(cleaned.map((x) => x.a), new Date(now + 2 * 3600_000), deadline, tz, 5) : [];
 
   return (
     <section className="panel stack">
@@ -128,6 +142,31 @@ export async function ScheduleBox({ m, comp, side }: { m: Match; comp: Competiti
         <p className="small muted" style={{ margin: 0 }}>
           {t("Предложено время:")} {others.map((p) => fmtDateTime(p.at, tz, t)).join(" · ")}
         </p>
+      )}
+
+      {side && !m.scheduled_at && (
+        <div className="smart-slots">
+          <span className="small" style={{ fontWeight: 700 }}>{t("Удобно обоим")}</span>
+          {slots.length > 0 && mine.length < MAX_PENDING_PER_SIDE ? (
+            <div className="row" style={{ gap: 6 }}>
+              {slots.map((s) => (
+                <form key={s.toISOString()} action={proposeAction}>
+                  <input type="hidden" name="match_id" value={m.id} />
+                  <input type="hidden" name="at" value={toLocalInput(s, tz)} />
+                  <SubmitButton className="slot-chip">{fmtDateTime(s, tz, t)}</SubmitButton>
+                </form>
+              ))}
+            </div>
+          ) : missingMine ? (
+            <span className="small muted">
+              <Link href="/me#availability">{t("Отметьте удобные часы в кабинете")}</Link> — {t("и сайт сам предложит время, когда свободны оба.")}
+            </span>
+          ) : missingTheirs ? (
+            <span className="small muted">{t("Соперник ещё не отметил удобные часы — предложите время вручную.")}</span>
+          ) : (
+            <span className="small muted">{t("Общих часов до дедлайна не нашлось — предложите время вручную.")}</span>
+          )}
+        </div>
       )}
 
       {side && mine.length < MAX_PENDING_PER_SIDE && (

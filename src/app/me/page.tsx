@@ -1,4 +1,6 @@
 import { StartNudge } from "@/components/StartNudge";
+import { AvailabilityGrid } from "@/components/AvailabilityGrid";
+import { cleanAvailability } from "@/lib/engine/availability";
 import Link from "next/link";
 import { requireUser, ROLE_LABELS } from "@/lib/auth";
 import { q } from "@/lib/db";
@@ -24,8 +26,8 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
   const t = await getT();
   const sp = await searchParams;
   const user = await requireUser("/me");
-  const extra = await one<{ discord_username: string | null; discord_dm: boolean; has_password: boolean }>(
-    "select discord_username, discord_dm, password_hash is not null as has_password from users where id = $1",
+  const extra = await one<{ discord_username: string | null; discord_dm: boolean; has_password: boolean; availability: unknown }>(
+    "select discord_username, discord_dm, password_hash is not null as has_password, availability from users where id = $1",
     [user.id],
   );
   const [entries, matches, judging, lvl, frameRow] = await Promise.all([
@@ -150,6 +152,10 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
                 <Link href="/competitions" className="btn" style={{ marginTop: 16 }}>{t("Выбрать соревнование")}</Link>
               </div>
             )}
+          </section>
+          <section id="availability" className="panel stack">
+            <h3>{t("Когда вы можете играть")}</h3>
+            <AvailabilityGrid value={cleanAvailability(extra?.availability)} />
           </section>
         </div>
 
