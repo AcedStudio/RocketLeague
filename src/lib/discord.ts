@@ -4,6 +4,7 @@ import { q, one, type Queryable } from "./db";
 import { DICTS } from "./i18n/dicts";
 import { isLocale, makeT, type Locale, type Params } from "./i18n/core";
 import { renderStored, groupLabel } from "./format";
+import { enqueueTelegramChannel } from "./telegram";
 
 // Discord integration over the REST API (no gateway connection needed):
 // channel posts, DMs and role grants go through an outbox table so a slow or
@@ -141,6 +142,8 @@ export function renderMessage(spec: MessageSpec, locale: Locale) {
 
 export async function enqueueChannel(c: Queryable | undefined, which: "announce" | "results", spec: MessageSpec) {
   const s = await getDiscordSettings(c);
+  // The Telegram channel gets the same posts (with the same pictures).
+  await enqueueTelegramChannel(c, spec, s.locale);
   const channel = which === "announce" ? s.announceChannel : s.resultsChannel || s.announceChannel;
   if (!channel) return;
   await q("insert into discord_outbox (kind, target, payload) values ('channel', $1, $2)", [channel, JSON.stringify({ spec, locale: s.locale })], c);

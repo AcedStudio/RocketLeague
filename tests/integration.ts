@@ -954,6 +954,16 @@ async function main() {
     await notify(undefined, [u.id], "Матч через час", "", "/me");
     assert.equal((await q("select 1 from telegram_outbox where chat_id = $1", [chat])).length, 1);
     await q("delete from telegram_outbox where chat_id = $1", [chat]);
+    // Channel: a non-admin adding the bot is ignored; a linked admin connects the channel; removal disconnects.
+    const chan = -1009000000000 - Math.floor(Math.random() * 1e6);
+    await handleUpdate({ my_chat_member: { chat: { id: chan, type: "channel", title: "RLC" }, from: { id: chat }, new_chat_member: { status: "administrator" } } });
+    assert.equal(await one("select 1 from settings where key = 'tg_channel_id' and value = $1", [String(chan)]), null);
+    await q("update users set role = 'admin' where id = $1", [u.id]);
+    await handleUpdate({ my_chat_member: { chat: { id: chan, type: "channel", title: "RLC" }, from: { id: chat }, new_chat_member: { status: "administrator" } } });
+    assert.ok(await one("select 1 from settings where key = 'tg_channel_id' and value = $1", [String(chan)]));
+    await handleUpdate({ my_chat_member: { chat: { id: chan, type: "channel", title: "RLC" }, from: { id: chat }, new_chat_member: { status: "left" } } });
+    assert.equal(await one("select 1 from settings where key = 'tg_channel_id'"), null);
+    await q("update users set role = 'participant' where id = $1", [u.id]);
     await handleUpdate({ message: { chat: { id: chat, type: "private" }, text: "/stop" } });
     assert.equal((await one<{ c: string | null }>("select telegram_chat_id::text as c from users where id = $1", [u.id]))!.c, null);
   });
