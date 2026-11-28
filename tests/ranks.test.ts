@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { rankOf, rankedUp, RANKS } from "../src/lib/engine/ranks.ts";
 
@@ -44,4 +45,14 @@ test("story chain rewards exist and chapters check every objective", () => {
   for (const c of CHAINS) for (const ch of c.chapters) if ("item" in ch.reward) assert.ok(fi(ch.reward.item)?.exclusive === "story", ch.reward.item);
   const f = { matches: 1, duels: 0 } as never;
   assert.equal(chapterDone(CHAINS[0].chapters[0], f), false);
+});
+
+import { SPECIALS, monthWinners } from "../src/lib/engine/specials.ts";
+test("special cards: unique keys, icons; player of the month needs 3+ wins and the most", () => {
+  assert.equal(new Set(SPECIALS.map((s) => s.key)).size, SPECIALS.length);
+  const sprite = readFileSync(new URL("../public/icons.svg", import.meta.url), "utf8");
+  for (const s of SPECIALS) assert.ok(sprite.includes(`id="${s.icon}"`), s.icon);
+  const w = monthWinners([{ month: "2026-11", user_id: "a", wins: 5 }, { month: "2026-11", user_id: "b", wins: 6 }, { month: "2026-10", user_id: "a", wins: 2 }]);
+  assert.equal(w.get("2026-11")?.user_id, "b");
+  assert.equal(w.has("2026-10"), false);
 });

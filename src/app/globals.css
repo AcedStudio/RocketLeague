@@ -1667,3 +1667,17 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .goal.ok .meter i { background: linear-gradient(90deg, #2EE5C5, #5CEB8B); }
 .chip-item { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(242, 181, 58, 0.14); color: var(--gold); font-weight: 800; font-size: 0.8rem; }
 @media (max-width: 720px) { .story-hero { grid-template-columns: 1fr; padding: 20px; } .road { padding-left: 50px; } .road::before { left: 19px; } .chapter-node { left: -50px; width: 42px; height: 42px; font-size: 1.05rem; } }
+
+/* ======================= SPECIAL CARDS ======================= */
+.sp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 12px; }
+.sp-card { position: relative; overflow: hidden; display: grid; justify-items: center; gap: 6px; padding: 16px 10px 12px; aspect-ratio: 0.72; border-radius: 16px 16px 22px 22px; color: var(--ink); text-align: center; background: linear-gradient(160deg, var(--c1), var(--c2)); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4); align-content: center; }
+.sp-card.holo::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 45%, transparent 60%) 0 0 / 260% 100%; mix-blend-mode: overlay; animation: legend-sheen 3.5s linear infinite; }
+.sp-card.locked { background: linear-gradient(160deg, #26344d, #121c2e); color: var(--ink-faint); box-shadow: none; }
+.sp-card.locked .ico:first-of-type { filter: grayscale(1) brightness(0.7); opacity: 0.5; }
+.sp-card.on { outline: 3px solid var(--gold); outline-offset: 2px; }
+.sp-boost { position: absolute; top: 8px; left: 10px; font: 800 0.72rem/1 var(--font-display); opacity: 0.85; }
+.sp-name { font: 800 0.98rem/1.1 var(--font-display); }
+.sp-desc { font-size: 0.72rem; opacity: 0.85; }
+.sp-btn { margin-top: 4px; padding: 5px 12px; border-radius: 999px; border: 1px solid currentColor; background: rgba(0, 0, 0, 0.18); color: inherit; font: 700 0.75rem/1 var(--font-text); cursor: pointer; }
+.fut-sp-ico { position: absolute; top: 40%; right: 8%; z-index: 2; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45)); }
+.fut-special { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 18px 40px rgba(0, 0, 0, 0.5); }

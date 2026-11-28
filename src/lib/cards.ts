@@ -1,3 +1,4 @@
+import { specialByKey } from "./engine/specials.ts";
 import "server-only";
 import { playerInForms, INFORM_BOOST } from "./totw";
 import { q, one } from "./db";
@@ -24,12 +25,14 @@ export type PlayerCard = {
   inForm: { round: number; competition: string } | null;
   inFormCount: number;
   frame: string;
+  /** The special version the player chose to show (Player of the Month, Champion…). */
+  special: string | null;
 };
 
 type Row = { side: "home" | "away"; won: boolean; forfeit: boolean; games: { home: number; away: number }[] | null };
 
 export async function getPlayerCard(userId: string): Promise<PlayerCard | null> {
-  const u = await one<{ id: string; rl_nickname: string; platform: string; card_frame: string }>("select id, rl_nickname, platform, card_frame from users where id = $1", [userId]);
+  const u = await one<{ id: string; rl_nickname: string; platform: string; card_frame: string; card_version: string | null }>("select id, rl_nickname, platform, card_frame, card_version from users where id = $1", [userId]);
   if (!u) return null;
   const [rows, ratings, titles, awards, informs] = await Promise.all([
     q<Row>(
@@ -64,6 +67,8 @@ export async function getPlayerCard(userId: string): Promise<PlayerCard | null> 
   const stats = computeCard(lines, main.games ? main.rating : null);
   const active = informs.find((f) => f.active);
   if (active) stats.ovr = Math.min(99, stats.ovr + INFORM_BOOST);
+  const special = specialByKey(u.card_version);
+  if (special && !active) stats.ovr = Math.min(99, stats.ovr + special.boost);
   return {
     id: u.id,
     nickname: u.rl_nickname,
@@ -80,5 +85,6 @@ export async function getPlayerCard(userId: string): Promise<PlayerCard | null> 
     inForm: active ? { round: active.round, competition: active.competition } : null,
     inFormCount: informs.length,
     frame: u.card_frame ?? "none",
+    special: special?.key ?? null,
   };
 }

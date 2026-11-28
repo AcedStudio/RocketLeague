@@ -1,3 +1,5 @@
+import { specialByKey } from "@/lib/engine/specials";
+import { Icon } from "@/components/Icon";
 import Link from "next/link";
 import { getT } from "@/lib/i18n/server";
 import { STAT_KEYS, type StatKey } from "@/lib/engine/card.ts";
@@ -32,17 +34,19 @@ const PLATFORM_SHORT: Record<string, string> = { pc: "PC", playstation: "PS", xb
 export async function FutCard({ card, size = "lg", link = false }: { card: PlayerCard; size?: "lg" | "sm"; link?: boolean }) {
   const t = await getT();
   const key = card.inForm ? "inform" : (card.tier?.key ?? "calib");
-  const theme = CARD_THEMES[key];
+  const sp = !card.inForm ? specialByKey(card.special) : null;
+  const theme = sp ? sp.theme : CARD_THEMES[key];
   const style = { "--c1": theme.c1, "--c2": theme.c2, "--ink": theme.ink } as React.CSSProperties;
   const body = (
     <div className={`fut-wrap fut-frame-${card.frame ?? "none"}`}>
-    <div className={`fut fut-${size}${theme.holo ? " fut-holo" : ""}${card.inForm ? " fut-inform" : ""}`} style={style} aria-label={t("Карточка игрока {name}", { name: card.nickname })}>
+    <div className={`fut fut-${size}${theme.holo ? " fut-holo" : ""}${card.inForm ? " fut-inform" : ""}${sp ? ` fut-special fut-sp-${sp.key}` : ""}`} style={style} aria-label={t("Карточка игрока {name}", { name: card.nickname })}>
       <div className="fut-top">
         <div className="fut-ovr num">{card.stats.ovr}</div>
         <div className="fut-pos">{card.mode}</div>
         <div className="fut-plat">{PLATFORM_SHORT[card.platform] ?? card.platform}</div>
         <i className="fut-gem" aria-hidden />
         {card.inForm && <div className="fut-if" title={t("Команда тура {n}", { n: card.inForm.round })}>IF</div>}
+        {sp && <span className="fut-sp-ico" title={sp.name}><Icon name={sp.icon} size={size === "lg" ? 34 : 22} /></span>}
       </div>
       <div className="fut-art" aria-hidden>
         <span>{card.nickname.slice(0, 1).toUpperCase()}</span>
@@ -57,7 +61,7 @@ export async function FutCard({ card, size = "lg", link = false }: { card: Playe
         ))}
       </div>
       <div className="fut-foot">
-        <span>{card.inForm ? t("Команда тура {n}", { n: card.inForm.round }) : card.tier ? t(card.tier.name) : t("Калибровка {n}/{total}", { n: card.ratedGames, total: 5 })}</span>
+        <span>{card.inForm ? t("Команда тура {n}", { n: card.inForm.round }) : sp ? sp.name : card.tier ? t(card.tier.name) : t("Калибровка {n}/{total}", { n: card.ratedGames, total: 5 })}</span>
         {(card.titles > 0 || card.reigning.length > 0 || card.tourAwards > 0) && (
           <span>
             {card.titles > 0 && `🏆${card.titles > 1 ? `×${card.titles}` : ""}`}

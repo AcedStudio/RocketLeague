@@ -1,5 +1,7 @@
 "use server";
 
+import { chooseVersion } from "@/lib/specials";
+
 import { requireUser } from "@/lib/auth";
 import { guard, ok, FormError } from "@/lib/forms";
 import { createDuel, respondDuel, cancelDuel, reportDuel, confirmDuel } from "@/lib/duels";
@@ -65,4 +67,12 @@ export async function frameAction(fd: FormData) {
     await q("update users set card_frame = $2 where id = $1", [user.id, frame]);
   });
   ok("/me", (await getT())("Рамка сохранена"));
+}
+
+
+export async function cardVersionAction(fd: FormData) {
+  const user = await requireUser("/me");
+  const back = `/players/${user.id}`;
+  await guard(back, () => chooseVersion(user.id, String(fd.get("version") ?? "")));
+  ok(back, "Карточка обновлена");
 }
