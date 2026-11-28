@@ -1697,3 +1697,5 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .smart-slots { display: grid; gap: 6px; padding: 12px; border-radius: 12px; border: 1px dashed rgba(55, 190, 254, 0.45); background: rgba(55, 190, 254, 0.06); }
 .slot-chip { padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(55, 190, 254, 0.6); background: rgba(55, 190, 254, 0.12); color: var(--ink); font: 700 0.82rem/1 var(--font-text); cursor: pointer; }
 .slot-chip:hover { background: rgba(55, 190, 254, 0.25); }
+.push-row { gap: 10px; }
+.push-on { color: #5BE38C; }

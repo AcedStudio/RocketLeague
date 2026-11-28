@@ -6,6 +6,7 @@ import { proposeAction, proposalResponseAction, checkInAction } from "@/app/acti
 import { SubmitButton, Countdown } from "@/components/client";
 import { commonSlots, hasAvailability, cleanAvailability } from "@/lib/engine/availability";
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import type { Competition, Match } from "@/lib/data";
 
 type Proposal = { id: string; entry_id: string; at: Date; who: string | null };
@@ -146,7 +147,7 @@ export async function ScheduleBox({ m, comp, side }: { m: Match; comp: Competiti
 
       {side && !m.scheduled_at && (
         <div className="smart-slots">
-          <span className="small" style={{ fontWeight: 700 }}>{t("Удобно обоим")}</span>
+          <span className="small row" style={{ fontWeight: 700, gap: 6 }}><Icon name="ui-clock" size={16} /> {t("Удобно обоим")}</span>
           {slots.length > 0 && mine.length < MAX_PENDING_PER_SIDE ? (
             <div className="row" style={{ gap: 6 }}>
               {slots.map((s) => (

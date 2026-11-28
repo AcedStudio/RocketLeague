@@ -479,3 +479,20 @@ create table if not exists club_members (
   primary key (club_id, user_id)
 );
 create unique index if not exists club_members_one on club_members (user_id);
+
+-- Web push (PWA): browser subscriptions and a small outbox flushed after actions / by cron.
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists push_subscriptions_user on push_subscriptions(user_id);
+create table if not exists push_outbox (
+  id bigserial primary key,
+  user_id uuid not null references users(id) on delete cascade,
+  payload jsonb not null,
+  created_at timestamptz not null default now()
+);

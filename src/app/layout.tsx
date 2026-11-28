@@ -10,7 +10,7 @@ import { siteUrl } from "@/lib/discord";
 import { one, dbConfigured } from "@/lib/db";
 import { LogoMark, BellIcon } from "@/components/Art";
 import { Suspense } from "react";
-import { MobileMenu, I18nProvider, LangSwitch, Dropdown, InstallApp } from "@/components/client";
+import { MobileMenu, I18nProvider, LangSwitch, Dropdown, InstallApp, ServiceWorker } from "@/components/client";
 import { getT } from "@/lib/i18n/server";
 import { DICTS } from "@/lib/i18n/dicts";
 import { logout } from "./actions/auth";
@@ -141,6 +141,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </span>
             <span className="row">
               <InstallApp />
+              <ServiceWorker />
               {settings.discord_url && <a href={settings.discord_url} rel="noopener noreferrer" target="_blank">Discord</a>}
               {settings.contact_email && <a href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a>}
               <Link href="/rules">{t("Правила")}</Link>

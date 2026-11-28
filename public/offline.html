@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RL Championship — offline</title>
+<meta name="theme-color" content="#081A32">
+<style>
+  html, body { margin: 0; height: 100%; background: radial-gradient(120% 80% at 50% 0%, #12345f 0%, #081A32 55%, #050f1f 100%); color: #EAF2FF; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { min-height: 100%; display: grid; place-items: center; text-align: center; padding: 24px; box-sizing: border-box; }
+  .card { max-width: 380px; }
+  svg { width: 96px; height: 96px; filter: drop-shadow(0 0 18px rgba(55,190,254,.45)); }
+  h1 { font-size: 1.35rem; margin: 18px 0 6px; letter-spacing: .01em; }
+  p { margin: 4px 0; color: #9FB4D3; }
+  button { margin-top: 20px; padding: 11px 22px; border-radius: 999px; border: 0; background: linear-gradient(180deg, #37BEFE, #0B5FD6); color: #fff; font-weight: 700; font-size: .95rem; cursor: pointer; box-shadow: 0 6px 20px rgba(11,95,214,.45); }
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7FD8FF"/><stop offset="1" stop-color="#0B5FD6"/></linearGradient>
+      </defs>
+      <circle cx="32" cy="32" r="28" fill="none" stroke="url(#g)" stroke-width="3" opacity=".35"/>
+      <path d="M12 28a28 28 0 0 1 40 0" fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M19 35a18 18 0 0 1 26 0" fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="32" cy="43" r="4" fill="#EAF2FF"/>
+      <path d="M14 14l36 36" stroke="#FF5A6E" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <h1>Нет подключения</h1>
+    <p>Internet aloqasi yo‘q · You're offline</p>
+    <p>Проверьте сеть — страница откроется, как только связь вернётся.</p>
+    <button onclick="location.reload()">Обновить · Yangilash · Retry</button>
+  </div>
+</main>
+<script>addEventListener("online", () => location.reload());</script>
+</body>
+</html>

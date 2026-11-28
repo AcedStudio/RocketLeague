@@ -451,7 +451,7 @@ export function InstallApp() {
           } else setHint((v) => !v);
         }}
       >
-        📲 {t("Установить приложение")}
+        <Icon name="ui-install" size={16} /> {t("Установить приложение")}
       </button>
       {hint && <small className="muted">{t("В Safari нажмите «Поделиться» → «На экран Домой»")}</small>}
     </span>
@@ -508,4 +508,82 @@ export function TimeTo({ iso, soon, now: nowLabel, units }: { iso: string; soon:
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return <span className="num">{soon.replace("{t}", h ? `${h} ${units[0]} ${m} ${units[1]}` : `${m} ${units[1]}`)}</span>;
+}
+
+
+/** Registers the service worker (offline page + push). */
+export function ServiceWorker() {
+  useEffect(() => {
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
+  return null;
+}
+
+const toKey = (b64: string) => {
+  const s = atob(b64.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (b64.length % 4)) % 4));
+  return Uint8Array.from(s, (c) => c.charCodeAt(0));
+};
+
+/** Turns phone/desktop push notifications on or off for this browser. */
+export function PushToggle() {
+  const t = useT();
+  const [state, setState] = useState<"loading" | "unsupported" | "denied" | "off" | "on" | "ios">("loading");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone;
+      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+        setState(/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone ? "ios" : "unsupported");
+        return;
+      }
+      if (Notification.permission === "denied") return setState("denied");
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      const sub = await reg.pushManager.getSubscription();
+      setState(sub ? "on" : "off");
+    })().catch(() => setState("unsupported"));
+  }, []);
+  const enable = async () => {
+    setBusy(true);
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") return setState(perm === "denied" ? "denied" : "off");
+      const reg = await navigator.serviceWorker.ready;
+      const { key } = await (await fetch("/api/push")).json();
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(key) });
+      const res = await fetch("/api/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub.toJSON()) });
+      setState(res.ok ? "on" : "off");
+    } catch {
+      setState("off");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const disable = async () => {
+    setBusy(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await fetch("/api/push", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endpoint: sub.endpoint }) });
+        await sub.unsubscribe();
+      }
+      setState("off");
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (state === "loading") return <span className="small muted">…</span>;
+  if (state === "unsupported") return <span className="small muted">{t("Этот браузер не поддерживает push-уведомления.")}</span>;
+  if (state === "ios") return <span className="small muted">{t("На iPhone: сначала добавьте сайт на экран «Домой» (Поделиться → На экран Домой), затем откройте его оттуда и включите уведомления.")}</span>;
+  if (state === "denied") return <span className="small muted">{t("Уведомления заблокированы в настройках браузера для этого сайта.")}</span>;
+  return (
+    <div className="row between push-row">
+      <span className="small">
+        {state === "on" ? <b className="push-on">{t("Включены на этом устройстве")}</b> : t("Матчи, результаты и напоминания — прямо на телефон.")}
+      </span>
+      <button type="button" className={`btn btn-sm ${state === "on" ? "btn-ghost" : ""}`} disabled={busy} onClick={state === "on" ? disable : enable}>
+        {state === "on" ? t("Выключить") : t("Включить")}
+      </button>
+    </div>
+  );
 }
