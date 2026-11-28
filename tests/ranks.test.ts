@@ -37,3 +37,11 @@ test("season archetype", () => {
   assert.equal(archetypeOf(seasonStory([line(false, 1, 3)]), 0).key, "fighter");
   assert.equal(archetypeOf(seasonStory([line(true, 6, 4), line(false, 5, 6)]), 0).key, "sniper");
 });
+
+import { CHAINS, chapterDone } from "../src/lib/engine/story.ts";
+import { findItem as fi } from "../src/lib/engine/shop.ts";
+test("story chain rewards exist and chapters check every objective", () => {
+  for (const c of CHAINS) for (const ch of c.chapters) if ("item" in ch.reward) assert.ok(fi(ch.reward.item)?.exclusive === "story", ch.reward.item);
+  const f = { matches: 1, duels: 0 } as never;
+  assert.equal(chapterDone(CHAINS[0].chapters[0], f), false);
+});

@@ -550,6 +550,14 @@ def g_gradcap():
     return [P("M4 24L32 12L60 24L32 36Z"), P("M16 30V44C16 50 48 50 48 44V30L32 37Z", "acc"), S("M56 26V42", 3, "gold")], [C(56, 44, 3.5, "gold"), star(32, 24, 5, 2, 5, role="light")]
 
 
+def g_compass():
+    return [C(32, 32, 26, "gold"), C(32, 32, 20, "void")], [P("M32 12L38 32L32 52L26 32Z", "light"), P("M32 12L38 32H26Z", "red"), C(32, 32, 3.5, "gold"), S("M32 6V10M32 54V58M6 32H10M54 32H58", 2.4, "soft")]
+
+
+def g_road():
+    return [P("M22 60L28 6H36L42 60Z", "steel")], [S("M32 52V46M32 38V32M32 24V18M32 12V9", 2.5, "gold"), star(32, 8, 6, 2.5, 5, role="gold")]
+
+
 def g_ticket():
     return [P("M6 16H58V27A5 5 0 0 0 58 37V48H6V37A5 5 0 0 0 6 27Z")], [S("M42 18V46", 2, "soft"), star(24, 32, 9, 3.8, 5, role="light"), R(46, 24, 8, 4, 2, "light"), R(46, 36, 8, 4, 2, "light")]
 
@@ -695,6 +703,7 @@ TAGS = {
     "s1": ("sky", g_s1, "gold", 3),
     "supercharged": ("gold", g_supercharged, None, 3),
     "rookieclass": ("sky", g_gradcap, "steel", 1),
+    "pathfinder": ("gold", g_compass, "gold", 2),
 }
 
 QUESTS = {
@@ -746,7 +755,7 @@ ACH = {
 UI = {
     "user": ("sky", u_user), "card": ("sky", u_id), "duels": ("steel", lambda: g_crossed_swords(False)), "shop": ("sky", u_bag), "referee": ("gold", g_scales),
     "admin": ("steel", u_gear), "logout": ("steel", u_door), "competitions": ("gold", u_trophy), "players": ("sky", u_users), "stats": ("sky", g_chart),
-    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "clubs": ("sky", g_team_shield), "fx": ("gold", lambda: g_burst()),
+    "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "clubs": ("sky", g_team_shield), "story": ("gold", g_road), "fx": ("gold", lambda: g_burst()),
 }
 
 for key, (pal, fn, acc, tier) in TAGS.items():
@@ -864,6 +873,7 @@ AVATARS = {
     "phoenix": ("orange", g_phoenix, "fire", "gold"),
     "horizon": ("void", g_void, "void", None),
     "ignition": ("red", g_ignition, "fire", "sky"),
+    "pathfinder": ("gold", g_laurel_star, "gold", "green"),
 }
 for key, (plate, fn, pal, acc) in AVATARS.items():
     avatar(key, plate, fn, pal, acc)

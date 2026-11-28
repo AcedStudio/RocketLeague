@@ -39,6 +39,7 @@ export function collectKeys(root = new URL("../src", import.meta.url).pathname) 
   for (const m of readFileSync(join(root, "lib/engine/pass.ts"), "utf8").matchAll(/"([^"]*[А-Яа-яЁё][^"]*)"/g)) keys.add(m[1]);
   for (const m of readFileSync(join(root, "lib/engine/wrapped.ts"), "utf8").matchAll(/desc: "([^"]+)"/g)) keys.add(m[1]);
   for (const m of readFileSync(join(root, "lib/engine/onboarding.ts"), "utf8").matchAll(/(?:title|desc): "([^"]+)"/g)) keys.add(m[1]);
+  for (const m of readFileSync(join(root, "lib/engine/story.ts"), "utf8").matchAll(/"([^"]*[А-Яа-яЁё][^"]*)"/g)) keys.add(m[1]);
   // Commentary headlines (src/lib/engine/commentary.ts).
   for (const m of readFileSync(join(root, "lib/engine/commentary.ts"), "utf8").matchAll(/text: "([^"]+)"/g)) keys.add(m[1]);
   return [...keys].sort();

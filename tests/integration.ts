@@ -33,6 +33,7 @@ import { refereeDesk } from "../src/lib/referee-desk";
 import { liveBoard, liveFeed, liveState } from "../src/lib/live";
 import { placeBet, betPanel } from "../src/lib/bets";
 import { onboardState, claimStep } from "../src/lib/onboarding";
+import { storyState, claimChapter } from "../src/lib/story";
 import { createClub, joinClub, leaveClub, clubOf, clubMembers, clubTable } from "../src/lib/clubs";
 import { passState, questsState, claimQuest, claimTier, buyElite } from "../src/lib/pass";
 import { currentSeason } from "../src/lib/engine/pass";
@@ -896,6 +897,11 @@ async function main() {
     await claimStep(rookie.id, "checkin");
     st = await onboardState(rookie.id);
     assert.equal(st.steps.filter((s) => s.claimed).length, 2);
+    // Story: chapter 2 is locked until chapter 1 is claimed; a newcomer hasn't done chapter 1.
+    const story = await storyState(rookie.id);
+    assert.ok(story.chapters[0].unlocked && !story.chapters[1].unlocked);
+    await rejects(claimChapter(rookie.id, "champion:1"), /не пройдена/);
+    await rejects(claimChapter(rookie.id, "champion:2"), /предыдущую/);
   });
 
   console.log(`\n${passed} integration checks passed`);
