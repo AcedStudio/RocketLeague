@@ -1823,7 +1823,7 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 }
 
 /* ======================= PLAYER PICKER ======================= */
-.pp-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.pp-row { position: relative; z-index: 30; overflow: visible; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
 .pp { position: relative; min-width: 0; }
 .pp-btn { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 14px; min-height: 56px; border-radius: 12px; border: 1px solid var(--line); background: rgba(3, 12, 28, 0.6); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: border-color 120ms, box-shadow 120ms; }
 .pp-btn:hover, .pp.open .pp-btn { border-color: rgba(55, 190, 254, 0.6); box-shadow: 0 0 0 3px rgba(55, 190, 254, 0.12); }
@@ -1833,7 +1833,7 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .pp-empty { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; border: 1px dashed var(--line); }
 .pp-caret { color: var(--ink-faint); font-size: 0.8rem; transition: transform 120ms; }
 .pp.open .pp-caret { transform: rotate(180deg); }
-.pp-pop { position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; right: 0; padding: 8px; border-radius: 14px; border: 1px solid rgba(55, 190, 254, 0.35); background: #0A1A33; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); }
+.pp-pop { position: absolute; z-index: 50; top: calc(100% + 6px); left: 0; right: 0; padding: 8px; border-radius: 14px; border: 1px solid rgba(55, 190, 254, 0.35); background: #0A1A33; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); }
 .pp-search { width: 100%; margin-bottom: 6px; }
 .pp-list { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
 .pp-opt { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
