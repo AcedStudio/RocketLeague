@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { getCompetitionBySlug } from "@/lib/data";
 import { playerSeason } from "@/lib/wrapped";
 import { getT } from "@/lib/i18n/server";
+import { Icon } from "@/components/Icon";
+import { WrappedPlayer, CountUp } from "@/components/Wrapped";
+import { archetypeOf } from "@/lib/engine/wrapped";
+import { siteUrl } from "@/lib/discord";
 
 type P = { params: Promise<{ id: string; slug: string }> };
 
@@ -27,6 +31,8 @@ export default async function Season({ params }: P) {
   if (!s || !s.story.played) notFound();
   const st = s.story;
   const pct = st.played ? Math.round((st.wins / st.played) * 100) : 0;
+  const arch = archetypeOf(st, s.eloChange);
+  const shareUrl = `${siteUrl()}/players/${id}/season/${slug}`;
 
   const slides: { key: string; tone: string; body: React.ReactNode }[] = [
     {
@@ -35,7 +41,8 @@ export default async function Season({ params }: P) {
       body: (
         <>
           <span className="eyebrow">{comp.name}</span>
-          <h2 className="wr-huge">{t("Твой сезон")}</h2>
+          <span className="wr-kicker">SEASON WRAPPED</span>
+          <h2 className="wr-huge wr-reveal">{t("Твой сезон")}</h2>
           <p className="wr-lead">{s.nickname}</p>
           <p className="small muted">{s.finished ? t("Сезон завершён") : t("Сезон ещё идёт — цифры обновляются после каждого матча")}</p>
         </>
@@ -48,13 +55,13 @@ export default async function Season({ params }: P) {
         <>
           <span className="eyebrow">{t("Матчи")}</span>
           <div className="wr-ring" style={{ "--p": pct } as React.CSSProperties}>
-            <b className="num">{pct}%</b>
+            <b className="num"><CountUp to={pct} />%</b>
             <small>{t("побед")}</small>
           </div>
           <p className="wr-lead num">
             {t("Победы: {w} · поражения: {l}", { w: st.wins, l: st.losses })}
           </p>
-          {st.longestStreak >= 2 && <p className="small">{t("Лучшая серия побед: {n} 🔥", { n: st.longestStreak })}</p>}
+          {st.longestStreak >= 2 && <p className="small wr-line"><Icon name="t-fire" size={20} /> {t("Лучшая серия побед: {n}", { n: st.longestStreak })}</p>}
         </>
       ),
     },
@@ -64,9 +71,9 @@ export default async function Season({ params }: P) {
       body: (
         <>
           <span className="eyebrow">{t("Голы")}</span>
-          <h2 className="wr-huge num">{st.goalsFor}</h2>
+          <h2 className="wr-huge num"><CountUp to={st.goalsFor} /></h2>
           <p className="wr-lead">{t("забито · пропущено {n}", { n: st.goalsAgainst })}</p>
-          {st.cleanSheets > 0 && <p className="small">🧱 {t("Сухих побед: {n}", { n: st.cleanSheets })}</p>}
+          {st.cleanSheets > 0 && <p className="small wr-line"><Icon name="ti-wall" size={20} /> {t("Сухих побед: {n}", { n: st.cleanSheets })}</p>}
         </>
       ),
     },
@@ -96,14 +103,14 @@ export default async function Season({ params }: P) {
                 <span className="eyebrow">{t("Соперники")}</span>
                 {st.favouriteVictim && (
                   <div className="wr-pair">
-                    <small>😈 {t("Любимая жертва")}</small>
+                    <small><Icon name="t-skull" size={18} /> {t("Любимая жертва")}</small>
                     <b>{st.favouriteVictim.name}</b>
                     <span className="small">{t("побед над ним: {n}", { n: st.favouriteVictim.wins })}</span>
                   </div>
                 )}
                 {st.nemesis && (
                   <div className="wr-pair">
-                    <small>👹 {t("Главный кошмар")}</small>
+                    <small><Icon name="t-ghost" size={18} /> {t("Главный кошмар")}</small>
                     <b>{st.nemesis.name}</b>
                     <span className="small">{t("поражений от него: {n}", { n: st.nemesis.losses })}</span>
                   </div>
@@ -120,11 +127,23 @@ export default async function Season({ params }: P) {
         <>
           <span className="eyebrow">{t("Награды")}</span>
           <div className="wr-stats">
-            <div><b className="num">{s.playerOfRound}</b><small>⭐ {t("Игрок тура")}</small></div>
-            <div><b className="num">{s.teamOfRound}</b><small>🃏 {t("Команда тура")}</small></div>
-            <div><b className="num">{s.badges}</b><small>🏅 {t("Значки")}</small></div>
-            <div><b className="num">{s.eloChange > 0 ? `+${s.eloChange}` : s.eloChange}</b><small>📈 ELO</small></div>
+            <div><Icon name="ti-star" size={34} /><b className="num"><CountUp to={s.playerOfRound} /></b><small>{t("Игрок тура")}</small></div>
+            <div><Icon name="ti-inform" size={34} /><b className="num"><CountUp to={s.teamOfRound} /></b><small>{t("Команда тура")}</small></div>
+            <div><Icon name="ti-hunter" size={34} /><b className="num"><CountUp to={s.badges} /></b><small>{t("Значки")}</small></div>
+            <div><Icon name="ti-rising" size={34} /><b className="num">{s.eloChange > 0 ? "+" : ""}{s.eloChange}</b><small>ELO</small></div>
           </div>
+        </>
+      ),
+    },
+    {
+      key: "type",
+      tone: "purple",
+      body: (
+        <>
+          <span className="eyebrow">{t("Какой ты игрок")}</span>
+          <span className="wr-emblem"><Icon name={arch.icon} size={150} /></span>
+          <h2 className="wr-title wr-reveal">{arch.name}</h2>
+          <p className="wr-lead">{t(arch.desc)}</p>
         </>
       ),
     },
@@ -135,16 +154,22 @@ export default async function Season({ params }: P) {
         <>
           <span className="eyebrow">{s.finished ? t("Итог") : t("Сейчас")}</span>
           {s.champion ? (
-            <h2 className="wr-huge">🏆 {t("Чемпион!")}</h2>
+            <>
+              <span className="wr-emblem"><Icon name="ti-champion" size={140} /></span>
+              <h2 className="wr-huge">{t("Чемпион!")}</h2>
+            </>
           ) : s.position ? (
             <h2 className="wr-huge num">#{s.position}</h2>
           ) : (
             <h2 className="wr-huge">GG</h2>
           )}
           {s.position && <p className="wr-lead">{t("место из {n}", { n: s.players })}</p>}
-          <div className="row" style={{ justifyContent: "center" }}>
-            <a className="btn" href={`/api/season-card/${id}/${comp.id}?lang=${t.locale}`} download={`rl-season-${slug}.png`}>
-              📸 {t("Скачать картинку")}
+          <div className="wr-share">
+            <a className="btn btn-gold" href={`/api/season-card/${id}/${comp.id}?lang=${t.locale}`} download={`rl-season-${slug}.png`}>
+              {t("Скачать картинку")}
+            </a>
+            <a className="btn" href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(t("Мой сезон в {comp}", { comp: comp.name }))}`} target="_blank" rel="noopener noreferrer">
+              Telegram
             </a>
             <Link className="btn btn-ghost" href={`/players/${id}`}>{t("К профилю")}</Link>
           </div>
@@ -154,21 +179,17 @@ export default async function Season({ params }: P) {
   ];
 
   return (
-    <div className="wrap section stack">
-      <div className="wr" aria-label={t("Твой сезон")}>
+    <div className="wrap section stack wr-page">
+      <WrappedPlayer labels={{ prev: t("Назад"), next: t("Дальше"), pause: t("Пауза") }}>
         {slides.map((sl, i) => (
-          <section key={sl.key} id={`s${i + 1}`} className={`wr-slide wr-${sl.tone}`}>
+          <section key={sl.key} className={`wr-slide wr-${sl.tone}`}>
             <span className="wr-count small">{i + 1} / {slides.length}</span>
+            <span className="wr-orbs" aria-hidden><i /><i /><i /></span>
             {sl.body}
           </section>
         ))}
-      </div>
-      <nav className="wr-dots" aria-label={t("Слайды")}>
-        {slides.map((sl, i) => (
-          <a key={sl.key} href={`#s${i + 1}`} aria-label={`${i + 1}`} />
-        ))}
-      </nav>
-      <p className="small faint" style={{ textAlign: "center", margin: 0 }}>{t("Листайте вбок →")}</p>
+      </WrappedPlayer>
+      <p className="small faint" style={{ textAlign: "center", margin: 0 }}>{t("Нажмите справа — дальше, слева — назад, удерживайте — пауза")}</p>
     </div>
   );
 }

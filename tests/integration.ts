@@ -837,7 +837,7 @@ async function main() {
     assert.equal(liveState({ ...base, status: "completed", scheduled_at: null }), "final");
   });
 
-  await step("predictions: stake taken, own match refused, winner paid on the result, correction re-pays", async () => {
+  await step("free predictions: own match refused, one call each, correct call paid on the result, correction re-pays", async () => {
     const bc = await mkComp({ kind: "league", format: "round_robin", group_best_of: 1 });
     for (const p of players.slice(0, 4)) await registerSolo(bc, p);
     await close(bc);
@@ -847,24 +847,19 @@ async function main() {
     const homePlayer = users.get((await membersOf(m.home_entry_id!))[0])!;
     const fan = await mkUser("fan");
     const hater = await mkUser("hater");
-    await grantCoins(admin.id, fan.id, 300, "test");
-    await grantCoins(admin.id, hater.id, 300, "test");
-    await grantCoins(admin.id, homePlayer.id, 300, "test");
-    await rejects(placeBet(homePlayer.id, m.id, "away", 50), /свой матч/);
-    await rejects(placeBet(fan.id, m.id, "home", 5), /Ставка от/);
-    const placed = await placeBet(fan.id, m.id, "home", 50);
-    await placeBet(hater.id, m.id, "away", 50);
-    await rejects(placeBet(fan.id, m.id, "away", 20), /уже сделали/);
-    assert.equal((await wallet(fan.id)).balance, 250, "stake taken");
+    await rejects(placeBet(homePlayer.id, m.id, "away"), /свой матч/);
+    const placed = await placeBet(fan.id, m.id, "home");
+    await placeBet(hater.id, m.id, "away");
+    await rejects(placeBet(fan.id, m.id, "away"), /уже сделали/);
+    assert.equal((await wallet(fan.id)).balance, 0, "nothing is staked");
     const panel = await betPanel(m.id, fan.id);
     assert.equal(panel!.pool.people, 2);
     await refereeResult(m.id, admin, { games: [{ home: 3, away: 0 }] }, "");
-    assert.equal((await wallet(fan.id)).balance, 250 + placed.win, "home win paid");
-    assert.equal((await wallet(hater.id)).balance, 250);
-    // The referee corrects the result: the payout moves to the other side.
+    assert.equal((await wallet(fan.id)).balance, placed.reward, "correct call paid");
+    assert.equal((await wallet(hater.id)).balance, 0, "a wrong call costs nothing");
     await refereeResult(m.id, admin, { games: [{ home: 0, away: 2 }] }, "");
-    assert.equal((await wallet(fan.id)).balance, 250);
-    assert.ok((await wallet(hater.id)).balance > 250);
+    assert.equal((await wallet(fan.id)).balance, 0);
+    assert.ok((await wallet(hater.id)).balance > 0);
   });
 
   await step("clubs: create for coins, unique tag, join, one club per player, owner hand-over", async () => {

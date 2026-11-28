@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import type { Match, Competition, GroupTable } from "@/lib/data";
 import { MATCH_STATUS_LABELS, COMP_STATUS_LABELS, KIND_LABELS, FORMAT_LABELS, fmtDateTime, fmtDate, fmtMoney, groupLabel, scoreOf } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
@@ -187,6 +188,11 @@ export async function Bracket({ matches }: { matches: Match[] }) {
   const rounds = Math.max(...ko.map((m) => m.round));
   const third = matches.find((m) => m.stage === "third_place");
   const cols = Array.from({ length: rounds }, (_, i) => ko.filter((m) => m.round === i + 1).sort((a, b) => (a.bracket_index ?? 0) - (b.bracket_index ?? 0)));
+  const final = cols[rounds - 1]?.[0];
+  const champ = final?.status === "completed" ? final.winner_entry_id : null;
+  const champName = champ ? (champ === final!.home_entry_id ? final!.home_name : final!.away_name) : null;
+  // The champion's road: every match they played lights up.
+  const onPath = (m: Match) => !!champ && (m.home_entry_id === champ || m.away_entry_id === champ);
 
   const slot = (m: Match, side: "home" | "away") => {
     const id = side === "home" ? m.home_entry_id : m.away_entry_id;
@@ -195,13 +201,13 @@ export async function Bracket({ matches }: { matches: Match[] }) {
     const done = m.status === "completed";
     const cls = !id ? "tbd" : done ? (m.winner_entry_id === id ? "win" : "lose") : "";
     return (
-      <div className={`b-slot ${cls}`}>
+      <div className={`b-slot ${cls}${champ && id === champ ? " champ" : ""}`}>
         <span className="n">{name ?? (m.is_bye ? "bye" : "—")}</span>
         <span className="s">{done && !m.is_bye ? (m.forfeit ? (m.winner_entry_id === id ? "W" : "L") : score) : ""}</span>
       </div>
     );
   };
-  const box = (m: Match) => {
+  const box = (m: Match, extra = "") => {
     const inner = (
       <>
         <span className="num">#{m.number}</span>
@@ -209,7 +215,7 @@ export async function Bracket({ matches }: { matches: Match[] }) {
         {slot(m, "away")}
       </>
     );
-    const cls = `b-match ${m.status === "completed" ? "done" : ""}`;
+    const cls = `b-match ${m.status === "completed" ? "done" : ""}${onPath(m) ? " path" : ""} ${extra}`;
     return m.is_bye ? (
       <div className={cls} key={m.id}>{inner}</div>
     ) : (
@@ -218,22 +224,46 @@ export async function Bracket({ matches }: { matches: Match[] }) {
       </Link>
     );
   };
+  const pairs = (col: Match[]) => Array.from({ length: Math.ceil(col.length / 2) }, (_, k) => col.slice(k * 2, k * 2 + 2));
 
   return (
-    <div className="bracket-scroll">
-      <div className="bracket">
-        {cols.map((col, i) => (
-          <div className={`b-round ${i === rounds - 1 ? "b-final" : ""}`} key={i}>
-            <h3>{roundName(t, i + 1, rounds)}</h3>
-            <div className="b-col">{col.map(box)}</div>
-            {i === rounds - 1 && third && (
-              <div className="b-third">
-                <h3>{t("Матч за 3-е место")}</h3>
-                {box(third)}
+    <div className="arena">
+      <div className="bracket-scroll">
+        <div className="bracket">
+          {cols.map((col, i) => {
+            const last = i === rounds - 1;
+            return (
+              <div className={`b-round ${last ? "b-final" : ""}`} key={i}>
+                <h3>{roundName(t, i + 1, rounds)}</h3>
+                {last ? (
+                  <div className="b-col b-stage">
+                    <span className="b-trophy"><Icon name="ti-champion" size={88} /></span>
+                    {col.map((m) => box(m, "b-final-match"))}
+                    {champName && (
+                      <span className="b-champ">
+                        <Icon name="t-crown" size={22} /> {champName}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="b-col">
+                    {pairs(col).map((pair, k) => (
+                      <div className={`b-pair${pair.length === 2 ? "" : " single"}${pair.some(onPath) ? " lit" : ""}`} key={k}>
+                        {pair.map((m) => box(m))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {last && third && (
+                  <div className="b-third">
+                    <h3>{t("Матч за 3-е место")}</h3>
+                    {box(third)}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

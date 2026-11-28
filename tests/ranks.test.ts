@@ -29,3 +29,11 @@ test("club tags and goals", () => {
   assert.equal(clubGoal(1), 10);
   assert.equal(clubGoal(20), 60);
 });
+
+import { archetypeOf, seasonStory } from "../src/lib/engine/wrapped.ts";
+test("season archetype", () => {
+  const line = (won: boolean, gf: number, ga: number) => ({ matchId: "m", opponent: "x", opponentId: null, won, gf, ga, forfeit: false, round: 1 });
+  assert.equal(archetypeOf(seasonStory([line(true, 3, 0), line(true, 2, 1), line(true, 4, 1), line(true, 1, 0)]), 0).key, "dominator");
+  assert.equal(archetypeOf(seasonStory([line(false, 1, 3)]), 0).key, "fighter");
+  assert.equal(archetypeOf(seasonStory([line(true, 6, 4), line(false, 5, 6)]), 0).key, "sniper");
+});

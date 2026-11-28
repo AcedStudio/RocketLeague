@@ -6,6 +6,8 @@ import { SetupNotice } from "@/components/ui";
 import { FutCard } from "@/components/FutCard";
 import { getPlayerCard, CALIBRATION, type PlayerCard } from "@/lib/cards";
 import { START_RATING } from "@/lib/engine/elo";
+import { Icon } from "@/components/Icon";
+import { Avatar, Nick } from "@/components/Badge";
 
 export async function generateMetadata() {
   const t = await getT();
@@ -24,6 +26,11 @@ export default async function Hall() {
   const t = await getT();
   if (!dbConfigured()) return <SetupNotice />;
 
+  const holders = await q<{ id: string; nick: string; avatar: string | null; name_color: string | null; n: number; comps: string[] }>(
+    `select u.id, u.rl_nickname as nick, u.avatar, u.name_color, count(*)::int as n, array_agg(c.name order by c.finished_at desc) as comps
+       from competitions c join entry_members em on em.entry_id = c.champion_entry_id and em.active join users u on u.id = em.user_id
+      where c.status = 'finished' group by u.id order by n desc, max(c.finished_at) desc limit 12`,
+  );
   const [champs, top, peak, titles, wins, bigWin, results] = await Promise.all([
     q<Champ>(
       `select c.slug, c.name as comp, c.mode, c.season, e.name as team, e.id as entry_id, c.finished_at,
@@ -97,7 +104,7 @@ export default async function Hall() {
 
       {reigning.length > 0 && (
         <section className="stack">
-          <h2 style={{ fontSize: "1.4rem" }}>👑 {t("Действующие чемпионы")}</h2>
+          <h2 className="hall-title"><Icon name="t-crown" size={30} /> {t("Действующие чемпионы")}</h2>
           <div className="cards-row">
             {reigning.map((c) => (
               <div key={c.slug} className="stack" style={{ gap: 10, alignItems: "center" }}>
@@ -146,49 +153,52 @@ export default async function Hall() {
       )}
 
       <section className="stack">
-        <h2 style={{ fontSize: "1.4rem" }}>🏆 {t("Все чемпионы")}</h2>
-        {champs.length ? (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>{t("Соревнование")}</th>
-                  <th className="c">{t("Режим")}</th>
-                  <th>{t("Чемпион")}</th>
-                  <th className="hide-s">{t("Дата")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {champs.map((c) => (
-                  <tr key={c.slug}>
-                    <td>
-                      <Link href={`/c/${c.slug}`} style={{ fontWeight: 600 }}>{c.comp}</Link>
-                      {c.season && <div className="small faint">{c.season}</div>}
-                    </td>
-                    <td className="c">{c.mode}</td>
-                    <td>
-                      <b style={{ color: "var(--gold)" }}>{c.team}</b>
-                      {c.mode === "2v2" && (
-                        <div className="small">
-                          {c.players.map((p, i) => (
-                            <span key={p.id}>
-                              {i > 0 && " · "}
-                              <Link href={`/players/${p.id}`}>{p.nick}</Link>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    <td className="hide-s muted">{c.finished_at ? fmtDate(c.finished_at, "Asia/Tashkent", t) : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <h2 className="hall-title"><Icon name="ti-champion" size={30} /> {t("Зал чемпионов")}</h2>
+        {holders.length ? (
+          <div className="podium">
+            {holders.map((h, i) => (
+              <Link key={h.id} href={`/players/${h.id}`} className={`pedestal${i < 3 ? ` p${i + 1}` : ""}`} style={{ color: "inherit", textDecoration: "none" }}>
+                <span className="pos num">#{i + 1}</span>
+                <Avatar name={h.nick} avatar={h.avatar} size={i === 0 ? 76 : 58} />
+                <span className="nick"><Nick name={h.nick} color={h.name_color} /></span>
+                <span className="cups">
+                  {Array.from({ length: Math.min(h.n, 8) }, (_, k) => (
+                    <Icon key={k} name="ti-champion" size={i === 0 ? 34 : 26} />
+                  ))}
+                </span>
+                <span className="titles">{t("Титулов: {n}", { n: h.n })} · {h.comps.slice(0, 2).join(", ")}</span>
+              </Link>
+            ))}
           </div>
         ) : (
           <div className="empty">{t("Здесь появятся чемпионы первых турниров")}</div>
         )}
       </section>
+
+      {champs.length > 0 && (
+        <section className="stack">
+          <h2 className="hall-title"><Icon name="ti-legend" size={30} /> {t("Хроника чемпионов")}</h2>
+          <div className="timeline">
+            {champs.map((c) => (
+              <div key={c.slug} className="tl-item">
+                <Icon name="ti-champion" size={36} />
+                <span className="tl-main">
+                  <Link href={`/c/${c.slug}`} style={{ fontWeight: 700 }}>{c.comp}{c.season ? ` · ${c.season}` : ""}</Link>
+                  <span>
+                    <b>{c.team}</b>
+                    {c.mode === "2v2" && (
+                      <span className="small muted">
+                        {" "}({c.players.map((p) => p.nick).join(" · ")})
+                      </span>
+                    )}
+                  </span>
+                </span>
+                <span className="small faint">{c.mode} · {c.finished_at ? fmtDate(c.finished_at, "Asia/Tashkent", t) : "—"}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ export async function betAction(fd: FormData) {
   const back = /^[0-9a-f-]{36}$/i.test(matchId) ? `/match/${matchId}#predict` : "/bets";
   const user = await requireUser(back);
   await guard(back, async () => {
-    await placeBet(user.id, matchId, fd.get("pick") === "away" ? "away" : "home", Number(fd.get("stake")));
+    await placeBet(user.id, matchId, fd.get("pick") === "away" ? "away" : "home");
   });
   ok(back, "Прогноз принят");
 }

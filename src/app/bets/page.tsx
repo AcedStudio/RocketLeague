@@ -7,7 +7,6 @@ import { Avatar, Nick } from "@/components/Badge";
 import { Coin } from "@/components/shop";
 import { myBets, topPredictors, oddsForMatches } from "@/lib/bets";
 import { liveBoard } from "@/lib/live";
-import { payout } from "@/lib/engine/bets";
 import { fmtDateTime } from "@/lib/format";
 
 export async function generateMetadata() {
@@ -23,7 +22,7 @@ export default async function BetsPage({ searchParams }: { searchParams: SP }) {
   const open = board.flatMap((b) => b.matches.filter((m) => m.state === "soon" || m.state === "unscheduled").map((m) => ({ ...m, tz: b.comp.timezone, comp: b.comp.name })));
   const odds = await oddsForMatches(open);
   const settled = mine.filter((b) => b.won !== null);
-  const profit = settled.reduce((s, b) => s + b.payout - b.stake, 0);
+  const profit = settled.reduce((s, b) => s + b.payout, 0);
   const hit = settled.length ? Math.round((settled.filter((b) => b.won).length / settled.length) * 100) : 0;
 
   return (
@@ -32,14 +31,14 @@ export default async function BetsPage({ searchParams }: { searchParams: SP }) {
       <header className="store-head">
         <div>
           <p className="eyebrow">{t("Прогнозы")}</p>
-          <h1 className="store-title">{t("Угадай победителя — забери монеты")}</h1>
-          <p className="muted store-sub">{t("Ставьте монеты на матчи других игроков. Чем неожиданнее исход, тем выше коэффициент. Выигрыш начисляется сам, как только результат утверждён.")}</p>
+          <h1 className="store-title">{t("Угадай победителя")}</h1>
+          <p className="muted store-sub">{t("Бесплатные прогнозы на матчи других игроков. Угадали — получаете монеты, и чем неожиданнее победа, тем больше награда. Ошиблись — ничего не теряете.")}</p>
         </div>
         {user && (
           <div className="bet-stats">
             <div><span className="balance-label">{t("Прогнозов")}</span><b className="num">{mine.length}</b></div>
             <div><span className="balance-label">{t("Точность")}</span><b className="num">{hit}%</b></div>
-            <div><span className="balance-label">{t("Итог")}</span><b className={`num ${profit >= 0 ? "up" : "down"}`}>{profit >= 0 ? "+" : ""}{profit} <Coin size={16} /></b></div>
+            <div><span className="balance-label">{t("Заработано")}</span><b className="num up">+{profit} <Coin size={16} /></b></div>
           </div>
         )}
       </header>
@@ -67,9 +66,9 @@ export default async function BetsPage({ searchParams }: { searchParams: SP }) {
                       </div>
                       {o && (
                         <div className="odds-row">
-                          <span className="odd num">×{o.home.toFixed(2)}</span>
-                          <span className="small faint">{t("коэффициенты")}</span>
-                          <span className="odd num">×{o.away.toFixed(2)}</span>
+                          <span className="odd num">+{o.home} <Coin size={12} /></span>
+                          <span className="small faint">{t("награда за верный прогноз")}</span>
+                          <span className="odd num">+{o.away} <Coin size={12} /></span>
                         </div>
                       )}
                     </Link>
@@ -90,15 +89,15 @@ export default async function BetsPage({ searchParams }: { searchParams: SP }) {
                     <Link key={b.id} href={`/match/${b.match_id}`} className={`bet-row${b.won === true ? " won" : b.won === false ? " lost" : ""}`}>
                       <span className="bet-row-main">
                         <b>{b.home} — {b.away}</b>
-                        <span className="small muted">{b.comp} · {t("на {team}", { team: b.pick === "home" ? b.home : b.away })} · ×{Number(b.odds).toFixed(2)}</span>
+                        <span className="small muted">{b.comp} · {t("победит {team}", { team: b.pick === "home" ? b.home : b.away })}</span>
                       </span>
                       <span className="bet-row-res num">
                         {b.won === null ? (
-                          <>{b.stake} <Coin size={13} /> → {payout(b.stake, Number(b.odds))}</>
+                          <span className="faint">{t("ждём результат")} · +{Math.round(Number(b.odds))} <Coin size={13} /></span>
                         ) : b.won ? (
-                          <>+{b.payout - b.stake} <Coin size={13} /></>
+                          <>+{b.payout} <Coin size={13} /></>
                         ) : (
-                          <>−{b.stake} <Coin size={13} /></>
+                          <span className="faint">{t("мимо")}</span>
                         )}
                       </span>
                     </Link>
@@ -119,7 +118,7 @@ export default async function BetsPage({ searchParams }: { searchParams: SP }) {
                 <li key={p.user_id}>
                   <span className="num faint">{i + 1}</span>
                   <Link href={`/players/${p.user_id}`} className="who"><Avatar name={p.nick} avatar={p.avatar} size={22} /> <Nick name={p.nick} color={p.name_color} /></Link>
-                  <span className={`num ${p.profit >= 0 ? "up" : "down"}`}>{p.profit >= 0 ? "+" : ""}{p.profit}</span>
+                  <span className="num small">{t("{w} из {n}", { w: p.wins, n: p.bets })}</span>
                 </li>
               ))}
             </ol>
