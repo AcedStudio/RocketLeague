@@ -1,4 +1,5 @@
 import "server-only";
+import { EVENTS, overlap } from "./engine/events";
 import { q, one, tx } from "./db";
 import { FormError } from "./errors";
 import { wallet } from "./shop";
@@ -50,6 +51,7 @@ export async function activityIn(userId: string, from: Date, to: Date): Promise<
 const eliteId = (s: Season) => `pass:${s.key}:elite`;
 
 export type PassState = {
+  fromEvents?: number;
   season: Season;
   xp: number;
   fromActivity: number;
@@ -76,13 +78,23 @@ export async function passState(userId: string | null, season = currentSeason() 
         ),
       ])
     : [EMPTY_ACTIVITY, null];
-  const fromActivity = activityXp(act);
+  // Event boosts: extra XP for activity inside a running/finished event window that overlaps the season.
+  let fromEvents = 0;
+  if (userId) {
+    for (const e of EVENTS) {
+      const o = overlap(e, seasonStart(season), seasonEnd(season));
+      if (!o || o.from.getTime() > Date.now() || e.boost <= 1) continue;
+      fromEvents += Math.round(activityXp(await activityIn(userId, o.from, o.to)) * (e.boost - 1));
+    }
+  }
+  const fromActivity = activityXp(act) + fromEvents;
   const fromQuests = extra?.quests ?? 0;
   const xp = fromActivity + fromQuests;
   return {
     season,
     xp,
     fromActivity,
+    fromEvents,
     fromQuests,
     ...tierOf(xp, season),
     elite: !!extra?.elite,

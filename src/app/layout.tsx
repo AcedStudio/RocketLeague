@@ -47,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     { href: "/clubs", label: t("Клубы"), icon: "ui-clubs" },
     { href: "/live", label: t("Эфир"), icon: "ui-live" },
     { href: "/pass", label: t("Пропуск"), icon: "ui-pass" },
+    { href: "/events", label: t("События"), icon: "ui-event" },
     { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
     { href: "/rules", label: t("Правила"), icon: "ui-rules" },
   ];
@@ -74,7 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span>{settings.site_name}</span>
             </Link>
             <nav className="nav" aria-label={t("Основная навигация")}>
-              {LINKS.filter((l) => l.href !== "/rules").map((l) => (
+              {LINKS.filter((l) => l.href !== "/rules" && l.href !== "/events").map((l) => (
                 <Link key={l.href} href={l.href}>
                   {l.label}
                 </Link>
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Link href={`/players/${user.id}`}><Icon name="ui-card" /> {t("Моя карточка")}</Link>
                       <Link href="/duels"><Icon name="ui-duels" /> {t("Мои дуэли")}</Link>
                       <Link href="/pass"><Icon name="ui-pass" /> {t("Боевой пропуск")}</Link>
+                      <Link href="/events"><Icon name="ui-event" /> {t("События")}</Link>
                       <Link href="/story"><Icon name="ui-story" /> {t("Путь чемпиона")}</Link>
                       <Link href="/bets"><Icon name="ui-bets" /> {t("Прогнозы")}</Link>
                       <Link href="/shop"><Icon name="ui-shop" /> {t("Магазин")}</Link>
@@ -144,6 +146,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <ServiceWorker />
               {settings.discord_url && <a href={settings.discord_url} rel="noopener noreferrer" target="_blank">Discord</a>}
               {settings.contact_email && <a href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a>}
+              <Link href="/events">{t("События")}</Link>
               <Link href="/rules">{t("Правила")}</Link>
               <Link href="/faq">{t("Контакты")}</Link>
             </span>

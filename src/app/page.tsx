@@ -1,4 +1,5 @@
 import { StartNudge } from "@/components/StartNudge";
+import { EventBanner } from "@/components/EventBanner";
 import Link from "next/link";
 import { dbConfigured, one, q } from "@/lib/db";
 import { getFeaturedCompetition, listCompetitions, getAnnouncements, entryCounts, getMatches, getSettings } from "@/lib/data";
@@ -144,6 +145,9 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
         <Flash sp={sp} />
       </div>
 
+      <div className="wrap" style={{ paddingTop: 12 }}>
+        <EventBanner userId={user?.id ?? null} />
+      </div>
       {user && (
         <div className="wrap" style={{ paddingTop: 12 }}>
           <StartNudge userId={user.id} />

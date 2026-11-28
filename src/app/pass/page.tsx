@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EventBanner } from "@/components/EventBanner";
 import { getUser } from "@/lib/auth";
 import { getT } from "@/lib/i18n/server";
 import type { T } from "@/lib/i18n/core";
@@ -121,6 +122,7 @@ export default async function PassPage({ searchParams }: { searchParams: SP }) {
     <div className="wrap section stack-lg pass">
       <Flash sp={sp} />
 
+      <EventBanner userId={user?.id ?? null} />
       <header className="pass-hero">
         <div className="pass-hero-text">
           <p className="eyebrow">{t("Боевой пропуск")}</p>
