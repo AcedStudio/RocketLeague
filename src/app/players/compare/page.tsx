@@ -8,7 +8,10 @@ import { compareCard, headToHead, findPlayer, pickablePlayers } from "@/lib/pros
 import { ComparePicker } from "@/components/PlayerPicker";
 import { fmtDate } from "@/lib/format";
 
-export const metadata = { title: "Compare · RL Championship" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: t("Сравнение игроков") };
+}
 
 type SP = Promise<{ a?: string; b?: string }>;
 
