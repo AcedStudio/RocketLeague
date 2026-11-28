@@ -114,3 +114,16 @@ export async function findPlayer(v: string | undefined) {
   const isUuid = /^[0-9a-f-]{36}$/i.test(s);
   return (await one<{ id: string }>(isUuid ? "select id from users where id = $1" : "select id from users where lower(rl_nickname) = lower($1)", [s]))?.id ?? null;
 }
+
+/** Everyone who can be picked in the comparison dropdowns: most active first. */
+export async function pickablePlayers() {
+  const rows = await q<{ id: string; nick: string; avatar: string | null; color: string | null; rating: number; games: number }>(
+    `select u.id, u.rl_nickname as nick, u.avatar, u.name_color as color,
+            1000 + coalesce((select sum(delta) from rating_changes r where r.user_id = u.id and r.mode = '1v1'), 0)::int as rating,
+            (select count(*) from rating_changes r where r.user_id = u.id)::int as games
+       from users u
+      order by games desc, lower(u.rl_nickname)
+      limit 1000`,
+  );
+  return rows;
+}

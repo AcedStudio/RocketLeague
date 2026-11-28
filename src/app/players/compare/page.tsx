@@ -4,7 +4,8 @@ import { getUser } from "@/lib/auth";
 import { Icon } from "@/components/Icon";
 import { Avatar, Nick, UserBadge } from "@/components/Badge";
 import { FormStrip, Gauge } from "@/components/ProStats";
-import { compareCard, headToHead, findPlayer } from "@/lib/prostats";
+import { compareCard, headToHead, findPlayer, pickablePlayers } from "@/lib/prostats";
+import { ComparePicker } from "@/components/PlayerPicker";
 import { fmtDate } from "@/lib/format";
 
 export const metadata = { title: "Compare · RL Championship" };
@@ -15,7 +16,7 @@ export default async function Compare({ searchParams }: { searchParams: SP }) {
   const t = await getT();
   const sp = await searchParams;
   const viewer = await getUser();
-  const [aId, bId] = await Promise.all([findPlayer(sp.a ?? viewer?.id), findPlayer(sp.b)]);
+  const [aId, bId, players] = await Promise.all([findPlayer(sp.a ?? viewer?.id), findPlayer(sp.b), pickablePlayers()]);
   const [A, B] = await Promise.all([aId ? compareCard(aId) : null, bId ? compareCard(bId) : null]);
   const h2h = A && B && A.user.id !== B.user.id ? await headToHead(A.user.id, B.user.id) : null;
 
@@ -52,12 +53,7 @@ export default async function Compare({ searchParams }: { searchParams: SP }) {
       <div className="row between">
         <h1 className="hall-title"><Icon name="ui-duels" size={30} /> {t("Сравнение игроков")}</h1>
       </div>
-      <form className="row panel" method="get" style={{ gap: 8 }}>
-        <input className="input" name="a" defaultValue={A?.user.rl_nickname ?? ""} placeholder={t("Ник первого игрока")} required style={{ flex: 1, minWidth: 140 }} />
-        <span className="muted">vs</span>
-        <input className="input" name="b" defaultValue={B?.user.rl_nickname ?? ""} placeholder={t("Ник второго игрока")} required style={{ flex: 1, minWidth: 140 }} />
-        <button className="btn btn-sm">{t("Сравнить")}</button>
-      </form>
+      <ComparePicker players={players} a={A?.user.id ?? null} b={B?.user.id ?? null} />
       {(sp.a || sp.b) && (!A || !B) && <div className="empty">{t("Игрок не найден — проверьте ник.")}</div>}
       {A && B && (
         <>
