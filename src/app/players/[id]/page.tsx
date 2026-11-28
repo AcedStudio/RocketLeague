@@ -20,6 +20,8 @@ import { UserBadge, Nick, Avatar } from "@/components/Badge";
 import { bannerClass, iconOf } from "@/lib/engine/shop";
 import { Icon } from "@/components/Icon";
 import { Crest } from "@/components/Crest";
+import { specialsFor } from "@/lib/specials";
+import { cardVersionAction } from "@/app/actions/duels";
 import { clubOf } from "@/lib/clubs";
 import { getUser } from "@/lib/auth";
 import { challengeAction } from "@/app/actions/duels";
@@ -91,6 +93,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     allDerbies(),
     playerSeasons(id),
   ]);
+  const specials = await specialsFor(id);
   const derbyWith = new Set(derbyList.filter((d) => d.a === id || d.b === id).map((d) => (d.a === id ? d.b : d.a)));
   const earned = achievements.filter((a) => a.done).length;
   const wins = matches.filter((m) => m.won).length;
@@ -156,6 +159,29 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           </ul>
         </div>
       </div>
+      <section className="stack">
+        <h2 className="hall-title"><Icon name="ti-hunter" size={26} /> {t("Коллекция карточек")} <span className="small muted num">{specials.list.filter((s) => s.has).length}/{specials.list.length}</span></h2>
+        <div className="sp-grid">
+          {specials.list.map((sp) => {
+            const on = specials.selected === sp.key;
+            return (
+              <div key={sp.key} className={`sp-card${sp.has ? "" : " locked"}${on ? " on" : ""}${sp.theme.holo ? " holo" : ""}`} style={{ ["--c1" as string]: sp.theme.c1, ["--c2" as string]: sp.theme.c2, ["--ink" as string]: sp.theme.ink }}>
+                <span className="sp-boost num">+{sp.boost} OVR</span>
+                <Icon name={sp.icon} size={54} />
+                <b className="sp-name">{sp.name}</b>
+                <span className="sp-desc">{t(sp.desc)}</span>
+                {viewer?.id === id && sp.has && (
+                  <form action={cardVersionAction}>
+                    <input type="hidden" name="version" value={on ? "" : sp.key} />
+                    <SubmitButton className="sp-btn">{on ? t("Снять") : t("Показывать")}</SubmitButton>
+                  </form>
+                )}
+                {!sp.has && <Icon name="r-lock" size={18} />}
+              </div>
+            );
+          })}
+        </div>
+      </section>
       <div className="stat-strip">
         <div>
           <b className="num">{matches.length}</b>

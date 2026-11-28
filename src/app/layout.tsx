@@ -106,6 +106,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Link href={`/players/${user.id}`}><Icon name="ui-card" /> {t("Моя карточка")}</Link>
                       <Link href="/duels"><Icon name="ui-duels" /> {t("Мои дуэли")}</Link>
                       <Link href="/pass"><Icon name="ui-pass" /> {t("Боевой пропуск")}</Link>
+                      <Link href="/story"><Icon name="ui-story" /> {t("Путь чемпиона")}</Link>
                       <Link href="/bets"><Icon name="ui-bets" /> {t("Прогнозы")}</Link>
                       <Link href="/shop"><Icon name="ui-shop" /> {t("Магазин")}</Link>
                       {judging && <Link href="/referee"><Icon name="ui-referee" /> {t("Кабинет судьи")}</Link>}

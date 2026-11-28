@@ -124,6 +124,7 @@ export function MobileMenu({ links, authed, admin }: { links: { href: string; la
   const extra = [
     { href: "/shop", label: t("Магазин"), icon: "ui-shop" },
     { href: "/bets", label: t("Прогнозы"), icon: "ui-bets" },
+    { href: "/story", label: t("Путь чемпиона"), icon: "ui-story" },
     authed ? { href: "/me", label: t("Мой кабинет"), icon: "ui-user" } : { href: "/login", label: t("Войти"), icon: "ui-login" },
     ...(authed ? [] : [{ href: "/signup", label: t("Создать аккаунт"), icon: "ui-signup" }]),
     ...(admin ? [{ href: "/admin", label: t("Админ-панель"), icon: "ui-admin" }] : []),
