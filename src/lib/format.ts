@@ -144,3 +144,13 @@ export function scoreOf(m: { best_of: number; games?: { home: number; away: numb
   if (m.best_of === 1 && m.games?.length === 1) return [m.games[0].home, m.games[0].away];
   return [m.home_wins ?? 0, m.away_wins ?? 0];
 }
+
+/** "Сегодня, 20:00" / "Завтра, 19:30" / "2 декабря, 18:00" in the competition's time zone. */
+export function fmtWhen(value: string | Date, tz: string, t: Fmt, now = new Date()): string {
+  const d = new Date(value);
+  const day = (x: Date) => x.toLocaleDateString("en-CA", { timeZone: tz });
+  const time = new Intl.DateTimeFormat(t.intl, { timeZone: tz, hour: "2-digit", minute: "2-digit" }).format(d);
+  if (day(d) === day(now)) return t("Сегодня, {time}", { time });
+  if (day(d) === day(new Date(now.getTime() + 86400_000))) return t("Завтра, {time}", { time });
+  return fmtDateTime(d, tz, t);
+}

@@ -696,6 +696,18 @@ def u_plane():
     return [C(32, 32, 27)], [P("M14 31L48 17L42 48L31 40L25 46L24 37L42 23L21 34Z", "light"), P("M24 37L25 46L31 40Z", "acc")]
 
 
+def u_home():
+    return [P("M8 30L32 8L56 30V54C56 56 54 58 52 58H40V42H24V58H12C10 58 8 56 8 54Z"), P("M4 31L32 5L60 31", "acc")], [R(27, 44, 10, 14, 2, "dark"), C(32, 24, 4, "light")]
+
+
+def u_play():
+    return [P("M14 22H50C57 22 62 28 61 36L59 48C58 54 52 56 48 52L42 46H22L16 52C12 56 6 54 5 48L3 36C2 28 7 22 14 22Z")], [S("M18 31V41M13 36H23", 4, "light"), C(44, 32, 3.4, "acc"), C(50, 38, 3.4, "acc"), R(28, 14, 8, 8, 2, "acc")]
+
+
+def u_more():
+    return [R(8, 8, 20, 20, 6), R(36, 8, 20, 20, 6), R(8, 36, 20, 20, 6)], [R(36, 36, 20, 20, 6, "acc"), C(46, 46, 3, "light")]
+
+
 def u_push():
     return [R(14, 4, 36, 56, 8), R(18, 11, 28, 38, 3, "dark")], [P("M32 16C38 16 41 21 41 26V32L44 36H20L23 32V26C23 21 26 16 32 16Z", "acc"), C(32, 40, 3, "acc"), C(44, 14, 6, "red")]
 
@@ -808,7 +820,7 @@ UI = {
     "user": ("sky", u_user), "card": ("sky", u_id), "duels": ("steel", lambda: g_crossed_swords(False)), "shop": ("sky", u_bag), "referee": ("gold", g_scales),
     "admin": ("steel", u_gear), "logout": ("steel", u_door), "competitions": ("gold", u_trophy), "players": ("sky", u_users), "stats": ("sky", g_chart),
     "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "clubs": ("sky", g_team_shield), "story": ("gold", g_road), "fx": ("gold", lambda: g_burst()),
-    "install": ("sky", u_install), "clock": ("sky", u_clock), "push": ("steel", u_push), "telegram": ("sky", u_plane), "event": ("gold", u_event),
+    "install": ("sky", u_install), "clock": ("sky", u_clock), "push": ("steel", u_push), "telegram": ("sky", u_plane), "event": ("gold", u_event), "home": ("sky", u_home), "play": ("gold", u_play), "more": ("steel", u_more),
 }
 
 for key, (pal, fn, acc, tier) in TAGS.items():

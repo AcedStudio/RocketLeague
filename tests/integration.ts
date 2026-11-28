@@ -39,6 +39,7 @@ import { proProfile, headToHead, titleChances, findPlayer } from "../src/lib/pro
 import { refereeProfile, claimRefTier } from "../src/lib/referee-rank";
 import { eventState, claimMilestone, eventLeaderboard } from "../src/lib/events";
 import { findEvent } from "../src/lib/engine/events";
+import { myTasks } from "../src/lib/today";
 import { commonSlots, cleanAvailability } from "../src/lib/engine/availability";
 import { onboardState, claimStep } from "../src/lib/onboarding";
 import { storyState, claimChapter } from "../src/lib/story";
@@ -1029,6 +1030,22 @@ async function main() {
     await rejects(claimMilestone(u.id, "frostbite:0"), /уже получена/);
     await rejects(claimMilestone(u.id, "frostbite:9"), /нет/);
     assert.ok((await eventLeaderboard(e)).some((r) => r.user_id === u.id && r.points === 50));
+  });
+
+  await step("today: open matches and duels become clear next steps, both sides see the same match", async () => {
+    const m = await one<{ id: string; home_entry_id: string; away_entry_id: string }>(
+      `select m.id, m.home_entry_id, m.away_entry_id from matches m join competitions c on c.id = m.competition_id and c.draw_state = 'published'
+        where m.status = 'ready' and not m.is_bye and m.home_entry_id is not null and m.away_entry_id is not null limit 1`,
+    );
+    if (!m) return;
+    const [h, a] = await Promise.all(
+      [m.home_entry_id, m.away_entry_id].map((e) => one<{ user_id: string }>("select user_id from entry_members where entry_id = $1 and active limit 1", [e])),
+    );
+    const th = (await myTasks(h!.user_id)).find((x) => x.id === m.id);
+    const ta = (await myTasks(a!.user_id)).find((x) => x.id === m.id);
+    assert.ok(th && ta, "both players see the match");
+    assert.ok(th!.opponent.name && ta!.opponent.name && th!.opponent.name !== ta!.opponent.name);
+    assert.ok(th!.step.label.length > 0);
   });
 
   console.log(`\n${passed} integration checks passed`);

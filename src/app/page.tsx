@@ -9,6 +9,8 @@ import { Countdown } from "@/components/client";
 import { CompetitionRow, CompStatusBadge, Flash, MatchCard, SetupNotice, type SP } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
 import { HomePulse } from "@/components/HomePulse";
+import { HeroArena } from "@/components/HeroArena";
+import { TodayPanel } from "@/components/TodayPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -43,24 +45,26 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
 
   return (
     <>
-      <section className="hero-banner">
-        <picture>
-          <source type="image/avif" srcSet="/brand/hero-960.avif 960w, /brand/hero-1672.avif 1672w, /brand/hero-2560.avif 2560w, /brand/hero-3344.avif 3344w" sizes="100vw" />
-          <source type="image/webp" srcSet="/brand/hero-960.webp 960w, /brand/hero-1672.webp 1672w, /brand/hero-2560.webp 2560w, /brand/hero-3344.webp 3344w" sizes="100vw" />
-          <img
-            src="/brand/hero-1672.jpg"
-            srcSet="/brand/hero-960.jpg 960w, /brand/hero-1672.jpg 1672w, /brand/hero-2560.jpg 2560w"
-            sizes="100vw"
-            width={1672}
-            height={941}
-            fetchPriority="high"
-            decoding="async"
-            alt={t("RLC — Rocket League Championship. Играй, соревнуйся, стань легендой")}
-          />
-        </picture>
-      </section>
+      <HeroArena
+        t={t}
+        title={settings.site_name}
+        tagline={t(settings.tagline)}
+        primary={user ? { href: "/play", label: t("Мои игры") } : { href: "/signup", label: t("Начать играть") }}
+        secondary={featured ? { href: `/c/${featured.slug}`, label: featured.name } : { href: "/competitions", label: t("Турниры") }}
+        stats={[
+          { value: totals?.players ?? 0, label: t("игроков") },
+          { value: totals?.matches ?? 0, label: t("матчей сыграно") },
+          { value: totals?.goals ?? 0, label: t("голов") },
+        ]}
+      />
 
-      <section className="hero-panel">
+      {user && (
+        <div className="wrap home-today">
+          <TodayPanel userId={user.id} nick={user.rl_nickname} t={t} />
+        </div>
+      )}
+
+      <section className={`hero-panel${user ? " after-today" : ""}`}>
         <div className="wrap">
           <div className="hero-card">
             {featured ? (
@@ -72,7 +76,7 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
                       {t(KIND_LABELS[featured.kind])} · {featured.mode}
                     </span>
                   </div>
-                  <h1>{featured.name}</h1>
+                  <h2 className="hero-card-title">{featured.name}</h2>
                   <p className="muted">
                     {t(FORMAT_LABELS[featured.format])}
                     {featured.season ? ` · ${featured.season}` : ""}
@@ -120,7 +124,7 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
             ) : (
               <>
                 <div className="stack" style={{ gap: 12, minWidth: 0 }}>
-                  <h1>{settings.site_name}</h1>
+                  <h2 className="hero-card-title">{settings.site_name}</h2>
                   <p className="muted">
                     {t(settings.tagline)}. {t("Скоро здесь появится первое соревнование.")}
                   </p>
