@@ -546,6 +546,10 @@ def g_supercharged():
     return [C(32, 32, 26, "void"), P("M36 6L16 36H29L24 58L48 26H35Z")], [S("M32 32m-20 0a20 20 0 1 0 40 0", 2, "soft")]
 
 
+def g_gradcap():
+    return [P("M4 24L32 12L60 24L32 36Z"), P("M16 30V44C16 50 48 50 48 44V30L32 37Z", "acc"), S("M56 26V42", 3, "gold")], [C(56, 44, 3.5, "gold"), star(32, 24, 5, 2, 5, role="light")]
+
+
 def g_ticket():
     return [P("M6 16H58V27A5 5 0 0 0 58 37V48H6V37A5 5 0 0 0 6 27Z")], [S("M42 18V46", 2, "soft"), star(24, 32, 9, 3.8, 5, role="light"), R(46, 24, 8, 4, 2, "light"), R(46, 36, 8, 4, 2, "light")]
 
@@ -690,6 +694,7 @@ TAGS = {
     "apex": ("purple", g_apex, "gold", 3),
     "s1": ("sky", g_s1, "gold", 3),
     "supercharged": ("gold", g_supercharged, None, 3),
+    "rookieclass": ("sky", g_gradcap, "steel", 1),
 }
 
 QUESTS = {

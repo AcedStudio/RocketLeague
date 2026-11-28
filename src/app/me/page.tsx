@@ -1,3 +1,4 @@
+import { StartNudge } from "@/components/StartNudge";
 import Link from "next/link";
 import { requireUser, ROLE_LABELS } from "@/lib/auth";
 import { q } from "@/lib/db";
@@ -73,6 +74,7 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
         </div>
       </div>
       <Flash sp={sp} />
+      <StartNudge userId={user.id} />
 
       <div className="split">
         <div className="stack-lg">

@@ -32,6 +32,7 @@ import { wallet, claimDaily, buyTag, buyItem, openCrate, equipItem, equipBadge, 
 import { refereeDesk } from "../src/lib/referee-desk";
 import { liveBoard, liveFeed, liveState } from "../src/lib/live";
 import { placeBet, betPanel } from "../src/lib/bets";
+import { onboardState, claimStep } from "../src/lib/onboarding";
 import { createClub, joinClub, leaveClub, clubOf, clubMembers, clubTable } from "../src/lib/clubs";
 import { passState, questsState, claimQuest, claimTier, buyElite } from "../src/lib/pass";
 import { currentSeason } from "../src/lib/engine/pass";
@@ -880,6 +881,21 @@ async function main() {
     assert.equal((await clubOf(mate.id))?.role, "owner", "ownership passes on");
     await leaveClub(mate.id);
     assert.equal(await clubOf(mate.id), null);
+  });
+
+  await step("onboarding: gift, steps unlock from real actions, final tag only after all", async () => {
+    const rookie = await mkUser("rookie");
+    let st = await onboardState(rookie.id);
+    assert.ok(st.show && !st.finished);
+    await claimStep(rookie.id, "gift");
+    assert.equal((await wallet(rookie.id)).balance, 100);
+    await rejects(claimStep(rookie.id, "gift"), /уже получена/);
+    await rejects(claimStep(rookie.id, "club"), /не выполнен/);
+    await rejects(claimStep(rookie.id, "final"), /все шаги/);
+    await claimDaily(rookie.id);
+    await claimStep(rookie.id, "checkin");
+    st = await onboardState(rookie.id);
+    assert.equal(st.steps.filter((s) => s.claimed).length, 2);
   });
 
   console.log(`\n${passed} integration checks passed`);

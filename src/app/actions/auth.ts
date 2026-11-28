@@ -52,14 +52,14 @@ export async function signup(fd: FormData) {
       }
       throw err;
     }
-    await notify(undefined, [id], "Добро пожаловать!", "Аккаунт создан. Выберите соревнование и зарегистрируйтесь.", "/competitions");
+    await notify(undefined, [id], "Добро пожаловать!", "Аккаунт создан. Пройдите первые шаги — за них монеты и эксклюзивный тег.", "/start");
     await createSession(id);
     if (discord) {
       (await cookies()).delete(DISCORD_PENDING_COOKIE);
       await joinGuild(discord.id, discord.accessToken);
     }
   });
-  redirect(next);
+  redirect(next === "/" || next === "/me" ? "/start" : next);
 }
 
 export async function login(fd: FormData) {
