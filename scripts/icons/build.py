@@ -558,6 +558,29 @@ def g_var():
     return [R(6, 10, 52, 36, 6, "steel"), R(11, 15, 42, 26, 3, "dark"), R(26, 46, 12, 8, 1, "steel"), R(18, 54, 28, 5, 2.5, "steel")], [T(32, 34, "VAR", 13, "acc"), C(50, 19, 2.6, "red")]
 
 
+def g_crystal():
+    return [P("M32 4L44 18L40 44L32 60L24 44L20 18Z"), P("M20 18L8 26L14 40L24 44Z", "acc"), P("M44 18L56 26L50 40L40 44Z", "acc")], [P("M32 4L36 18L32 46L28 18Z", "light"), S("M32 46V58", 2, "soft"), C(14, 12, 2, "light"), C(52, 50, 2, "light")]
+
+
+def g_firework():
+    rays = []
+    for i in range(12):
+        import math
+        a = math.radians(i * 30)
+        x1, y1 = 32 + 9 * math.cos(a), 28 + 9 * math.sin(a)
+        x2, y2 = 32 + 24 * math.cos(a), 28 + 24 * math.sin(a)
+        rays.append(S(f"M{x1:.1f} {y1:.1f}L{x2:.1f} {y2:.1f}", 4 if i % 2 == 0 else 3, "main" if i % 2 == 0 else "acc"))
+    return rays + [C(32, 28, 7)], [C(32, 28, 3, "light"), S("M32 40V60", 3, "soft"), C(12, 52, 2.5, "acc"), C(52, 54, 2, "light")]
+
+
+def g_lovetap():
+    return [P("M32 58C12 44 4 34 4 23C4 14 11 8 19 8C25 8 29 11 32 16C35 11 39 8 45 8C53 8 60 14 60 23C60 34 52 44 32 58Z"), C(46, 44, 12, "acc")], [P("M14 18C16 14 20 13 23 14C19 15 16 17 15 21Z", "light"), P("M48 35L40 46H46L43 54L53 41H47Z", "light")]
+
+
+def u_event():
+    return [R(6, 12, 52, 46, 7, "steel"), R(6, 12, 52, 13, 7, "acc")], [R(15, 5, 6, 13, 3, "silver"), R(43, 5, 6, 13, 3, "silver"), star(32, 42, 13, 5.5, 5)]
+
+
 def g_compass():
     return [C(32, 32, 26, "gold"), C(32, 32, 20, "void")], [P("M32 12L38 32L32 52L26 32Z", "light"), P("M32 12L38 32H26Z", "red"), C(32, 32, 3.5, "gold"), S("M32 6V10M32 54V58M6 32H10M54 32H58", 2.4, "soft")]
 
@@ -729,6 +752,9 @@ TAGS = {
     "rookieclass": ("sky", g_gradcap, "steel", 1),
     "pathfinder": ("gold", g_compass, "gold", 2),
     "whistle": ("silver", g_whistle, "gold", 2),
+    "frostbite": ("ice", g_crystal, "sky", 2),
+    "newyear": ("gold", g_firework, "red", 2),
+    "lovetap": ("pink", g_lovetap, "gold", 2),
     "var": ("steel", g_var, "gold", 3),
 }
 
@@ -782,7 +808,7 @@ UI = {
     "user": ("sky", u_user), "card": ("sky", u_id), "duels": ("steel", lambda: g_crossed_swords(False)), "shop": ("sky", u_bag), "referee": ("gold", g_scales),
     "admin": ("steel", u_gear), "logout": ("steel", u_door), "competitions": ("gold", u_trophy), "players": ("sky", u_users), "stats": ("sky", g_chart),
     "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "clubs": ("sky", g_team_shield), "story": ("gold", g_road), "fx": ("gold", lambda: g_burst()),
-    "install": ("sky", u_install), "clock": ("sky", u_clock), "push": ("steel", u_push), "telegram": ("sky", u_plane),
+    "install": ("sky", u_install), "clock": ("sky", u_clock), "push": ("steel", u_push), "telegram": ("sky", u_plane), "event": ("gold", u_event),
 }
 
 for key, (pal, fn, acc, tier) in TAGS.items():
@@ -902,6 +928,8 @@ AVATARS = {
     "ignition": ("red", g_ignition, "fire", "sky"),
     "pathfinder": ("gold", g_laurel_star, "gold", "green"),
     "arbiter": ("steel", g_scales, "gold", "sky"),
+    "frostbite": ("sky", g_crystal, "ice", "sky"),
+    "firework": ("void", g_firework, "gold", "red"),
 }
 for key, (plate, fn, pal, acc) in AVATARS.items():
     avatar(key, plate, fn, pal, acc)

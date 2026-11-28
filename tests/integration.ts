@@ -37,6 +37,8 @@ import { notify } from "../src/lib/notify";
 import { handleUpdate, linkUrl } from "../src/lib/telegram";
 import { proProfile, headToHead, titleChances, findPlayer } from "../src/lib/prostats";
 import { refereeProfile, claimRefTier } from "../src/lib/referee-rank";
+import { eventState, claimMilestone, eventLeaderboard } from "../src/lib/events";
+import { findEvent } from "../src/lib/engine/events";
 import { commonSlots, cleanAvailability } from "../src/lib/engine/availability";
 import { onboardState, claimStep } from "../src/lib/onboarding";
 import { storyState, claimChapter } from "../src/lib/story";
@@ -998,6 +1000,25 @@ async function main() {
     await claimRefTier(ref.id, "whistle");
     await rejects(claimRefTier(ref.id, "whistle"), /уже получена/);
     await rejects(claimRefTier(ref.id, "legend"), /ещё/);
+  });
+
+  await step("events: points from activity in the window, milestones need points, paid once, leaderboard", async () => {
+    const e = findEvent("frostbite")!;
+    const u = await mkUser("frosty");
+    let st = (await eventState(u.id, e))!;
+    assert.equal(st.points, 0);
+    await rejects(claimMilestone(u.id, "frostbite:0"), /очков/);
+    // 10 check-ins inside the window = 50 points.
+    for (let i = 0; i < 10; i++) {
+      await q("insert into coin_bonuses (user_id, amount, reason, ref, created_at) values ($1, 10, 'daily', $2, $3)", [u.id, `ev-${i}`, new Date(Date.UTC(2026, 11, 2 + i, 8))]);
+    }
+    st = (await eventState(u.id, e))!;
+    assert.equal(st.points, 50);
+    assert.ok(st.milestones[0].reached && !st.milestones[1].reached);
+    await claimMilestone(u.id, "frostbite:0");
+    await rejects(claimMilestone(u.id, "frostbite:0"), /уже получена/);
+    await rejects(claimMilestone(u.id, "frostbite:9"), /нет/);
+    assert.ok((await eventLeaderboard(e)).some((r) => r.user_id === u.id && r.points === 50));
   });
 
   console.log(`\n${passed} integration checks passed`);
