@@ -28,7 +28,6 @@ import { Icon } from "@/components/Icon";
 import { finisherItem } from "@/lib/engine/shop";
 import { BetCard } from "@/components/BetCard";
 import { betPanel } from "@/lib/bets";
-import { wallet } from "@/lib/shop";
 
 export const dynamic = "force-dynamic";
 
@@ -111,7 +110,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
       ))[0]
     : null;
   const fx = finisherItem(fxRow?.finisher);
-  const [bets, myWallet] = await Promise.all([betPanel(m.id, user?.id ?? null), user ? wallet(user.id) : Promise.resolve(null)]);
+  const bets = await betPanel(m.id, user?.id ?? null);
   const showBets = !!bets && (!done || !!bets.mine);
 
   const team = (e: typeof home, name: string | null, win: boolean) => (
@@ -195,7 +194,7 @@ export default async function MatchPage({ params, searchParams }: { params: Prom
         {m.forfeit && <p className="small faint" style={{ textAlign: "center" }}>{t("Техническая победа")}</p>}
       </section>
 
-      {showBets && bets && <BetCard matchId={m.id} panel={bets} home={m.home_name ?? ""} away={m.away_name ?? ""} balance={myWallet?.balance ?? 0} signedIn={!!user} />}
+      {showBets && bets && <BetCard matchId={m.id} panel={bets} home={m.home_name ?? ""} away={m.away_name ?? ""} signedIn={!!user} />}
       <MatchJourney m={m} comp={comp} role={assignedRef || (staff && !side) ? "referee" : side ? "player" : "viewer"} t={t} />
 
       {ref && m.home_entry_id && m.away_entry_id && !m.is_bye && (!done ? (
