@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { flushOutbox } from "./discord";
 import { flushPush } from "./push";
+import { flushTelegram } from "./telegram";
 import { getT } from "./i18n/server";
 
 import { FormError } from "./errors";
@@ -95,6 +96,7 @@ export async function guard(path: string, fn: () => Promise<void>): Promise<void
     // Deliver queued Discord messages once the response is sent.
     after(() => flushOutbox().catch((e) => console.error("[discord] flush", e)));
     after(() => flushPush().catch((e) => console.error("[push] flush", e)));
+    after(() => flushTelegram().catch((e) => console.error("[telegram] flush", e)));
   } catch (err) {
     if (err instanceof FormError) {
       const t = await getT();

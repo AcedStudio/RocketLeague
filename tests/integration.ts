@@ -34,6 +34,7 @@ import { liveBoard, liveFeed, liveState } from "../src/lib/live";
 import { placeBet, betPanel } from "../src/lib/bets";
 import { vapid, saveSubscription, allowedEndpoint } from "../src/lib/push";
 import { notify } from "../src/lib/notify";
+import { handleUpdate, linkUrl } from "../src/lib/telegram";
 import { commonSlots, cleanAvailability } from "../src/lib/engine/availability";
 import { onboardState, claimStep } from "../src/lib/onboarding";
 import { storyState, claimChapter } from "../src/lib/story";
@@ -933,6 +934,24 @@ async function main() {
     assert.deepEqual(Object.keys(b), ["0"]);
     const slots = commonSlots([a, b], new Date("2026-11-30T00:00:00Z"), new Date("2026-12-07T00:00:00Z"), "Asia/Tashkent");
     assert.equal(slots[0].toISOString(), "2026-11-30T15:00:00.000Z");
+  });
+
+  await step("telegram: one-time /start code links the chat, expired code refused, notifications queued", async () => {
+    const u = await mkUser("tgfan");
+    await rejects(linkUrl(u.id), /не подключён/); // no bot token in QA
+    const chat = 700000000 + Math.floor(Math.random() * 1e6);
+    await q("insert into telegram_codes (code, user_id, expires_at) values ('old-' || $1::text, $2, now() - interval '1 minute')", [chat, u.id]);
+    await handleUpdate({ message: { chat: { id: chat, type: "private" }, text: `/start old-${chat}` } });
+    assert.equal((await one<{ c: string | null }>("select telegram_chat_id::text as c from users where id = $1", [u.id]))!.c, null);
+    await q("insert into telegram_codes (code, user_id, expires_at) values ('ok-' || $1::text, $2, now() + interval '5 minutes')", [chat, u.id]);
+    await handleUpdate({ message: { chat: { id: chat, type: "private" }, text: `/start ok-${chat}` } });
+    assert.equal((await one<{ c: string }>("select telegram_chat_id::text as c from users where id = $1", [u.id]))!.c, String(chat));
+    assert.equal(await one("select 1 from telegram_codes where code = $1", [`ok-${chat}`]), null, "code is single-use");
+    await notify(undefined, [u.id], "Матч через час", "", "/me");
+    assert.equal((await q("select 1 from telegram_outbox where chat_id = $1", [chat])).length, 1);
+    await q("delete from telegram_outbox where chat_id = $1", [chat]);
+    await handleUpdate({ message: { chat: { id: chat, type: "private" }, text: "/stop" } });
+    assert.equal((await one<{ c: string | null }>("select telegram_chat_id::text as c from users where id = $1", [u.id]))!.c, null);
   });
 
   console.log(`\n${passed} integration checks passed`);

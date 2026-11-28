@@ -496,3 +496,19 @@ create table if not exists push_outbox (
   payload jsonb not null,
   created_at timestamptz not null default now()
 );
+
+-- Telegram bot: linked chats, one-time link codes, notification outbox.
+alter table users add column if not exists telegram_chat_id bigint;
+alter table users add column if not exists telegram_username text;
+create unique index if not exists users_telegram_uniq on users (telegram_chat_id) where telegram_chat_id is not null;
+create table if not exists telegram_codes (
+  code text primary key,
+  user_id uuid not null references users(id) on delete cascade,
+  expires_at timestamptz not null
+);
+create table if not exists telegram_outbox (
+  id bigserial primary key,
+  chat_id bigint not null,
+  payload jsonb not null,
+  created_at timestamptz not null default now()
+);

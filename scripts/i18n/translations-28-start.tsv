@@ -51,3 +51,29 @@ Push-уведомления	Push-bildirishnomalar	Push notifications
 На iPhone: сначала добавьте сайт на экран «Домой» (Поделиться → На экран Домой), затем откройте его оттуда и включите уведомления.	iPhone’da: avval saytni «Uy» ekraniga qo‘shing (Ulashish → Uy ekraniga), so‘ng uni o‘sha yerdan ochib, bildirishnomalarni yoqing.	On iPhone: first add the site to your Home Screen (Share → Add to Home Screen), then open it from there and turn notifications on.
 Уведомления заблокированы в настройках браузера для этого сайта.	Bu sayt uchun bildirishnomalar brauzer sozlamalarida bloklangan.	Notifications are blocked for this site in your browser settings.
 Этот браузер не поддерживает push-уведомления.	Bu brauzer push-bildirishnomalarni qo‘llab-quvvatlamaydi.	This browser doesn't support push notifications.
++{n} монет! Серия: {d} дн.	+{n} tanga! Ketma-ketlik: {d} kun.	+{n} coins! Streak: {d} days.
+Daily bonus · Kunlik bonus · Ежедневный бонус	Daily bonus · Kunlik bonus · Ежедневный бонус	Daily bonus · Kunlik bonus · Ежедневный бонус
+Next matches · Keyingi o‘yinlar · Ближайшие матчи	Next matches · Keyingi o‘yinlar · Ближайшие матчи	Next matches · Keyingi o‘yinlar · Ближайшие матчи
+Profile · Profil · Профиль	Profile · Profil · Профиль	Profile · Profil · Профиль
+Unlink · Uzish · Отвязать	Unlink · Uzish · Отвязать	Unlink · Uzish · Отвязать
+Telegram отвязан	Telegram uzildi	Telegram unlinked
+Telegram отвязан. Уведомления сюда больше не придут.	Telegram uzildi. Bildirishnomalar endi bu yerga kelmaydi.	Telegram unlinked. Notifications won't come here anymore.
+Telegram привязан! Сюда будут приходить матчи, результаты и напоминания.	Telegram ulandi! Bu yerga o‘yinlar, natijalar va eslatmalar keladi.	Telegram linked! Matches, results and reminders will arrive here.
+Telegram-бот ещё не подключён	Telegram-bot hali ulanmagan	The Telegram bot isn't connected yet
+Ближайших матчей нет.	Yaqin o‘yinlar yo‘q.	No upcoming matches.
+Бонус дня ждёт — /daily	Kunlik bonus kutmoqda — /daily	Your daily bonus is waiting — /daily
+Бонус дня уже получен	Kunlik bonus olingan	Daily bonus already claimed
+Бот присылает матчи и результаты, а ещё выдаёт бонус дня — команда /daily.	Bot o‘yinlar va natijalarni yuboradi, kunlik bonusni ham beradi — /daily buyrug‘i.	The bot sends matches and results, and gives out the daily bonus — command /daily.
+Выберите действие:	Amalni tanlang:	Choose an action:
+Монеты: {n}	Tangalar: {n}	Coins: {n}
+Не получилось, попробуйте позже.	Bo‘lmadi, keyinroq urinib ko‘ring.	That didn't work, try again later.
+Открыть бота	Botni ochish	Open the bot
+Открыть сайт	Saytni ochish	Open the site
+Привет! Это бот RL Championship. Чтобы получать уведомления, откройте кабинет на сайте и нажмите «Привязать Telegram».	Salom! Bu RL Championship boti. Bildirishnomalarni olish uchun saytdagi kabinetni oching va «Telegramni ulash» tugmasini bosing.	Hi! This is the RL Championship bot. To get notifications, open your profile on the site and tap "Link Telegram".
+Привязан	Ulangan	Linked
+Привязать Telegram	Telegramni ulash	Link Telegram
+Сначала привяжите аккаунт: кабинет на сайте → «Привязать Telegram».	Avval akkauntni ulang: saytdagi kabinet → «Telegramni ulash».	Link your account first: your profile on the site → "Link Telegram".
+Ссылка устарела. Откройте кабинет на сайте и нажмите «Привязать Telegram» ещё раз.	Havola eskirgan. Saytdagi kabinetni oching va «Telegramni ulash»ni yana bosing.	This link has expired. Open your profile on the site and tap "Link Telegram" again.
+Уведомления о матчах, результаты и бонус дня — в Telegram.	O‘yin bildirishnomalari, natijalar va kunlik bonus — Telegramda.	Match alerts, results and the daily bonus — in Telegram.
+Уровень {n} · {xp} XP	Daraja {n} · {xp} XP	Level {n} · {xp} XP
+время не назначено	vaqt belgilanmagan	time not set
