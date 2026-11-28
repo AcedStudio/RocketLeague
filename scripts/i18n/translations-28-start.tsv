@@ -77,3 +77,15 @@ Telegram-бот ещё не подключён	Telegram-bot hali ulanmagan	The T
 Уведомления о матчах, результаты и бонус дня — в Telegram.	O‘yin bildirishnomalari, natijalar va kunlik bonus — Telegramda.	Match alerts, results and the daily bonus — in Telegram.
 Уровень {n} · {xp} XP	Daraja {n} · {xp} XP	Level {n} · {xp} XP
 время не назначено	vaqt belgilanmagan	time not set
+Head to head · Shaxsiy uchrashuvlar · Личные встречи	Head to head · Shaxsiy uchrashuvlar · Личные встречи	Head to head · Shaxsiy uchrashuvlar · Личные встречи
+Player card · O‘yinchi kartasi · Карточка игрока	Player card · O‘yinchi kartasi · Карточка игрока	Player card · O‘yinchi kartasi · Карточка игрока
+Standings · Jadval · Таблица	Standings · Jadval · Таблица	Standings · Jadval · Таблица
+Top rating · Reyting topi · Топ рейтинга	Top rating · Reyting topi · Топ рейтинга	Top rating · Reyting topi · Топ рейтинга
+Другой режим: /top 2v2	Boshqa rejim: /top 2v2	Other mode: /top 2v2
+Канал «{name}» подключён: сюда будут приходить результаты, таблицы и команды тура.	«{name}» kanali ulandi: bu yerga natijalar, jadvallar va tur jamoalari keladi.	Channel "{name}" connected: results, tables and teams of the round will be posted there.
+Карточка	Karta	Card
+Напишите ник соперника: /h2h Nickname	Raqib nikini yozing: /h2h Nickname	Type your opponent's nickname: /h2h Nickname
+Открыть на сайте	Saytda ochish	Open on the site
+Открыть профиль	Profilni ochish	Open profile
+Топ	Top	Top
+Это вы :)	Bu sizsiz :)	That's you :)
