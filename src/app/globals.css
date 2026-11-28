@@ -1906,7 +1906,7 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .ha-streaks i.gold { background: linear-gradient(90deg, transparent, rgba(255, 170, 40, 0.9), #FFF3D6); box-shadow: 0 0 14px rgba(255, 170, 40, 0.8); }
 @keyframes ha-streak { 0% { transform: translateX(0) scaleX(0.6); opacity: 0; } 10% { opacity: 1; } 70% { opacity: 1; } 100% { transform: translateX(340%) scaleX(1.1); opacity: 0; } }
 
-.ha-ball-wrap { position: absolute; right: clamp(4%, 9vw, 14%); top: 50%; width: clamp(170px, 24vw, 320px); aspect-ratio: 1; transform: translateY(-58%); z-index: 2; animation: ha-float 5.5s ease-in-out infinite; }
+.ha-ball-wrap { position: absolute; right: clamp(3%, 6vw, 10%); top: 46%; width: clamp(160px, 21vw, 290px); aspect-ratio: 1; transform: translateY(-58%); z-index: 2; animation: ha-float 5.5s ease-in-out infinite; }
 .ha-ball { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 30px rgba(55, 190, 254, 0.55)); }
 .ha-hex { transform-origin: 100px 100px; animation: ha-spin 14s linear infinite; }
 .ha-halo { transform-origin: 100px 100px; animation: ha-pulse 3s ease-in-out infinite; }
@@ -1927,7 +1927,8 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 .ha-content { position: relative; z-index: 3; display: grid; gap: 14px; justify-items: start; padding-top: 40px; padding-bottom: clamp(90px, 12vw, 150px); }
 .ha-kicker { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #CFEFFF; background: rgba(55, 190, 254, 0.12); border: 1px solid rgba(55, 190, 254, 0.35); }
 .ha-kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #5BE38C; box-shadow: 0 0 10px #5BE38C; animation: task-pulse 1.6s ease-in-out infinite; }
-.ha-title { margin: 0; font-family: var(--font-unbounded), var(--font-display, sans-serif); font-weight: 700; font-size: clamp(2.3rem, 7vw, 5.2rem); line-height: 0.95; letter-spacing: -0.01em; text-transform: uppercase; max-width: 12ch; }
+.ha-title { margin: 0; font-family: var(--font-unbounded), var(--font-display, sans-serif); font-weight: 700; font-size: clamp(2rem, 5.6vw, 4.2rem); line-height: 0.95; letter-spacing: -0.01em; text-transform: uppercase; }
+.ha-title > span { white-space: nowrap; }
 .ha-title > span:first-child { color: #fff; text-shadow: 0 0 30px rgba(55, 190, 254, 0.6); }
 .ha-shine { display: inline-block; background: linear-gradient(100deg, #FFC83D 0%, #FFE8A8 40%, #fff 50%, #FFE8A8 60%, #E8A028 100%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: ha-shine 5s ease-in-out infinite; filter: drop-shadow(0 0 18px rgba(255, 180, 60, 0.35)); }
 @keyframes ha-shine { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0 0; } }
@@ -1942,7 +1943,8 @@ body:has(.live-page.stream) .topbar, body:has(.live-page.stream) .footer, body:h
 @media (max-width: 720px) {
   .ha { min-height: 0; align-items: flex-start; }
   .ha-content { padding-top: 28px; padding-bottom: 96px; }
-  .ha-ball-wrap { right: -14%; top: 22%; width: 200px; opacity: 0.55; }
+  .ha-ball-wrap { right: -16%; top: 14%; width: 180px; opacity: 0.5; }
+  .ha-title { font-size: min(9vw, 2.6rem); }
   .ha-cta { width: 100%; }
   .ha-cta .btn { flex: 1; justify-content: center; }
   .ha-floor { height: 50%; }
