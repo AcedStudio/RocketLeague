@@ -32,6 +32,9 @@ import { wallet, claimDaily, buyTag, buyItem, openCrate, equipItem, equipBadge, 
 import { refereeDesk } from "../src/lib/referee-desk";
 import { liveBoard, liveFeed, liveState } from "../src/lib/live";
 import { placeBet, betPanel } from "../src/lib/bets";
+import { vapid, saveSubscription, allowedEndpoint } from "../src/lib/push";
+import { notify } from "../src/lib/notify";
+import { commonSlots, cleanAvailability } from "../src/lib/engine/availability";
 import { onboardState, claimStep } from "../src/lib/onboarding";
 import { storyState, claimChapter } from "../src/lib/story";
 import { specialsFor, chooseVersion } from "../src/lib/specials";
@@ -908,6 +911,28 @@ async function main() {
     assert.ok(sp.list.every((x) => !x.has));
     await rejects(chooseVersion(rookie.id, "icon"), /не получена/);
     await chooseVersion(rookie.id, "");
+  });
+
+  await step("push + scheduling helper: only real push services, VAPID kept, notify queues pushes; common free hours", async () => {
+    const u = await mkUser("pushy");
+    const k1 = await vapid();
+    assert.match(k1.publicKey, /^[\w-]{80,90}$/);
+    assert.equal((await vapid()).publicKey, k1.publicKey);
+    assert.ok(!allowedEndpoint("https://evil.example.com/x") && !allowedEndpoint("http://fcm.googleapis.com/fcm/send/x"));
+    const keys = { p256dh: "B" + "a".repeat(86), auth: "c".repeat(22) };
+    assert.equal(await saveSubscription(u.id, { endpoint: "https://169.254.169.254/latest", keys }), false);
+    assert.equal(await saveSubscription(u.id, { endpoint: "https://fcm.googleapis.com/fcm/send/qa-" + u.id, keys }), true);
+    await notify(undefined, [u.id], "Матч через час", "", "/me");
+    const queued = await q<{ payload: { title: string } }>("select payload from push_outbox where user_id = $1", [u.id]);
+    assert.equal(queued.length, 1);
+    assert.equal(queued[0].payload.title, "Матч через час");
+    await q("delete from push_outbox where user_id = $1", [u.id]);
+    // Availability: Mon 19–21 for one, Mon 20–22 for the other → Monday 20:00 Tashkent is suggested first.
+    const a = cleanAvailability({ "0": [19, 20, 21] });
+    const b = cleanAvailability({ "0": [20, 21, 22], "9": [1], "2": [99] });
+    assert.deepEqual(Object.keys(b), ["0"]);
+    const slots = commonSlots([a, b], new Date("2026-11-30T00:00:00Z"), new Date("2026-12-07T00:00:00Z"), "Asia/Tashkent");
+    assert.equal(slots[0].toISOString(), "2026-11-30T15:00:00.000Z");
   });
 
   console.log(`\n${passed} integration checks passed`);

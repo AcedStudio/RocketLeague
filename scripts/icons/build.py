@@ -653,6 +653,18 @@ def u_bell():
     return [P("M32 6C44 6 50 16 50 28V40L56 48H8L14 40V28C14 16 20 6 32 6Z"), C(32, 53, 6, "acc")], []
 
 
+def u_install():
+    return [R(16, 4, 32, 56, 7), R(20, 11, 24, 38, 3, "dark"), C(32, 54, 2.5, "light")], [S("M32 17V36", 5, "acc"), P("M23 31L32 42L41 31Z", "acc")]
+
+
+def u_clock():
+    return [C(32, 32, 26), C(32, 32, 20, "dark")], [S("M32 18V32L42 38", 5, "acc"), C(32, 32, 3, "light")]
+
+
+def u_push():
+    return [R(14, 4, 36, 56, 8), R(18, 11, 28, 38, 3, "dark")], [P("M32 16C38 16 41 21 41 26V32L44 36H20L23 32V26C23 21 26 16 32 16Z", "acc"), C(32, 40, 3, "acc"), C(44, 14, 6, "red")]
+
+
 # ---------------------------------------------------------------- the catalogue
 TAGS = {
     "noob": ("pink", g_pacifier, "sky", 0),
@@ -756,6 +768,7 @@ UI = {
     "user": ("sky", u_user), "card": ("sky", u_id), "duels": ("steel", lambda: g_crossed_swords(False)), "shop": ("sky", u_bag), "referee": ("gold", g_scales),
     "admin": ("steel", u_gear), "logout": ("steel", u_door), "competitions": ("gold", u_trophy), "players": ("sky", u_users), "stats": ("sky", g_chart),
     "hall": ("gold", u_columns), "rules": ("bone", u_scroll), "login": ("gold", u_key), "signup": ("purple", u_spark), "bell": ("gold", u_bell), "pass": ("sky", g_ticket), "replay": ("sky", u_replay), "live": ("sky", u_live), "bets": ("purple", u_orb), "clubs": ("sky", g_team_shield), "story": ("gold", g_road), "fx": ("gold", lambda: g_burst()),
+    "install": ("sky", u_install), "clock": ("sky", u_clock), "push": ("steel", u_push),
 }
 
 for key, (pal, fn, acc, tier) in TAGS.items():

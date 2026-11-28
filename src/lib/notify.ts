@@ -2,6 +2,7 @@ import "server-only";
 import { q, type Queryable } from "./db";
 import type { Params } from "./i18n/core";
 import { enqueueDms, type Button } from "./discord";
+import { enqueuePush } from "./push";
 
 // Titles/bodies are Russian templates ({name} placeholders); params are stored alongside
 // and each reader sees them in their own language. A param `at` (ISO date) + `tz`
@@ -16,6 +17,7 @@ export async function notify(c: Queryable | undefined, userIds: string[], title:
     [ids, title, body, link, JSON.stringify(params)],
     c,
   );
+  await enqueuePush(c, ids, title, body, link, params);
   // Mirror to Discord DMs for users who linked Discord (sent after the action commits).
   await enqueueDms(c, ids, { title, description: body || undefined, params, link: link || undefined, buttons });
 }

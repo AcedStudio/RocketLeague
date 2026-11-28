@@ -1,6 +1,6 @@
 import { appIcon } from "@/lib/app-icon";
 
-const SIZES = new Set([192, 512]);
+const SIZES = new Set([96, 192, 512]);
 
 export async function GET(_req: Request, { params }: { params: Promise<{ size: string }> }) {
   const size = Number((await params).size);

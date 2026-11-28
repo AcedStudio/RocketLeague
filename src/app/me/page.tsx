@@ -1,4 +1,6 @@
 import { StartNudge } from "@/components/StartNudge";
+import { Icon } from "@/components/Icon";
+import { PushToggle } from "@/components/client";
 import { AvailabilityGrid } from "@/components/AvailabilityGrid";
 import { cleanAvailability } from "@/lib/engine/availability";
 import Link from "next/link";
@@ -154,12 +156,16 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
             )}
           </section>
           <section id="availability" className="panel stack">
-            <h3>{t("Когда вы можете играть")}</h3>
+            <h3 className="row" style={{ gap: 8 }}><Icon name="ui-clock" size={22} /> {t("Когда вы можете играть")}</h3>
             <AvailabilityGrid value={cleanAvailability(extra?.availability)} />
           </section>
         </div>
 
         <aside className="stack-lg">
+          <section className="panel stack">
+            <h3 className="row" style={{ gap: 8 }}><Icon name="ui-push" size={22} /> {t("Push-уведомления")}</h3>
+            <PushToggle />
+          </section>
           <section className="panel stack">
             <h3>Discord</h3>
             {extra?.discord_username ? (
