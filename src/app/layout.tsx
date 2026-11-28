@@ -10,7 +10,8 @@ import { siteUrl } from "@/lib/discord";
 import { one, dbConfigured } from "@/lib/db";
 import { LogoMark, BellIcon } from "@/components/Art";
 import { Suspense } from "react";
-import { MobileMenu, I18nProvider, LangSwitch, Dropdown, InstallApp, ServiceWorker } from "@/components/client";
+import { BottomNav, MoreMenu, NavLinks, I18nProvider, LangSwitch, Dropdown, InstallApp, ServiceWorker } from "@/components/client";
+import { myTasks } from "@/lib/today";
 import { getT } from "@/lib/i18n/server";
 import { DICTS } from "@/lib/i18n/dicts";
 import { logout } from "./actions/auth";
@@ -39,17 +40,36 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? isAdmin(user.role) ||
       !!(await one("select 1 from matches where referee_user_id = $1 and status <> 'completed' limit 1", [user.id]).catch(() => null))
     : false;
-  const LINKS = [
-    { href: "/competitions", label: t("Соревнования"), icon: "ui-competitions" },
-    { href: "/players", label: t("Игроки"), icon: "ui-players" },
+  // Five things people come for; everything else lives under "More".
+  const PRIMARY = [
+    { href: "/play", label: t("Мои игры"), icon: "ui-play" },
+    { href: "/competitions", label: t("Турниры"), icon: "ui-competitions" },
+    { href: "/players", label: t("Рейтинг"), icon: "ui-players" },
+    { href: "/live", label: t("Эфир"), icon: "ui-live" },
+  ];
+  const MORE = [
+    { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
+    { href: "/clubs", label: t("Клубы"), icon: "ui-clubs" },
     { href: "/stats", label: t("Статистика"), icon: "ui-stats" },
     { href: "/hall", label: t("Зал славы"), icon: "ui-hall" },
-    { href: "/clubs", label: t("Клубы"), icon: "ui-clubs" },
-    { href: "/live", label: t("Эфир"), icon: "ui-live" },
-    { href: "/pass", label: t("Пропуск"), icon: "ui-pass" },
     { href: "/events", label: t("События"), icon: "ui-event" },
-    { href: "/duels", label: t("Дуэли"), icon: "ui-duels" },
+    { href: "/pass", label: t("Боевой пропуск"), icon: "ui-pass" },
+    { href: "/shop", label: t("Магазин"), icon: "ui-shop" },
+    { href: "/bets", label: t("Прогнозы"), icon: "ui-bets" },
+    { href: "/story", label: t("Путь чемпиона"), icon: "ui-story" },
     { href: "/rules", label: t("Правила"), icon: "ui-rules" },
+  ];
+  const TABS = [
+    { href: "/", label: t("Главная"), icon: "ui-home" },
+    { href: "/play", label: t("Мои игры"), icon: "ui-play" },
+    { href: "/competitions", label: t("Турниры"), icon: "ui-competitions" },
+    { href: "/players", label: t("Рейтинг"), icon: "ui-players" },
+  ];
+  const GROUPS = [
+    { title: t("Играть"), links: [PRIMARY[0], MORE[0], PRIMARY[1], PRIMARY[3]] },
+    { title: t("Сообщество"), links: [PRIMARY[2], MORE[1], MORE[2], MORE[3]] },
+    { title: t("Награды"), links: [MORE[4], MORE[5], MORE[6], MORE[7], MORE[8]] },
+    { title: t("Помощь"), links: [MORE[9], { href: "/faq", label: t("Контакты"), icon: "ui-bell" }] },
   ];
   const me = user && dbConfigured()
     ? await one<{ n: number; avatar: string | null }>(
@@ -58,6 +78,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       )
     : null;
   const unread = me?.n ?? 0;
+  // Red badge on "My games" when a match needs the player's action.
+  const urgent = user && dbConfigured() ? (await myTasks(user.id).catch(() => [])).filter((x) => x.step.tone === "urgent").length : 0;
 
   return (
     <html lang={t.locale} className={`${display.variable} ${text.variable}`}>
@@ -75,11 +97,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span>{settings.site_name}</span>
             </Link>
             <nav className="nav" aria-label={t("Основная навигация")}>
-              {LINKS.filter((l) => l.href !== "/rules" && l.href !== "/events").map((l) => (
-                <Link key={l.href} href={l.href}>
-                  {l.label}
-                </Link>
-              ))}
+              <NavLinks links={PRIMARY} />
+              <MoreMenu label={t("Ещё")} links={MORE} />
             </nav>
             <div className="top-actions">
               <div className="hide-m">
@@ -103,6 +122,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     }
                   >
                     <div className="user-menu-list">
+                      <Link href="/play"><Icon name="ui-play" /> {t("Мои игры")}</Link>
                       <Link href="/me"><Icon name="ui-user" /> {t("Профиль")}</Link>
                       <Link href={`/players/${user.id}`}><Icon name="ui-card" /> {t("Моя карточка")}</Link>
                       <Link href="/duels"><Icon name="ui-duels" /> {t("Мои дуэли")}</Link>
@@ -129,13 +149,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </Link>
                 </>
               )}
-              <Suspense>
-                <MobileMenu links={LINKS} authed={!!user} admin={isReferee(user?.role)} />
-              </Suspense>
             </div>
           </div>
         </header>
         <main id="main">{children}</main>
+        <Suspense>
+          <BottomNav tabs={TABS} groups={GROUPS} authed={!!user} admin={isReferee(user?.role)} badge={urgent} />
+        </Suspense>
         <footer className="footer">
           <div className="wrap">
             <span>

@@ -110,7 +110,11 @@ export function Countdown({ to }: { to: string }) {
   );
 }
 
-export function MobileMenu({ links, authed, admin }: { links: { href: string; label: string; icon?: string }[]; authed: boolean; admin: boolean }) {
+type NavLink = { href: string; label: string; icon?: string };
+const isHere = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(href + "/"));
+
+/** The full menu as a sheet: grouped tiles + language. Opened from the bottom tab bar on phones. */
+export function MobileMenu({ groups, authed, admin }: { groups: { title: string; links: NavLink[] }[]; authed: boolean; admin: boolean }) {
   const [open, setOpen] = useState(false);
   const t = useT();
   const path = usePathname();
@@ -119,41 +123,100 @@ export function MobileMenu({ links, authed, admin }: { links: { href: string; la
     if (!open) return;
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", esc);
+      document.body.style.overflow = "";
+    };
   }, [open]);
-  const extra = [
-    { href: "/shop", label: t("Магазин"), icon: "ui-shop" },
-    { href: "/bets", label: t("Прогнозы"), icon: "ui-bets" },
-    { href: "/story", label: t("Путь чемпиона"), icon: "ui-story" },
+  const account: NavLink[] = [
     authed ? { href: "/me", label: t("Мой кабинет"), icon: "ui-user" } : { href: "/login", label: t("Войти"), icon: "ui-login" },
     ...(authed ? [] : [{ href: "/signup", label: t("Создать аккаунт"), icon: "ui-signup" }]),
     ...(admin ? [{ href: "/admin", label: t("Админ-панель"), icon: "ui-admin" }] : []),
   ];
-  const tile = (l: { href: string; label: string; icon?: string }) => {
-    const here = l.href === "/" ? path === "/" : path === l.href || path.startsWith(l.href + "/");
-    return (
-      <Link key={l.href} href={l.href} className="mnav-tile" aria-current={here ? "page" : undefined}>
-        <span className="mnav-ico" aria-hidden="true">{l.icon && <Icon name={l.icon} size={22} />}</span>
-        <span>{l.label}</span>
-      </Link>
-    );
-  };
+  const tile = (l: NavLink) => (
+    <Link key={l.href} href={l.href} className="mnav-tile" aria-current={isHere(path, l.href) ? "page" : undefined}>
+      <span className="mnav-ico" aria-hidden="true">{l.icon && <Icon name={l.icon} size={22} />}</span>
+      <span>{l.label}</span>
+    </Link>
+  );
   return (
     <>
-      <button className="icon-btn menu-btn" aria-expanded={open} aria-controls="mobile-nav" aria-label={t("Меню")} onClick={() => setOpen(!open)}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-        </svg>
+      <button className="tab" aria-expanded={open} aria-controls="mobile-nav" onClick={() => setOpen(!open)}>
+        <Icon name="ui-more" size={24} />
+        <span>{t("Меню")}</span>
       </button>
       {open && <div className="mnav-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
-      <nav id="mobile-nav" className="mobile-nav" data-open={open} onClick={() => setOpen(false)}>
-        <div className="mnav-grid">{links.map(tile)}</div>
-        <div className="mnav-grid mnav-sub">{extra.map(tile)}</div>
+      <nav id="mobile-nav" className="mobile-nav" data-open={open} aria-label={t("Меню")} onClick={() => setOpen(false)}>
+        <span className="mnav-handle" aria-hidden />
+        {groups.map((g) => (
+          <div key={g.title} className="mnav-group">
+            <span className="mnav-title">{g.title}</span>
+            <div className="mnav-grid">{g.links.map(tile)}</div>
+          </div>
+        ))}
+        <div className="mnav-group">
+          <span className="mnav-title">{t("Аккаунт")}</span>
+          <div className="mnav-grid">{account.map(tile)}</div>
+        </div>
         <div className="mnav-lang" onClick={(e) => e.stopPropagation()}>
           <span className="small faint">{t("Язык")}</span>
           <LangSwitch />
         </div>
       </nav>
+    </>
+  );
+}
+
+/** Phone navigation: four destinations + the menu, always at the thumb. */
+export function BottomNav({ tabs, groups, authed, admin, badge }: { tabs: NavLink[]; groups: { title: string; links: NavLink[] }[]; authed: boolean; admin: boolean; badge?: number }) {
+  const path = usePathname();
+  return (
+    <nav className="tabbar" aria-label="Tabs">
+      {tabs.map((l) => (
+        <Link key={l.href} href={l.href} className="tab" aria-current={isHere(path, l.href) ? "page" : undefined}>
+          <span className="tab-ico">
+            {l.icon && <Icon name={l.icon} size={24} />}
+            {l.href === "/play" && badge ? <i className="tab-badge">{badge > 9 ? "9+" : badge}</i> : null}
+          </span>
+          <span>{l.label}</span>
+        </Link>
+      ))}
+      <MobileMenu groups={groups} authed={authed} admin={admin} />
+    </nav>
+  );
+}
+
+/** Desktop "More" menu. */
+export function MoreMenu({ label, links }: { label: string; links: NavLink[] }) {
+  const path = usePathname();
+  const active = links.some((l) => isHere(path, l.href));
+  return (
+    <Dropdown
+      className="more-menu"
+      summary={<summary className={active ? "active" : undefined}>{label}</summary>}
+    >
+      <div className="more-list">
+        {links.map((l) => (
+          <Link key={l.href} href={l.href} aria-current={isHere(path, l.href) ? "page" : undefined}>
+            {l.icon && <Icon name={l.icon} size={20} />} {l.label}
+          </Link>
+        ))}
+      </div>
+    </Dropdown>
+  );
+}
+
+/** Desktop primary links with the active one highlighted. */
+export function NavLinks({ links }: { links: NavLink[] }) {
+  const path = usePathname();
+  return (
+    <>
+      {links.map((l) => (
+        <Link key={l.href} href={l.href} aria-current={isHere(path, l.href) ? "page" : undefined}>
+          {l.label}
+        </Link>
+      ))}
     </>
   );
 }
