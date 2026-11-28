@@ -122,6 +122,7 @@ export const AVATARS: Item[] = [
 ];
 
 export const PASS_ITEMS: Item[] = [
+  pass(tag("rookieclass", "", "Rookie Class", 0, "rare"), "onboard"),
   pass(finisher("ignition", "Ignition Burst", 0, "epic"), "s1"),
   pass(avatar("ignition", "Ignition Core", 0, "epic"), "s1"),
   pass(tag("ignition", "", "Ignition", 0, "rare"), "s1"),

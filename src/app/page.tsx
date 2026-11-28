@@ -1,3 +1,4 @@
+import { StartNudge } from "@/components/StartNudge";
 import Link from "next/link";
 import { dbConfigured, one, q } from "@/lib/db";
 import { getFeaturedCompetition, listCompetitions, getAnnouncements, entryCounts, getMatches, getSettings } from "@/lib/data";
@@ -143,6 +144,11 @@ export default async function Home({ searchParams }: { searchParams: SP }) {
         <Flash sp={sp} />
       </div>
 
+      {user && (
+        <div className="wrap" style={{ paddingTop: 12 }}>
+          <StartNudge userId={user.id} />
+        </div>
+      )}
       {pulseComp && <HomePulse comp={pulseComp} userId={user?.id ?? null} />}
 
       {news.length > 0 && (
