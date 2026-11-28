@@ -3,6 +3,7 @@ import { q } from "@/lib/db";
 import { notifyEntries } from "@/lib/notify";
 import { flushOutbox } from "@/lib/discord";
 import { flushPush } from "@/lib/push";
+import { flushTelegram } from "@/lib/telegram";
 
 // Daily (Vercel Hobby allows one cron per day): reminds about matches in the next 36 hours.
 export async function GET(req: Request) {
@@ -23,5 +24,6 @@ export async function GET(req: Request) {
   }
   const discord = await flushOutbox(200);
   const push = await flushPush(200);
+  await flushTelegram(200);
   return NextResponse.json({ reminded: due.length, discord, push });
 }

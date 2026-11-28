@@ -1,6 +1,8 @@
 import { StartNudge } from "@/components/StartNudge";
 import { Icon } from "@/components/Icon";
 import { PushToggle } from "@/components/client";
+import { telegramLinkAction, telegramUnlinkAction } from "@/app/actions/telegram";
+import { botUsername } from "@/lib/telegram";
 import { AvailabilityGrid } from "@/components/AvailabilityGrid";
 import { cleanAvailability } from "@/lib/engine/availability";
 import Link from "next/link";
@@ -28,8 +30,9 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
   const t = await getT();
   const sp = await searchParams;
   const user = await requireUser("/me");
-  const extra = await one<{ discord_username: string | null; discord_dm: boolean; has_password: boolean; availability: unknown }>(
-    "select discord_username, discord_dm, password_hash is not null as has_password, availability from users where id = $1",
+  const tgBot = await botUsername();
+  const extra = await one<{ discord_username: string | null; discord_dm: boolean; has_password: boolean; availability: unknown; telegram_chat_id: string | null; telegram_username: string | null }>(
+    "select discord_username, discord_dm, password_hash is not null as has_password, availability, telegram_chat_id, telegram_username from users where id = $1",
     [user.id],
   );
   const [entries, matches, judging, lvl, frameRow] = await Promise.all([
@@ -166,6 +169,29 @@ export default async function Me({ searchParams }: { searchParams: SP }) {
             <h3 className="row" style={{ gap: 8 }}><Icon name="ui-push" size={22} /> {t("Push-уведомления")}</h3>
             <PushToggle />
           </section>
+          {tgBot && (
+            <section id="telegram" className="panel stack">
+              <h3 className="row" style={{ gap: 8 }}><Icon name="ui-telegram" size={22} /> Telegram</h3>
+              {extra?.telegram_chat_id ? (
+                <>
+                  <span className="small">
+                    <b className="push-on">{t("Привязан")}</b>
+                    {extra.telegram_username ? <> · @{extra.telegram_username}</> : null}
+                  </span>
+                  <span className="small muted">{t("Бот присылает матчи и результаты, а ещё выдаёт бонус дня — команда /daily.")}</span>
+                  <div className="row" style={{ gap: 8 }}>
+                    <a className="btn btn-sm" href={`https://t.me/${tgBot}`} target="_blank" rel="noreferrer">{t("Открыть бота")}</a>
+                    <form action={telegramUnlinkAction}><SubmitButton className="btn btn-ghost btn-sm">{t("Отвязать")}</SubmitButton></form>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="small muted">{t("Уведомления о матчах, результаты и бонус дня — в Telegram.")}</span>
+                  <form action={telegramLinkAction}><SubmitButton className="btn btn-sm">{t("Привязать Telegram")}</SubmitButton></form>
+                </>
+              )}
+            </section>
+          )}
           <section className="panel stack">
             <h3>Discord</h3>
             {extra?.discord_username ? (
