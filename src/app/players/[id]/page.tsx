@@ -26,6 +26,8 @@ import { clubOf } from "@/lib/clubs";
 import { getUser } from "@/lib/auth";
 import { challengeAction } from "@/app/actions/duels";
 import { SubmitButton } from "@/components/client";
+import { ProPanel } from "@/components/ProStats";
+import { proProfile, titleChances } from "@/lib/prostats";
 
 export const dynamic = "force-dynamic";
 
@@ -93,7 +95,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
     allDerbies(),
     playerSeasons(id),
   ]);
-  const specials = await specialsFor(id);
+  const [specials, pro, chances] = await Promise.all([specialsFor(id), proProfile(id), titleChances(id)]);
   const derbyWith = new Set(derbyList.filter((d) => d.a === id || d.b === id).map((d) => (d.a === id ? d.b : d.a)));
   const earned = achievements.filter((a) => a.done).length;
   const wins = matches.filter((m) => m.won).length;
@@ -124,11 +126,11 @@ export default async function Player({ params }: { params: Promise<{ id: string 
         </div>
         <p className="muted" style={{ marginTop: 8 }}>
           {PLATFORM_LABELS[u.platform]} · {t("на платформе с {date}", { date: fmtDate(u.created_at, "Asia/Tashkent", t) })}
-          {duels.played > 0 && <> · ⚔️ {t("дуэли {w}–{l}", { w: duels.wins, l: duels.played - duels.wins })}</>}
+          {duels.played > 0 && <> · <Icon name="ui-duels" size={14} /> {t("дуэли {w}–{l}", { w: duels.wins, l: duels.played - duels.wins })}</>}
         </p>
         {viewer && viewer.id !== id && (
           <details className="challenge">
-            <summary className="btn btn-sm">⚔️ {t("Бросить вызов")}</summary>
+            <summary className="btn btn-sm"><Icon name="ui-duels" size={16} /> {t("Бросить вызов")}</summary>
             <form action={challengeAction} className="challenge-form">
               <input type="hidden" name="opponent_id" value={id} />
               <input className="input" name="message" maxLength={200} placeholder={t("Сообщение сопернику (необязательно)")} />
@@ -159,6 +161,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
           </ul>
         </div>
       </div>
+      <ProPanel stats={pro.stats} grid={pro.activity} chances={chances} compareHref={viewer && viewer.id !== id ? `/players/compare?a=${viewer.id}&b=${id}` : null} t={t} />
       <section className="stack">
         <h2 className="hall-title"><Icon name="ti-hunter" size={26} /> {t("Коллекция карточек")} <span className="small muted num">{specials.list.filter((s) => s.has).length}/{specials.list.length}</span></h2>
         <div className="sp-grid">
@@ -216,7 +219,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
         <div className="season-links">
           {seasons.map((se) => (
             <Link key={se.id} href={`/players/${id}/season/${se.slug}`} className="season-link">
-              <span>🎬 {t("Твой сезон")}</span>
+              <span className="row" style={{ gap: 6 }}><Icon name="ui-replay" size={16} /> {t("Твой сезон")}</span>
               <b>{se.name}</b>
               <small>{t("матчей: {n}", { n: se.played })} →</small>
             </Link>
@@ -225,7 +228,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
       )}
       <section className="stack" id="achievements">
         <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
-          <h2 style={{ fontSize: "1.3rem" }}>🏅 {t("Значки")}</h2>
+          <h2 className="hall-title"><Icon name="a-champion" size={26} /> {t("Значки")}</h2>
           <span className="small muted">{t("{n} из {total}", { n: earned, total: achievements.length })}</span>
         </div>
         <div className="ach-grid">
@@ -252,7 +255,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
       </section>
       {informs.length > 0 && (
         <section className="stack" id="inform">
-          <h2 style={{ fontSize: "1.3rem" }}>🃏 {t("Коллекция In-Form")}</h2>
+          <h2 className="hall-title"><Icon name="ui-card" size={26} /> {t("Коллекция In-Form")}</h2>
           <div className="if-strip">
             {informs.map((f) => (
               <Link key={`${f.slug}-${f.round}`} href={`/c/${f.slug}/calendar#tour-${f.round}`} className={`if-mini${f.active ? " active" : ""}`}>
@@ -267,14 +270,14 @@ export default async function Player({ params }: { params: Promise<{ id: string 
       )}
       {rivals.length > 0 && (
         <section className="stack" id="rivals">
-          <h2 style={{ fontSize: "1.3rem" }}>⚔️ {t("Соперники")}</h2>
+          <h2 className="hall-title"><Icon name="ui-duels" size={26} /> {t("Соперники")}</h2>
           <div className="rival-grid">
             {rivals.map((r) => {
               const pct = Math.round((r.wins / r.played) * 100);
               const body = (
                 <>
                   <div className="rival-top">
-                    <b>{r.opponent_user_id && derbyWith.has(r.opponent_user_id) && <span title={t("Дерби")}>⚡ </span>}{r.opponent}</b>
+                    <b>{r.opponent_user_id && derbyWith.has(r.opponent_user_id) && <span title={t("Дерби")}><Icon name="t-bolt" size={14} /> </span>}{r.opponent}</b>
                     <span className={`badge plain ${r.wins > r.losses ? "ok" : r.wins < r.losses ? "danger" : "dim"}`}>
                       {r.wins}–{r.losses}
                     </span>
@@ -284,7 +287,7 @@ export default async function Player({ params }: { params: Promise<{ id: string 
                   </span>
                   <span className="small muted">
                     {t("Матчей: {n}", { n: r.played })} · {t("Голы {gf}:{ga}", { gf: r.gf, ga: r.ga })}
-                    {r.last_score && ` · ${t("последний {score}", { score: r.last_score })} ${r.last_won ? "✅" : "❌"}`}
+                    {r.last_score && <> · {t("последний {score}", { score: r.last_score })} <b className={r.last_won ? "push-on" : "danger-ink"}>{r.last_won ? t("В") : t("П")}</b></>}
                   </span>
                 </>
               );
