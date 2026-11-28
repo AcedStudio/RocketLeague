@@ -88,7 +88,10 @@ export async function ensureTelegram() {
 }
 
 export async function botUsername() {
-  return telegramConfigured() ? await setting("tg_username") : null;
+  if (!telegramConfigured()) return null;
+  // Connect on first use instead of waiting for the cron tick (also picks up a rotated token).
+  await ensureTelegram().catch((e) => console.error("[telegram] ensure", e));
+  return await setting("tg_username");
 }
 
 /** One-time deep link that ties this Telegram chat to the signed-in user. */
